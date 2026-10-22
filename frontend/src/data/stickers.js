@@ -1,5 +1,4 @@
-// Sticker library. `svg` stickers are hand-made vector art (crisp at any size);
-// `emoji` stickers use the device's colour emoji font.
+// Sticker library: hand-made vector art, crisp at any size.
 const S = (body, vb = "0 0 100 100") => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}">${body}</svg>`;
 
 const petal = (cx, cy, r, color, rot) => `<ellipse cx="${cx}" cy="${cy - r}" rx="${r * 0.55}" ry="${r}" fill="${color}" transform="rotate(${rot} ${cx} ${cy})"/>`;
@@ -16,6 +15,16 @@ const star = (cx, cy, r, color) => {
   }).join(" ");
   return `<polygon points="${pts}" fill="${color}"/>`;
 };
+
+const GOLD_DEF =
+  '<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e3a1"/><stop offset=".35" stop-color="#d4a843"/><stop offset=".6" stop-color="#fff0c2"/><stop offset="1" stop-color="#9c7424"/></linearGradient></defs>';
+const G = "url(#gold)";
+// One half of a symmetric scroll flourish in a 200x60 box (flip = 1 left, -1 right).
+const scroll = (f = 1) => {
+  const X = (d) => 100 - d * f;
+  return `<path d="M100 30 C ${X(18)} 10 ${X(40)} 10 ${X(46)} 26 C ${X(50)} 38 ${X(36)} 44 ${X(30)} 34 C ${X(26)} 27 ${X(34)} 22 ${X(38)} 28 M${X(46)} 26 C ${X(60)} 50 ${X(84)} 44 ${X(96)} 30" fill="none" stroke="${G}" stroke-width="2.6" stroke-linecap="round"/>`;
+};
+const roundLeaf = (x, y, r, c = "#7f9a7a") => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`;
 
 const SVG_STICKERS = [
   // ---- Floral ----
@@ -75,8 +84,8 @@ const SVG_STICKERS = [
   { id: "gift", name: "Gift box", category: "party", svg: S(`<rect x="16" y="40" width="68" height="50" rx="4" fill="#ec4899"/><rect x="12" y="30" width="76" height="14" rx="3" fill="#f472b6"/><rect x="45" y="30" width="10" height="60" fill="#facc15"/><path d="M50 30 Q30 8 24 20 Q22 30 50 30 Q70 8 76 20 Q78 30 50 30Z" fill="none" stroke="#facc15" stroke-width="5"/>`) },
   { id: "confetti", name: "Confetti", category: "party", svg: S(["#f43f5e", "#3b82f6", "#facc15", "#22c55e", "#a855f7", "#f97316"].flatMap((c, i) => [`<rect x="${10 + i * 14}" y="${10 + ((i * 37) % 70)}" width="7" height="12" fill="${c}" transform="rotate(${i * 40} ${14 + i * 14} ${16 + ((i * 37) % 70)})"/>`, `<circle cx="${18 + ((i * 29) % 70)}" cy="${30 + ((i * 23) % 60)}" r="4" fill="${c}"/>`]).join("")) },
   { id: "party-popper", name: "Party popper", category: "party", svg: S(`<path d="M10 90 L40 40 L60 60Z" fill="#f59e0b"/><path d="M22 70 L44 76 M30 56 L52 66" stroke="#f43f5e" stroke-width="4"/><path d="M60 30 Q70 20 66 8 M70 44 Q84 40 92 28 M48 22 Q48 12 40 6" stroke="#8b5cf6" stroke-width="3" fill="none"/>${star(82, 12, 6, "#facc15")}<circle cx="88" cy="54" r="4" fill="#22c55e"/><circle cx="30" cy="16" r="4" fill="#3b82f6"/>`) },
-  { id: "teddy", name: "Teddy bear", category: "party", svg: S(`<circle cx="26" cy="22" r="11" fill="#a16207"/><circle cx="74" cy="22" r="11" fill="#a16207"/><circle cx="50" cy="40" r="26" fill="#ca8a04"/><ellipse cx="50" cy="50" rx="11" ry="8" fill="#fde68a"/><circle cx="40" cy="36" r="3" fill="#1f2937"/><circle cx="60" cy="36" r="3" fill="#1f2937"/><ellipse cx="50" cy="46" rx="4" ry="3" fill="#1f2937"/><ellipse cx="50" cy="80" rx="24" ry="18" fill="#ca8a04"/><ellipse cx="50" cy="82" rx="12" ry="10" fill="#fde68a"/>`) },
-  { id: "baby-bottle", name: "Baby bottle", category: "party", svg: S(`<path d="M44 6 Q50 0 56 6 L58 18 L42 18Z" fill="#fbcfe8"/><rect x="36" y="18" width="28" height="8" rx="2" fill="#38bdf8"/><rect x="32" y="26" width="36" height="66" rx="10" fill="#e0f2fe" stroke="#38bdf8" stroke-width="3"/><path d="M40 44 L50 44 M40 58 L50 58 M40 72 L50 72" stroke="#38bdf8" stroke-width="3"/>`) },
+  { id: "teddy", name: "Teddy bear", category: "baby", svg: S(`<circle cx="26" cy="22" r="11" fill="#a16207"/><circle cx="74" cy="22" r="11" fill="#a16207"/><circle cx="50" cy="40" r="26" fill="#ca8a04"/><ellipse cx="50" cy="50" rx="11" ry="8" fill="#fde68a"/><circle cx="40" cy="36" r="3" fill="#1f2937"/><circle cx="60" cy="36" r="3" fill="#1f2937"/><ellipse cx="50" cy="46" rx="4" ry="3" fill="#1f2937"/><ellipse cx="50" cy="80" rx="24" ry="18" fill="#ca8a04"/><ellipse cx="50" cy="82" rx="12" ry="10" fill="#fde68a"/>`) },
+  { id: "baby-bottle", name: "Baby bottle", category: "baby", svg: S(`<path d="M44 6 Q50 0 56 6 L58 18 L42 18Z" fill="#fbcfe8"/><rect x="36" y="18" width="28" height="8" rx="2" fill="#38bdf8"/><rect x="32" y="26" width="36" height="66" rx="10" fill="#e0f2fe" stroke="#38bdf8" stroke-width="3"/><path d="M40 44 L50 44 M40 58 L50 58 M40 72 L50 72" stroke="#38bdf8" stroke-width="3"/>`) },
   { id: "graduation-cap", name: "Graduation cap", category: "party", svg: S(`<path d="M50 20 L95 40 L50 60 L5 40Z" fill="#1f2937"/><path d="M25 50 L25 70 Q50 84 75 70 L75 50 L50 60Z" fill="#374151"/><path d="M50 40 L85 50 L85 76" stroke="#facc15" stroke-width="3" fill="none"/><circle cx="85" cy="80" r="5" fill="#facc15"/>`) },
   // ---- Celestial & decor ----
   { id: "star-gold", name: "Gold star", category: "decor", svg: S(star(50, 52, 44, "#facc15")) },
@@ -88,38 +97,90 @@ const SVG_STICKERS = [
   { id: "frame-circle", name: "Floral ring frame", category: "decor", svg: S(`<circle cx="50" cy="50" r="40" fill="none" stroke="#d4a017" stroke-width="2"/>` + flower(22, 22, 8, "#f472b6") + flower(78, 78, 8, "#f9a8d4") + leaf(30, 14, 10) + leaf(14, 32, 80) + leaf(70, 86, 190) + leaf(86, 68, 260)) },
   { id: "frame-gold", name: "Gold frame", category: "decor", svg: S(`<rect x="6" y="6" width="88" height="88" rx="4" fill="none" stroke="#d4a017" stroke-width="3"/><rect x="12" y="12" width="76" height="76" fill="none" stroke="#d4a017" stroke-width="1"/>${[["6", "6"], ["94", "6"], ["6", "94"], ["94", "94"]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5" fill="#d4a017"/>`).join("")}`) },
   { id: "bunting", name: "Bunting flags", category: "decor", svg: S(`<path d="M2 8 Q100 30 198 8" stroke="#64748b" stroke-width="2" fill="none"/>` + ["#f43f5e", "#facc15", "#3b82f6", "#22c55e", "#a855f7", "#f97316", "#ec4899"].map((c, i) => { const x = 14 + i * 28; const y = 8 + Math.sin(((x - 2) / 196) * Math.PI) * 12; return `<path d="M${x - 10} ${y} L${x + 10} ${y} L${x} ${y + 24}Z" fill="${c}"/>`; }).join(""), "0 0 200 50") },
+  // ---- Gold ornaments ----
+  { id: "gold-flourish", name: "Gold flourish", category: "gold", svg: S(GOLD_DEF + scroll(1) + scroll(-1) + `<circle cx="100" cy="30" r="4" fill="${G}"/><path d="M92 30 L100 22 L108 30 L100 38Z" fill="${G}"/>`, "0 0 200 60") },
+  { id: "gold-corner", name: "Gold corner", category: "gold", svg: S(GOLD_DEF + `<path d="M6 94 L6 30 Q6 6 30 6 L94 6" fill="none" stroke="${G}" stroke-width="3"/><path d="M14 94 L14 34 Q14 14 34 14 L94 14" fill="none" stroke="${G}" stroke-width="1.2"/><path d="M6 30 C 20 32 30 24 30 6" fill="none" stroke="${G}" stroke-width="2"/><circle cx="22" cy="22" r="4" fill="${G}"/><path d="M40 6 q6 -4 12 0 M6 40 q-4 6 0 12" stroke="${G}" stroke-width="2" fill="none"/>`) },
+  {
+    id: "laurel-wreath",
+    name: "Laurel wreath",
+    category: "gold",
+    svg: S(
+      GOLD_DEF +
+        Array.from({ length: 9 }, (_, i) => {
+          const a = Math.PI * (0.62 + i * 0.1);
+          const x = (50 + 36 * Math.cos(a)).toFixed(1);
+          const y = (50 + 36 * Math.sin(a)).toFixed(1);
+          const deg = ((a * 180) / Math.PI + 30).toFixed(0);
+          return `<ellipse cx="${x}" cy="${y}" rx="3.6" ry="8" fill="${G}" transform="rotate(${deg} ${x} ${y})"/><ellipse cx="${(100 - x).toFixed(1)}" cy="${y}" rx="3.6" ry="8" fill="${G}" transform="rotate(${-deg} ${(100 - x).toFixed(1)} ${y})"/>`;
+        }).join("") +
+        `<path d="M22 72 Q50 98 78 72" fill="none" stroke="${G}" stroke-width="2"/>`
+    ),
+  },
+  { id: "gold-arch", name: "Gold arch frame", category: "gold", svg: S(GOLD_DEF + `<path d="M12 98 L12 42 Q12 4 50 4 Q88 4 88 42 L88 98" fill="none" stroke="${G}" stroke-width="3"/><path d="M18 98 L18 44 Q18 11 50 11 Q82 11 82 44 L82 98" fill="none" stroke="${G}" stroke-width="1"/><circle cx="50" cy="4" r="3.5" fill="${G}"/>`) },
+  { id: "gold-crown", name: "Gold crown", category: "gold", svg: S(GOLD_DEF + `<path d="M14 74 L8 30 L32 50 L50 20 L68 50 L92 30 L86 74Z" fill="${G}"/><rect x="14" y="76" width="72" height="10" rx="3" fill="${G}"/><circle cx="8" cy="28" r="5" fill="${G}"/><circle cx="50" cy="18" r="5" fill="${G}"/><circle cx="92" cy="28" r="5" fill="${G}"/><circle cx="50" cy="58" r="5" fill="#b91c3c"/><circle cx="30" cy="62" r="3.5" fill="#1d4ed8"/><circle cx="70" cy="62" r="3.5" fill="#047857"/>`) },
+  { id: "gold-oval-frame", name: "Monogram frame", category: "gold", svg: S(GOLD_DEF + `<ellipse cx="50" cy="50" rx="34" ry="44" fill="none" stroke="${G}" stroke-width="2.5"/><ellipse cx="50" cy="50" rx="29" ry="39" fill="none" stroke="${G}" stroke-width="0.8" stroke-dasharray="1 3"/>` + [[50, 6], [84, 50], [50, 94], [16, 50]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.2" fill="${G}"/>`).join("")) },
+  { id: "gold-sparkle", name: "Gold sparkle", category: "gold", svg: S(GOLD_DEF + `<path d="M50 4 Q54 44 96 50 Q54 56 50 96 Q46 56 4 50 Q46 44 50 4Z" fill="${G}"/><path d="M82 10 Q83 18 90 19 Q83 20 82 28 Q81 20 74 19 Q81 18 82 10Z" fill="${G}"/>`) },
+  { id: "gold-divider-dots", name: "Gold dot divider", category: "gold", svg: S(GOLD_DEF + `<path d="M10 30 L80 30 M120 30 L190 30" stroke="${G}" stroke-width="1.5"/><path d="M88 30 L100 18 L112 30 L100 42Z" fill="none" stroke="${G}" stroke-width="2"/><circle cx="100" cy="30" r="4" fill="${G}"/><circle cx="84" cy="30" r="2" fill="${G}"/><circle cx="116" cy="30" r="2" fill="${G}"/>`, "0 0 200 60") },
+  // ---- More florals ----
+  {
+    id: "peony",
+    name: "Peony",
+    category: "floral",
+    svg: S(
+      `<g fill="#f4b6c2">${Array.from({ length: 8 }, (_, i) => `<ellipse cx="50" cy="30" rx="14" ry="22" transform="rotate(${i * 45} 50 50)"/>`).join("")}</g>` +
+        `<g fill="#ec8fa4">${Array.from({ length: 6 }, (_, i) => `<ellipse cx="50" cy="38" rx="10" ry="14" transform="rotate(${i * 60 + 20} 50 50)"/>`).join("")}</g>` +
+        `<circle cx="50" cy="50" r="9" fill="#d96c86"/><circle cx="50" cy="50" r="4" fill="#f6d77a"/>`
+    ),
+  },
+  { id: "rose-line", name: "Line-art rose", category: "floral", svg: S(`<g fill="none" stroke="#9f2f45" stroke-width="2.2" stroke-linecap="round"><path d="M50 40 q-6 -6 0 -10 q8 -2 8 6 q0 10 -12 10 q-12 0 -12 -14 q2 -14 16 -14 q18 0 18 18 q0 18 -20 18 q-18 0 -22 -14"/><path d="M48 60 L48 96" stroke="#4f5d3a"/></g>` + leaf(48, 80, -150, "#6b7f4f", 1) + leaf(48, 72, -30, "#6b7f4f", 1)) },
+  { id: "eucalyptus", name: "Eucalyptus", category: "floral", svg: S(`<path d="M20 95 Q50 50 78 6" stroke="#5f7466" stroke-width="2" fill="none"/>` + [[28, 82, 7], [38, 68, 8], [30, 60, 6], [48, 54, 8], [42, 42, 6], [58, 38, 7], [52, 26, 6], [68, 22, 6], [74, 10, 5], [22, 72, 5]].map(([x, y, r]) => roundLeaf(x, y, r, "#9bb3a1")).join("")) },
+  { id: "olive-branch", name: "Olive branch", category: "floral", svg: S(`<path d="M10 80 Q50 60 92 20" stroke="#5b6b3a" stroke-width="2" fill="none"/>` + [[20, 75, -20], [32, 68, 30], [42, 62, -30], [52, 54, 25], [62, 46, -35], [70, 38, 20], [80, 30, -30]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="3.4" fill="#7d8f55" transform="rotate(${r - 30} ${x} ${y})"/>`).join("") + `<circle cx="48" cy="66" r="3.4" fill="#3b4a2a"/><circle cx="68" cy="48" r="3" fill="#3b4a2a"/>`) },
+  { id: "babys-breath", name: "Baby's breath", category: "floral", svg: S(`<g stroke="#8aa07a" stroke-width="1.2" fill="none"><path d="M50 98 L50 50 L30 22 M50 60 L72 30 M50 50 L54 14 M40 36 L22 40 M64 42 L84 46"/></g>` + [[30, 22], [72, 30], [54, 14], [22, 40], [84, 46], [36, 28], [62, 22], [26, 30], [78, 38], [46, 18], [58, 30]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#ffffff" stroke="#e5e7eb"/>`).join("")) },
+  { id: "wisteria", name: "Hanging wisteria", category: "floral", svg: S(`<path d="M5 6 Q50 16 95 6" stroke="#6b7f4f" stroke-width="2" fill="none"/>` + [15, 35, 55, 75, 90].map((x, i) => Array.from({ length: 6 }, (_, k) => `<circle cx="${(x + Math.sin(k) * 2).toFixed(1)}" cy="${14 + k * 7 + i * 2}" r="${(4.2 - k * 0.5).toFixed(1)}" fill="${i % 2 ? "#b79ad6" : "#c9b2e6"}"/>`).join("")).join("")) },
+  { id: "rose-bud", name: "Rose bud", category: "floral", svg: S(`<path d="M50 96 L50 52" stroke="#4d7c0f" stroke-width="3"/>` + leaf(50, 78, -140, "#65a30d", 1.1) + leaf(50, 70, -40, "#65a30d", 1) + `<path d="M36 40 Q36 18 50 12 Q64 18 64 40 Q57 54 50 54 Q43 54 36 40Z" fill="#c2213f"/><path d="M50 12 Q44 30 50 54 M36 40 Q48 34 64 40" stroke="#8f1630" stroke-width="1.5" fill="none"/><path d="M38 46 L32 54 L44 52 M62 46 L68 54 L56 52" fill="#4d7c0f"/>`) },
+  // ---- Desi & wedding ----
+  {
+    id: "hanging-lanterns",
+    name: "Hanging lanterns",
+    category: "islamic",
+    svg: S(
+      GOLD_DEF +
+        [[25, 30], [50, 50], [75, 24]]
+          .map(
+            ([x, l]) =>
+              `<path d="M${x} 0 L${x} ${l}" stroke="${G}" stroke-width="1.2"/><path d="M${x - 6} ${l} L${x + 6} ${l} L${x + 9} ${l + 6} L${x - 9} ${l + 6}Z" fill="${G}"/><path d="M${x - 9} ${l + 6} Q${x - 13} ${l + 20} ${x - 6} ${l + 32} L${x + 6} ${l + 32} Q${x + 13} ${l + 20} ${x + 9} ${l + 6}Z" fill="#fde68a" stroke="${G}" stroke-width="1.5"/><path d="M${x - 6} ${l + 32} L${x + 6} ${l + 32} L${x} ${l + 38}Z" fill="${G}"/>`
+          )
+          .join("")
+    ),
+  },
+  { id: "paisley", name: "Paisley", category: "islamic", svg: S(`<path d="M50 92 C 18 92 10 60 26 42 C 40 26 70 30 70 12 C 86 30 88 92 50 92Z" fill="#9f1d35"/><path d="M50 82 C 28 82 22 60 34 48 C 44 38 64 40 68 28 C 76 46 74 82 50 82Z" fill="#d9a441"/><circle cx="48" cy="62" r="8" fill="#9f1d35"/><circle cx="48" cy="62" r="3" fill="#fde68a"/>` + Array.from({ length: 7 }, (_, i) => `<circle cx="${30 + i * 5}" cy="${(76 - Math.sin(i / 2) * 6).toFixed(1)}" r="1.6" fill="#fff7ed"/>`).join("")) },
+  { id: "jhumka", name: "Jhumka earring", category: "islamic", svg: S(GOLD_DEF + `<circle cx="50" cy="12" r="7" fill="none" stroke="${G}" stroke-width="3"/><circle cx="50" cy="30" r="9" fill="${G}"/><circle cx="50" cy="30" r="4" fill="#be123c"/><path d="M28 70 Q28 42 50 40 Q72 42 72 70Z" fill="${G}"/><path d="M28 70 L72 70" stroke="#9c7424" stroke-width="2"/>` + Array.from({ length: 9 }, (_, i) => `<line x1="${30 + i * 5}" y1="70" x2="${30 + i * 5}" y2="82" stroke="${G}" stroke-width="1.4"/><circle cx="${30 + i * 5}" cy="84" r="2.2" fill="${i % 2 ? "#be123c" : "#fff7ed"}"/>`).join("")) },
+  { id: "toran", name: "Marigold toran", category: "islamic", svg: S(`<path d="M0 8 L200 8" stroke="#166534" stroke-width="3"/>` + Array.from({ length: 9 }, (_, i) => { const x = 12 + i * 22; return Array.from({ length: i % 2 ? 4 : 3 }, (_, k) => flower(x, 16 + k * 11, 5, k % 2 ? "#facc15" : "#f97316", "#c2410c", 8)).join("") + leaf(x - 2, 10, 30, "#16a34a", 0.6); }).join(""), "0 0 200 60") },
+  { id: "dove-pair", name: "Pair of doves", category: "wedding", svg: S(`<g transform="translate(-6 6) scale(.62)"><path d="M20 60 Q30 35 55 40 Q70 20 88 22 Q75 35 72 48 Q78 60 60 70 Q40 78 20 60Z" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><circle cx="76" cy="30" r="2" fill="#334155"/><path d="M86 26 L94 28 L86 31Z" fill="#f59e0b"/></g><g transform="translate(106 18) scale(-.62 .62)"><path d="M20 60 Q30 35 55 40 Q70 20 88 22 Q75 35 72 48 Q78 60 60 70 Q40 78 20 60Z" fill="#fff" stroke="#cbd5e1" stroke-width="2"/><circle cx="76" cy="30" r="2" fill="#334155"/><path d="M86 26 L94 28 L86 31Z" fill="#f59e0b"/></g><g transform="translate(40 10) scale(.2)"><path d="${heartPath}" fill="#e11d48"/></g>`) },
+  { id: "love-letter", name: "Love letter", category: "love", svg: S(`<rect x="10" y="26" width="80" height="54" rx="5" fill="#fdf2f8" stroke="#be185d" stroke-width="2"/><path d="M10 30 L50 58 L90 30" fill="none" stroke="#be185d" stroke-width="2"/><g transform="translate(38 46) scale(.24)"><path d="${heartPath}" fill="#e11d48"/></g>`) },
+  { id: "heart-wreath", name: "Heart wreath", category: "love", svg: S(`<path d="${heartPath}" fill="none" stroke="#7f9a7a" stroke-width="2"/>` + [[22, 22], [12, 38], [16, 56], [30, 70], [78, 22], [88, 38], [84, 56], [70, 70], [50, 84]].map(([x, y], i) => flower(x, y, 5, i % 2 ? "#f9a8d4" : "#fda4af", "#fde68a", 6)).join("")) },
+  // ---- Baby ----
+  { id: "rattle", name: "Rattle", category: "baby", svg: S(`<circle cx="38" cy="38" r="24" fill="#bae6fd" stroke="#38bdf8" stroke-width="3"/><circle cx="30" cy="30" r="5" fill="#fff"/><path d="M54 54 L84 84" stroke="#f9a8d4" stroke-width="9" stroke-linecap="round"/><circle cx="86" cy="86" r="8" fill="#f472b6"/><path d="M22 40 Q38 50 54 36" stroke="#0284c7" stroke-width="2" fill="none"/>`) },
+  { id: "baby-feet", name: "Baby feet", category: "baby", svg: S([[30, 0], [64, 14]].map(([x, dy]) => `<ellipse cx="${x}" cy="${58 + dy}" rx="12" ry="20" fill="#f9a8d4"/>` + [0, 1, 2, 3, 4].map((k) => `<circle cx="${x - 10 + k * 5}" cy="${32 + dy + Math.abs(2 - k) * 1.5}" r="${(3.6 - k * 0.3).toFixed(1)}" fill="#f9a8d4"/>`).join("")).join("")) },
+  { id: "onesie", name: "Onesie", category: "baby", svg: S(`<path d="M30 10 Q50 22 70 10 L92 26 L80 42 L72 36 L72 70 Q72 80 62 84 L58 94 L42 94 L38 84 Q28 80 28 70 L28 36 L20 42 L8 26Z" fill="#e0f2fe" stroke="#38bdf8" stroke-width="2.5"/><g transform="translate(40 40) scale(.2)"><path d="${heartPath}" fill="#f472b6"/></g>`) },
+  { id: "bundle-of-joy", name: "Bundle of joy", category: "baby", svg: S(`<path d="M20 30 Q50 10 80 30 L70 80 Q50 92 30 80Z" fill="#fce7f3" stroke="#f472b6" stroke-width="2.5"/><circle cx="50" cy="38" r="12" fill="#fde7d3"/><path d="M44 40 q2 2 4 0 M52 40 q2 2 4 0" stroke="#7c2d12" stroke-width="1.5" fill="none"/><path d="M30 56 Q50 66 70 56" stroke="#f472b6" stroke-width="2" fill="none"/>`) },
+  // ---- Party ----
+  { id: "disco-ball", name: "Disco ball", category: "party", svg: S(`<path d="M50 0 L50 18" stroke="#64748b" stroke-width="2"/><circle cx="50" cy="56" r="36" fill="#cbd5e1"/>` + Array.from({ length: 6 }, (_, r) => Array.from({ length: 6 }, (_, k) => `<rect x="${22 + k * 9.5}" y="${28 + r * 9.5}" width="8" height="8" fill="${(r + k) % 3 ? "#e2e8f0" : "#94a3b8"}" opacity=".9"/>`).join("")).join("") + `<circle cx="50" cy="56" r="36" fill="none" stroke="#64748b" stroke-width="2"/><path d="M34 34 l4 -8 l4 8 l-4 8z" fill="#fff"/>`) },
+  { id: "champagne-bottle", name: "Champagne bottle", category: "party", svg: S(`<path d="M42 4 L58 4 L58 26 Q72 38 72 56 L72 92 Q72 96 68 96 L32 96 Q28 96 28 92 L28 56 Q28 38 42 26Z" fill="#14532d"/><path d="M42 4 L58 4 L58 22 L42 22Z" fill="#d4a017"/><rect x="28" y="56" width="44" height="22" fill="#fef3c7"/><text x="50" y="71" text-anchor="middle" font-family="serif" font-size="8" fill="#92400e">CHEERS</text>` + star(84, 12, 6, "#facc15") + star(14, 22, 4, "#facc15")) },
 ];
 
-const EMOJI = {
-  floral: "🌸🌺🌹🌷🌼🌻💐🪷🍃🌿",
-  love: "❤️💖💕💞💗💝💘😍🥰💋",
-  wedding: "💍👰🤵💒🥂🍾🎂🕊️👑💎",
-  islamic: "🕌🌙⭐🤲📿🕋🪔🌟",
-  party: "🎉🎊🎈🎁🎂🧁🍰🎵🎶🪩🥳🎀🍭🍕",
-  decor: "✨💫⭐🌈🦋☀️🌙🔥🍀🕯️",
-  baby: "👶🍼🧸🐣🦄🌈👣🚼",
-};
-
 export const STICKER_CATEGORIES = [
+  { id: "gold", label: "Gold" },
   { id: "floral", label: "Floral" },
   { id: "love", label: "Love" },
   { id: "wedding", label: "Wedding" },
-  { id: "islamic", label: "Islamic & Desi" },
+  { id: "islamic", label: "Desi & Islamic" },
   { id: "party", label: "Party" },
   { id: "baby", label: "Baby" },
   { id: "decor", label: "Decor & Frames" },
 ];
 
-const emojiStickers = Object.entries(EMOJI).flatMap(([category, str]) =>
-  [...new Intl.Segmenter("en", { granularity: "grapheme" }).segment(str)].map(({ segment }, i) => ({
-    id: `e-${category}-${i}`,
-    name: segment,
-    category,
-    emoji: segment,
-  }))
-);
-
-export const STICKERS = [...SVG_STICKERS.map((s) => ({ ...s, src: `data:image/svg+xml;utf8,${encodeURIComponent(s.svg)}` })), ...emojiStickers];
+export const STICKERS = SVG_STICKERS.map((s) => ({ ...s, src: `data:image/svg+xml;utf8,${encodeURIComponent(s.svg)}` }));
 
 const byId = Object.fromEntries(STICKERS.map((s) => [s.id, s]));
 export const getSticker = (id) => byId[id];

@@ -1,18 +1,43 @@
+import { luminance, mix } from "@/lib/color";
+
 // Theme presets — keep in sync with backend/src/utils/defaults.js THEMES.
 export const THEMES = {
-  blush: { label: "Blush Rose", primary: "#be185d", secondary: "#f9a8d4", background: "#fff7fb", surface: "#ffffff", text: "#3f3f46", fontHeading: "Great Vibes", fontBody: "Poppins", animation: "petals" },
-  emerald: { label: "Emerald Nikah", primary: "#047857", secondary: "#d4af37", background: "#f0fdf4", surface: "#ffffff", text: "#1f2937", fontHeading: "Amiri", fontBody: "Lora", animation: "stars" },
-  royal: { label: "Royal Purple", primary: "#4c1d95", secondary: "#d4af37", background: "#faf5ff", surface: "#ffffff", text: "#27272a", fontHeading: "Cinzel", fontBody: "Lora", animation: "stars" },
-  marigold: { label: "Marigold Mehndi", primary: "#c2410c", secondary: "#facc15", background: "#fffbeb", surface: "#ffffff", text: "#3f2a14", fontHeading: "Pacifico", fontBody: "Poppins", animation: "petals" },
-  "rose-gold": { label: "Rose Gold", primary: "#b76e79", secondary: "#e8c4a0", background: "#fdf6f0", surface: "#ffffff", text: "#4a3a3a", fontHeading: "Playfair Display", fontBody: "Lora", animation: "hearts" },
-  candy: { label: "Candy Party", primary: "#db2777", secondary: "#38bdf8", background: "#fdf4ff", surface: "#ffffff", text: "#312e81", fontHeading: "Pacifico", fontBody: "Quicksand", animation: "confetti" },
-  sky: { label: "Baby Sky", primary: "#0284c7", secondary: "#fbcfe8", background: "#f0f9ff", surface: "#ffffff", text: "#1e3a5f", fontHeading: "Dancing Script", fontBody: "Quicksand", animation: "hearts" },
-  champagne: { label: "Champagne", primary: "#a16207", secondary: "#e7d3a8", background: "#fefaf2", surface: "#ffffff", text: "#3b3025", fontHeading: "Playfair Display", fontBody: "Lora", animation: "stars" },
-  midnight: { label: "Midnight Gold", primary: "#facc15", secondary: "#a78bfa", background: "#0f172a", surface: "#1e293b", text: "#e2e8f0", fontHeading: "Cinzel", fontBody: "Poppins", animation: "confetti" },
-  slate: { label: "Corporate Slate", primary: "#1d4ed8", secondary: "#94a3b8", background: "#f8fafc", surface: "#ffffff", text: "#0f172a", fontHeading: "Playfair Display", fontBody: "Inter", animation: "none" },
-  sage: { label: "Sage Garden", primary: "#4d7c0f", secondary: "#d9c8a9", background: "#f7f9f2", surface: "#ffffff", text: "#2f3a22", fontHeading: "Parisienne", fontBody: "Cormorant Garamond", animation: "petals" },
-  ruby: { label: "Ruby Shaadi", primary: "#9f1239", secondary: "#f59e0b", background: "#fff1f2", surface: "#ffffff", text: "#3f1d24", fontHeading: "Alex Brush", fontBody: "Montserrat", animation: "petals" },
+  blush: { label: "Blush Romance", primary: "#9f2f45", secondary: "#e8b4b8", background: "#fffaf7", surface: "#ffffff", text: "#3d2b2f", fontHeading: "Great Vibes", fontBody: "Cormorant Garamond", animation: "petals", entryStyle: "linen-monogram", sealColor: "#7a2430", sealIcon: "monogram" },
+  emerald: { label: "Emerald Nikah", primary: "#0f5c46", secondary: "#c9a24a", background: "#f5f8f3", surface: "#ffffff", text: "#1f2a24", fontHeading: "Cinzel", fontBody: "Cormorant Garamond", animation: "stars", entryStyle: "sage-botanical", sealColor: "#c9a24a", sealIcon: "crest" },
+  royal: { label: "Royal Burgundy", primary: "#6b1e2a", secondary: "#c9a24a", background: "#fbf6f1", surface: "#ffffff", text: "#2e1a1e", fontHeading: "Cinzel", fontBody: "Cormorant Garamond", animation: "stars", entryStyle: "burgundy-dove", sealColor: "#c9a24a", sealIcon: "dove" },
+  marigold: { label: "Marigold Mehndi", primary: "#b4471a", secondary: "#f2b33d", background: "#fffaf0", surface: "#ffffff", text: "#3f2a14", fontHeading: "Great Vibes", fontBody: "Poppins", animation: "petals", entryStyle: "door-garden", sealColor: "#b4471a", sealIcon: "rose" },
+  "rose-gold": { label: "Rose Gold", primary: "#a8636e", secondary: "#e6c3a5", background: "#fdf7f3", surface: "#ffffff", text: "#4a3a3a", fontHeading: "Parisienne", fontBody: "Cormorant Garamond", animation: "hearts", entryStyle: "ivory-gatefold", sealColor: "#7c2b2b", sealIcon: "heart" },
+  candy: { label: "Candy Party", primary: "#db2777", secondary: "#38bdf8", background: "#fdf4ff", surface: "#ffffff", text: "#312e81", fontHeading: "Pacifico", fontBody: "Quicksand", animation: "confetti", entryStyle: "door-garden", sealColor: "#db2777", sealIcon: "heart" },
+  sky: { label: "Powder Blue", primary: "#2f6f9a", secondary: "#f3c6d3", background: "#f4f9fc", surface: "#ffffff", text: "#1e3a5f", fontHeading: "Dancing Script", fontBody: "Quicksand", animation: "hearts", entryStyle: "linen-monogram", sealColor: "#2f6f9a", sealIcon: "heart" },
+  champagne: { label: "Champagne", primary: "#8a6a2f", secondary: "#e7d3a8", background: "#fdf9f1", surface: "#ffffff", text: "#3b3025", fontHeading: "Playfair Display", fontBody: "Cormorant Garamond", animation: "stars", entryStyle: "linen-monogram", sealColor: "#8a6a2f", sealIcon: "monogram" },
+  midnight: { label: "Midnight Gold", primary: "#d9b25f", secondary: "#8b7cc8", background: "#11152b", surface: "#1b2140", text: "#e8e4d8", fontHeading: "Cinzel", fontBody: "Cormorant Garamond", animation: "stars", entryStyle: "midnight-gold", sealColor: "#c9a24a", sealIcon: "crest" },
+  slate: { label: "Modern Ink", primary: "#1c1a3d", secondary: "#e8544a", background: "#f8f7f4", surface: "#ffffff", text: "#1c1a3d", fontHeading: "Playfair Display", fontBody: "Plus Jakarta Sans", animation: "none", entryStyle: "midnight-gold", sealColor: "#e8544a", sealIcon: "monogram" },
+  sage: { label: "Sage Garden", primary: "#4f5d3a", secondary: "#c9b48a", background: "#f7f8f2", surface: "#ffffff", text: "#2f3a22", fontHeading: "Parisienne", fontBody: "Cormorant Garamond", animation: "petals", entryStyle: "sage-monogram", sealColor: "#b8646e", sealIcon: "monogram" },
+  ruby: { label: "Ruby Shaadi", primary: "#8c1c2e", secondary: "#d9a441", background: "#fff8f5", surface: "#ffffff", text: "#3f1d24", fontHeading: "Great Vibes", fontBody: "Cormorant Garamond", animation: "petals", entryStyle: "burgundy-dove", sealColor: "#c9a24a", sealIcon: "dove" },
 };
+
+// Entry screens guests see first. Keep ids in sync with components/invite/entry/*.
+export const ENTRY_STYLES = [
+  { id: "burgundy-dove", label: "Burgundy & Gold", kind: "envelope", swatch: "#6b1e2a" },
+  { id: "sage-monogram", label: "Sage Damask", kind: "envelope", swatch: "#9aa58a" },
+  { id: "ivory-gatefold", label: "Ivory Rose Gatefold", kind: "gatefold", swatch: "#f3e9dc" },
+  { id: "linen-monogram", label: "Classic Linen", kind: "envelope", swatch: "#ebe6dc" },
+  { id: "sage-botanical", label: "Olive Botanical", kind: "envelope", swatch: "#7f8b6b" },
+  { id: "midnight-gold", label: "Midnight & Gold", kind: "envelope", swatch: "#141a33" },
+  { id: "door-garden", label: "Garden Door", kind: "door", swatch: "#7fa08f" },
+  { id: "door-royal", label: "Royal Door", kind: "door", swatch: "#3d2a22" },
+];
+
+export const SEAL_ICONS = [
+  { id: "monogram", label: "Monogram" },
+  { id: "dove", label: "Dove" },
+  { id: "heart", label: "Heart" },
+  { id: "butterfly", label: "Butterfly" },
+  { id: "rose", label: "Rose" },
+  { id: "crest", label: "Laurel crest" },
+];
+
+export const SEAL_COLORS = ["#7a2430", "#a3313f", "#b8646e", "#c9a24a", "#1f3b5c", "#2f4a33", "#3a2a4f", "#1c1a3d"];
 
 // `weights: null` means the family only has one weight (request it without axis).
 export const FONTS = [
@@ -24,7 +49,7 @@ export const FONTS = [
   { name: "Sacramento", kind: "script", weights: null },
   { name: "Playfair Display", kind: "serif", weights: "400;600;700" },
   { name: "Cinzel", kind: "serif", weights: "400;600;700" },
-  { name: "Cormorant Garamond", kind: "serif", weights: "400;600;700" },
+  { name: "Cormorant Garamond", kind: "serif", weights: "ital,wght@0,400;0,600;0,700;1,400" },
   { name: "Lora", kind: "serif", weights: "400;600;700" },
   { name: "Amiri", kind: "serif", weights: "400;700" },
   { name: "Noto Nastaliq Urdu", kind: "serif", weights: "400;700" },
@@ -32,6 +57,7 @@ export const FONTS = [
   { name: "Montserrat", kind: "sans", weights: "300;400;600;700" },
   { name: "Quicksand", kind: "sans", weights: "400;600;700" },
   { name: "Inter", kind: "sans", weights: "400;600;700" },
+  { name: "Plus Jakarta Sans", kind: "sans", weights: "400;600;700" },
 ];
 
 export function googleFontsHref(names) {
@@ -40,7 +66,8 @@ export function googleFontsHref(names) {
       const f = FONTS.find((x) => x.name === n);
       if (!f) return null;
       const fam = f.name.replace(/ /g, "+");
-      return f.weights ? `family=${fam}:wght@${f.weights}` : `family=${fam}`;
+      if (!f.weights) return `family=${fam}`;
+      return f.weights.includes("@") ? `family=${fam}:${f.weights}` : `family=${fam}:wght@${f.weights}`;
     })
     .filter(Boolean);
   return families.length ? `https://fonts.googleapis.com/css2?${families.join("&")}&display=swap` : null;
@@ -111,4 +138,21 @@ export function backgroundCss(theme) {
     default:
       return t.background;
   }
+}
+
+// Effective colours for an invitation. In dark mode every theme gets a deep, tinted
+// background, raised card surfaces, light text and a primary lifted for contrast.
+// Themes that are already dark (e.g. Midnight) are left as they are.
+export function resolveTheme(t = {}) {
+  if (t.mode !== "dark" || luminance(t.background || "#ffffff") < 0.3) return t;
+  const base = t.primary || "#1c1a3d";
+  return {
+    ...t,
+    background: mix(base, "#0d0c12", 0.88),
+    surface: mix(base, "#1b1a24", 0.8),
+    text: "#ece6dc",
+    primary: luminance(base) < 0.55 ? mix(base, "#ffffff", 0.5) : base,
+    // light gradient presets don't suit a dark page; patterns and photos still work
+    bgType: t.bgType === "gradient" ? "color" : t.bgType,
+  };
 }

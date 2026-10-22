@@ -39,7 +39,7 @@ export default function RegisterPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-brand-600 hover:underline">
+          <Link href="/login" className="font-semibold text-brand-500 hover:underline">
             Log in
           </Link>
         </>
@@ -58,7 +58,7 @@ export default function RegisterPage() {
           <label className="label" htmlFor="password">Password</label>
           <PasswordInput id="password" minLength={8} autoComplete="new-password" placeholder="At least 8 characters" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         </div>
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
         <button disabled={busy} className="btn-primary w-full !py-3">
           {busy && <Spinner className="h-4 w-4" />} Create account
         </button>

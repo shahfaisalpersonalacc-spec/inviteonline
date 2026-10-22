@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Lock } from "lucide-react";
 
 export default function PasswordGate({ title, onUnlock }) {
   const [password, setPassword] = useState("");
@@ -23,7 +24,9 @@ export default function PasswordGate({ title, onUnlock }) {
   return (
     <div className="flex min-h-[100svh] items-center justify-center p-6">
       <form onSubmit={submit} className="animate-float-up w-full max-w-sm rounded-3xl p-8 text-center shadow-xl" style={{ background: "var(--inv-surface)" }}>
-        <div className="text-5xl">🔒</div>
+        <span className="mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: "color-mix(in srgb, var(--inv-primary) 12%, transparent)", color: "var(--inv-primary)" }}>
+          <Lock className="h-7 w-7" strokeWidth={1.6} />
+        </span>
         <h1 className="mt-4 text-4xl leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
           {title}
         </h1>

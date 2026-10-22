@@ -21,7 +21,11 @@ function particle(kind, i, theme) {
   const size = 8 + rand(i, 1) * 12;
   switch (kind) {
     case "hearts":
-      return <span style={{ fontSize: size + 4, color: i % 2 ? theme.primary : theme.secondary }}>❤</span>;
+      return (
+        <svg viewBox="0 0 24 24" width={size + 4} height={size + 4} fill={i % 2 ? theme.primary : theme.secondary} opacity=".8">
+          <path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.5 3 4.5 6.9 4.5c2 0 3.5 1.1 5.1 3 1.6-1.9 3.1-3 5.1-3 3.9 0 6 4 4.5 7.3C19.5 16.4 12 21 12 21Z" />
+        </svg>
+      );
     case "confetti":
       return <span className="block" style={{ width: size * 0.6, height: size, background: CONFETTI[i % CONFETTI.length], borderRadius: 2 }} />;
     case "snow":

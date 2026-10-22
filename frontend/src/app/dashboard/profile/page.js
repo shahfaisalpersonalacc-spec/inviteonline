@@ -29,7 +29,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-900">Profile</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight text-ink">Profile</h1>
       <form
         className="card space-y-4 p-6"
         onSubmit={(e) => {
@@ -39,7 +39,7 @@ export default function ProfilePage() {
       >
         <div>
           <label className="label">Email</label>
-          <input className="input bg-zinc-50" value={user.email} disabled />
+          <input className="input bg-cream" value={user.email} disabled />
         </div>
         <div>
           <label className="label" htmlFor="name">Name</label>

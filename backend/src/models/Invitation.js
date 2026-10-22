@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const SECTION_TYPES = [
   'hero', 'hosts', 'story', 'event', 'countdown', 'schedule', 'venue',
   'gallery', 'video', 'dresscode', 'contact', 'rsvp', 'wishes', 'note',
+  'quote', 'families', 'timeline', 'gifts', 'faq', 'closing', 'scratch',
 ];
 
 const EVENT_TYPES = [
@@ -46,6 +47,7 @@ const invitationSchema = new mongoose.Schema(
     coverImage: { type: String, default: '' },
     theme: {
       preset: { type: String, default: 'blush' },
+      mode: { type: String, enum: ['light', 'dark'], default: 'light' }, // guest-facing colour scheme
       primary: { type: String, default: '#be185d' },
       secondary: { type: String, default: '#f9a8d4' },
       background: { type: String, default: '#fff7fb' },
@@ -55,7 +57,11 @@ const invitationSchema = new mongoose.Schema(
       fontBody: { type: String, default: 'Poppins' },
       bgType: { type: String, enum: ['color', 'gradient', 'pattern', 'image'], default: 'color' },
       bgValue: { type: String, default: '' },
-      envelope: { type: Boolean, default: true },
+      envelope: { type: Boolean, default: true }, // show the entry screen
+      entryStyle: { type: String, default: 'linen-monogram' }, // envelope or door design
+      sealColor: { type: String, default: '#7a2430' },
+      sealIcon: { type: String, enum: ['monogram', 'dove', 'heart', 'butterfly', 'rose', 'crest'], default: 'monogram' },
+      monogram: { type: String, default: '', maxlength: 6 },
       animation: { type: String, enum: ['none', 'petals', 'confetti', 'hearts', 'stars', 'snow'], default: 'petals' },
     },
     sections: { type: [sectionSchema], default: [] },

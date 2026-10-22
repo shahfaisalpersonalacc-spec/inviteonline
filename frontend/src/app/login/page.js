@@ -34,12 +34,12 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      title="Welcome back 👋"
+      title="Welcome back"
       subtitle="Log in to edit your invitations and see your RSVPs."
       footer={
         <>
           New here?{" "}
-          <Link href="/register" className="font-semibold text-brand-600 hover:underline">
+          <Link href="/register" className="font-semibold text-brand-500 hover:underline">
             Create an account
           </Link>
         </>
@@ -53,13 +53,13 @@ export default function LoginPage() {
         <div>
           <div className="flex items-center justify-between">
             <label className="label" htmlFor="password">Password</label>
-            <Link href="/forgot-password" className="mb-1.5 text-xs font-semibold text-brand-600 hover:underline">
+            <Link href="/forgot-password" className="mb-1.5 text-xs font-semibold text-brand-500 hover:underline">
               Forgot password?
             </Link>
           </div>
           <PasswordInput id="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         </div>
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
         <button disabled={busy} className="btn-primary w-full !py-3">
           {busy && <Spinner className="h-4 w-4" />} Log in
         </button>

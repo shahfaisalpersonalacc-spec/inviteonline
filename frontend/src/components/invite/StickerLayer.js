@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { RotateCw } from "lucide-react";
 import { getSticker } from "@/data/stickers";
 
 const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
@@ -103,13 +104,13 @@ export default function StickerLayer({ stickers, editable, selectedId, onSelect,
                 <button
                   type="button"
                   aria-label="Rotate sticker"
-                  className="absolute -top-8 left-1/2 h-6 w-6 -translate-x-1/2 cursor-grab touch-none rounded-full border-2 border-sky-500 bg-white text-[11px] leading-none text-sky-600 shadow"
+                  className="absolute -top-8 left-1/2 grid h-6 w-6 -translate-x-1/2 cursor-grab touch-none place-items-center rounded-full border-2 border-sky-500 bg-white text-sky-600 shadow"
                   onPointerDown={(e) => begin(e, s, "rotate")}
                   onPointerMove={move}
                   onPointerUp={end}
                   onPointerCancel={end}
                 >
-                  ⟳
+                  <RotateCw className="pointer-events-none h-3 w-3" strokeWidth={2.5} />
                 </button>
                 <button
                   type="button"

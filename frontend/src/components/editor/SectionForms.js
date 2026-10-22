@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus, X } from "lucide-react";
 import { ColorInput, DateTime, GalleryInput, ImageInput, ListEditor, Select, Text, TextArea, Toggle } from "./fields";
 
 // Each form receives the section `data` and `set(patch)` which merges into it.
@@ -14,14 +15,17 @@ const FORMS = {
       <DateTime label="Event date" value={d.date} onChange={(v) => set({ date: v })} />
       <ImageInput label="Cover photo" value={d.image} onChange={(v) => set({ image: v })} />
       <Select
-        label="Photo style"
-        value={d.layout || "center"}
+        label="Layout"
+        value={{ center: "full", portrait: "circle" }[d.layout] || d.layout || "arch"}
         onChange={(v) => set({ layout: v })}
         options={[
-          { value: "center", label: "Full background photo" },
-          { value: "portrait", label: "Round framed photo" },
+          { value: "arch", label: "Arched photo frame" },
+          { value: "circle", label: "Round framed photo" },
+          { value: "full", label: "Full background photo" },
+          { value: "classic", label: "Classic text with ornaments" },
         ]}
       />
+      <Toggle label="Gold foil names" hint="Shimmering gold lettering for the title." checked={!!d.foil} onChange={(v) => set({ foil: v })} />
     </>
   ),
   hosts: ({ d, set }) => (
@@ -140,15 +144,15 @@ const FORMS = {
             <div className="flex-1">
               <ColorInput value={c} onChange={(v) => set({ colors: d.colors.map((x, k) => (k === i ? v : x)) })} />
             </div>
-            <button type="button" className="mb-2 text-xs text-red-600" onClick={() => set({ colors: d.colors.filter((_, k) => k !== i) })}>
-              ✕
+            <button type="button" className="mb-2 text-xs text-red-600" onClick={() => set({ colors: d.colors.filter((_, k) => k !== i) })} aria-label="Remove colour">
+              <X className="h-4 w-4" />
             </button>
           </div>
         ))}
       </div>
       {(d.colors?.length || 0) < 8 && (
         <button type="button" className="btn-secondary !py-1.5 !text-xs" onClick={() => set({ colors: [...(d.colors || []), "#be185d"] })}>
-          ＋ Add colour
+          <Plus className="h-3.5 w-3.5" /> Add colour
         </button>
       )}
     </>
@@ -185,6 +189,104 @@ const FORMS = {
           </>
         )}
       />
+    </>
+  ),
+  quote: ({ d, set }) => (
+    <>
+      <TextArea label="Arabic / Urdu text (optional)" rows={2} value={d.arabic} onChange={(v) => set({ arabic: v })} placeholder="بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ" />
+      <TextArea label="Verse / quote" rows={2} value={d.text} onChange={(v) => set({ text: v })} />
+      <Text label="Source" value={d.source} onChange={(v) => set({ source: v })} placeholder="Surah Ar-Rum 30:21" />
+    </>
+  ),
+  families: ({ d, set }) => (
+    <>
+      <Heading d={d} set={set} />
+      <ListEditor
+        itemLabel="Family"
+        items={d.groups}
+        onChange={(groups) => set({ groups })}
+        newItem={() => ({ title: "", names: "" })}
+        max={4}
+        renderItem={(g, up) => (
+          <>
+            <Text label="Title" value={g.title} onChange={(v) => up({ title: v })} placeholder="Bride's family" />
+            <TextArea label="Names (one per line)" rows={3} value={g.names} onChange={(v) => up({ names: v })} />
+          </>
+        )}
+      />
+    </>
+  ),
+  scratch: ({ d, set }) => (
+    <>
+      <Heading d={d} set={set} />
+      <Text label="Instruction" value={d.text} onChange={(v) => set({ text: v })} />
+      <DateTime label="Date revealed under the gold foil" value={d.date} onChange={(v) => set({ date: v })} />
+    </>
+  ),
+  timeline: ({ d, set }) => (
+    <>
+      <Heading d={d} set={set} />
+      <ListEditor
+        itemLabel="Moment"
+        items={d.items}
+        onChange={(items) => set({ items })}
+        newItem={() => ({ date: "", title: "", text: "", image: "" })}
+        max={10}
+        renderItem={(x, up) => (
+          <>
+            <div className="grid grid-cols-[6.5rem_1fr] gap-2">
+              <Text label="When" value={x.date} onChange={(v) => up({ date: v })} placeholder="2021" maxLength={30} />
+              <Text label="Title" value={x.title} onChange={(v) => up({ title: v })} placeholder="First meeting" />
+            </div>
+            <TextArea label="Story" rows={2} value={x.text} onChange={(v) => up({ text: v })} />
+            <ImageInput label="Photo" value={x.image} onChange={(v) => up({ image: v })} />
+          </>
+        )}
+      />
+    </>
+  ),
+  gifts: ({ d, set }) => (
+    <>
+      <Heading d={d} set={set} />
+      <TextArea label="Message" rows={2} value={d.text} onChange={(v) => set({ text: v })} />
+      <ListEditor
+        itemLabel="Account"
+        items={d.accounts}
+        onChange={(accounts) => set({ accounts })}
+        newItem={() => ({ label: "", title: "", number: "", note: "" })}
+        max={5}
+        renderItem={(a, up) => (
+          <>
+            <Text label="Type" value={a.label} onChange={(v) => up({ label: v })} placeholder="Bank transfer / Easypaisa / JazzCash" />
+            <Text label="Account title" value={a.title} onChange={(v) => up({ title: v })} />
+            <Text label="Account number / IBAN" value={a.number} onChange={(v) => up({ number: v })} maxLength={60} />
+            <Text label="Note" value={a.note} onChange={(v) => up({ note: v })} placeholder="Bank name" />
+          </>
+        )}
+      />
+    </>
+  ),
+  faq: ({ d, set }) => (
+    <>
+      <Heading d={d} set={set} />
+      <ListEditor
+        itemLabel="Question"
+        items={d.items}
+        onChange={(items) => set({ items })}
+        newItem={() => ({ q: "", a: "" })}
+        renderItem={(x, up) => (
+          <>
+            <Text label="Question" value={x.q} onChange={(v) => up({ q: v })} />
+            <TextArea label="Answer" rows={2} value={x.a} onChange={(v) => up({ a: v })} />
+          </>
+        )}
+      />
+    </>
+  ),
+  closing: ({ d, set }) => (
+    <>
+      <TextArea label="Closing message" rows={3} value={d.text} onChange={(v) => set({ text: v })} />
+      <Text label="Signature" value={d.signature} onChange={(v) => set({ signature: v })} placeholder="Ayesha & Ahmed" />
     </>
   ),
   note: ({ d, set }) => (

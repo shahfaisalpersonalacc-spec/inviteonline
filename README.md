@@ -11,11 +11,17 @@ Create beautiful online invitation pages (weddings, nikah, mehndi, birthdays, pa
 
 - Register, log in, forgot/reset password by email (Brevo), and profile/password change
 - Dashboard with views, RSVPs and wishes per invitation, plus duplicate, delete and share
+- **Entrance screens** guests tap to open, each with a "Preview opening" button in the editor:
+  - Six wax-sealed envelopes (burgundy, sage damask, linen, olive botanical, midnight, ivory gatefold with ribbon)
+  - Two arched door scenes (garden, royal)
+  - The seal colour, emblem (monogram, dove, heart, butterfly, rose, crest) and monogram are customisable
+- **Scratch-to-reveal**: a gold-foil card guests scratch with a finger to reveal the date
+- **Wedding sections**: verse/quote (with Arabic), families, love-story timeline, gifts with copy buttons, FAQ, and a closing note. Hero layouts include an arched photo frame, a round photo, a full background photo, or classic text with gold-foil names
 - Editor with a live phone/desktop preview, autosave, and separate Edit/Preview modes on mobile
   - **14 section types**: hero/cover, couple/hosts, story, multiple events, countdown, programme, venue + Google Map, photo gallery with lightbox, video (YouTube, Vimeo or MP4), dress code, RSVP form, guestbook wishes, contact (call/WhatsApp), text note
   - **12 themes**: custom colours, 16 Google fonts, and plain, gradient, pattern or image backgrounds
   - **Animations**: falling petals, hearts, confetti, stars, snow
-  - **About 120 stickers**: vector art and emoji in floral, love, wedding, Islamic & desi, party, baby and decor categories. Drag, resize, rotate, flip, layer, duplicate.
+  - **77 vector stickers** in gold, floral, love, wedding, desi & Islamic, party, baby and decor categories. Drag, resize, rotate, flip, layer, duplicate.
   - **Settings**: custom link (`/i/your-name`), publish/draft, optional password, background music, link-preview image and description
 - Public page `/i/<slug>`
   - No login needed
@@ -43,6 +49,7 @@ cd backend
 cp .env.example .env      # then fill in the values
 npm install
 npm run dev               # http://localhost:5000/api/health
+# No Atlas yet? `npm run dev:local` runs a local MongoDB (data in backend/.localdb)
 ```
 If the Brevo keys are missing, emails are logged to the console instead of sent. If the Cloudinary keys are missing, uploads return a clear error, but you can still paste image URLs.
 

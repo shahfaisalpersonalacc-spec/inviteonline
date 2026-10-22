@@ -9,14 +9,17 @@ function inDays(days, hour = 19) {
   return d.toISOString();
 }
 
+const COUPLE_EVENTS = ['wedding', 'nikah', 'walima', 'mehndi', 'engagement', 'anniversary'];
+
 const PRESETS = {
   wedding: {
     heroTitle: 'Ayesha & Ahmed',
-    subtitle: 'are getting married',
-    tagline: 'Together with their families, request the honour of your presence',
+    subtitle: 'request the honour of your presence at the celebration of their marriage',
+    tagline: 'Together with their families',
+    monogram: 'A&A',
     hosts: [
-      { name: 'Ayesha', role: 'The Bride', photo: '', bio: 'Daughter of Mr. & Mrs. Khan' },
-      { name: 'Ahmed', role: 'The Groom', photo: '', bio: 'Son of Mr. & Mrs. Malik' },
+      { name: 'Ayesha', role: 'The Bride', photo: '', bio: 'Daughter of Mr. & Mrs. Imran Khan' },
+      { name: 'Ahmed', role: 'The Groom', photo: '', bio: 'Son of Mr. & Mrs. Tariq Malik' },
     ],
     events: [
       { name: 'Mehndi', date: inDays(28, 19), time: '7:00 PM', venue: 'Family Residence', address: '' },
@@ -26,28 +29,39 @@ const PRESETS = {
     story: 'We met by chance and stayed by choice. Join us as we begin our forever.',
     theme: 'blush',
   },
-  nikah: { heroTitle: 'Nikah Ceremony', subtitle: 'Fatima & Usman', tagline: 'بِسْمِ اللهِ الرَّحْمٰنِ الرَّحِيْمِ', theme: 'emerald' },
-  walima: { heroTitle: 'Walima Reception', subtitle: 'Hina & Bilal', tagline: 'Please join us for dinner to celebrate our union', theme: 'royal' },
-  mehndi: { heroTitle: 'Mehndi Night', subtitle: 'Sana & Ali', tagline: 'Dhol, dance and a whole lot of colour!', theme: 'marigold' },
-  engagement: { heroTitle: 'Sara & Hamza', subtitle: 'are engaged!', tagline: 'Join us to celebrate the beginning of our forever', theme: 'rose-gold' },
-  birthday: { heroTitle: "Zara's 5th Birthday", subtitle: "Let's party!", tagline: 'Cake, games and lots of fun', theme: 'candy' },
-  'baby-shower': { heroTitle: 'Baby Shower', subtitle: 'Oh baby!', tagline: 'Join us in celebrating the little one on the way', theme: 'sky' },
-  anniversary: { heroTitle: '25 Years Together', subtitle: 'Mr. & Mrs. Ahmed', tagline: 'Celebrating a silver jubilee of love', theme: 'champagne' },
-  party: { heroTitle: "You're Invited!", subtitle: 'Party Night', tagline: 'Good music, great food and even better company', theme: 'midnight' },
-  corporate: { heroTitle: 'Annual Gala 2026', subtitle: 'Acme Corporation', tagline: 'An evening of recognition and celebration', theme: 'slate' },
-  graduation: { heroTitle: 'Class of 2026', subtitle: 'Graduation Party', tagline: 'Help us celebrate this milestone', theme: 'midnight' },
-  other: { heroTitle: "You're Invited", subtitle: 'A special celebration', tagline: 'We would love for you to be there', theme: 'blush' },
+  nikah: { heroTitle: 'Fatima & Usman', subtitle: 'Nikah Ceremony', tagline: 'In the name of Allah, the Most Gracious, the Most Merciful', monogram: 'F&U', theme: 'emerald' },
+  walima: { heroTitle: 'Hina & Bilal', subtitle: 'Walima Reception', tagline: 'Please join us for dinner to celebrate our union', monogram: 'H&B', theme: 'royal' },
+  mehndi: { heroTitle: 'Sana & Ali', subtitle: 'Mehndi Night', tagline: 'Dhol, dance and a whole lot of colour!', monogram: 'S&A', theme: 'marigold' },
+  engagement: { heroTitle: 'Sara & Hamza', subtitle: 'are engaged!', tagline: 'Join us to celebrate the beginning of our forever', monogram: 'S&H', theme: 'rose-gold' },
+  birthday: { heroTitle: "Zara's 5th Birthday", subtitle: "Let's party!", tagline: 'Cake, games and lots of fun', monogram: 'Z', theme: 'candy' },
+  'baby-shower': { heroTitle: 'Baby Shower', subtitle: 'Oh baby!', tagline: 'Join us in celebrating the little one on the way', monogram: 'B', theme: 'sky' },
+  anniversary: { heroTitle: '25 Years Together', subtitle: 'Mr. & Mrs. Ahmed', tagline: 'Celebrating a silver jubilee of love', monogram: '25', theme: 'champagne' },
+  party: { heroTitle: "You're Invited!", subtitle: 'Party Night', tagline: 'Good music, great food and even better company', monogram: 'P', theme: 'midnight' },
+  corporate: { heroTitle: 'Annual Gala 2026', subtitle: 'Acme Corporation', tagline: 'An evening of recognition and celebration', monogram: 'AG', theme: 'slate' },
+  graduation: { heroTitle: 'Class of 2026', subtitle: 'Graduation Party', tagline: 'Help us celebrate this milestone', monogram: '26', theme: 'midnight' },
+  other: { heroTitle: "You're Invited", subtitle: 'A special celebration', tagline: 'We would love for you to be there', monogram: '', theme: 'blush' },
 };
 
 // Builds the starting sections for a new invitation. Shape of each section's `data`
 // is the contract the frontend editor and renderer rely on.
-function buildDefaultSections(eventType = 'wedding') {
-  const p = { ...PRESETS.other, ...(PRESETS[eventType] || {}) };
+function buildDefaultSections(eventType = 'wedding', title = '') {
+  const base = { ...PRESETS.other, ...(PRESETS[eventType] || {}) };
+  // Use the owner's own names/title in place of the sample one.
+  const p = title && title !== 'My Invitation' ? { ...base, heroTitle: title } : base;
   const date = (p.events && p.events[0]?.date) || inDays(30);
-  const isCouple = ['wedding', 'nikah', 'walima', 'mehndi', 'engagement', 'anniversary'].includes(eventType);
+  const isCouple = COUPLE_EVENTS.includes(eventType);
+  const isIslamic = ['wedding', 'nikah', 'walima'].includes(eventType);
 
   const sections = [
-    { type: 'hero', data: { title: p.heroTitle, subtitle: p.subtitle, tagline: p.tagline, date, image: '', layout: 'center' } },
+    { type: 'hero', data: { title: p.heroTitle, subtitle: p.subtitle, tagline: p.tagline, date, image: '', layout: isCouple ? 'arch' : 'classic', foil: true } },
+    isIslamic && {
+      type: 'quote',
+      data: {
+        arabic: 'وَخَلَقْنَاكُمْ أَزْوَاجًا',
+        text: 'And We created you in pairs.',
+        source: 'Surah An-Naba 78:8',
+      },
+    },
     isCouple && {
       type: 'hosts',
       data: { heading: eventType === 'anniversary' ? 'The Couple' : 'The Happy Couple', people: p.hosts || [
@@ -55,7 +69,17 @@ function buildDefaultSections(eventType = 'wedding') {
         { name: 'Groom', role: 'The Groom', photo: '', bio: '' },
       ] },
     },
-    isCouple && { type: 'story', data: { heading: 'Our Story', text: p.story || 'Every love story is beautiful, but ours is our favourite.', image: '' } },
+    isCouple && {
+      type: 'families',
+      data: {
+        heading: 'With the blessings of',
+        groups: [
+          { title: "Bride's family", names: 'Mr. & Mrs. Imran Khan\nGrandparents & family' },
+          { title: "Groom's family", names: 'Mr. & Mrs. Tariq Malik\nGrandparents & family' },
+        ],
+      },
+    },
+    { type: 'scratch', data: { heading: 'Save the date', text: 'Scratch the gold foil to reveal the date', date } },
     { type: 'countdown', data: { heading: 'Counting down to the big day', target: date } },
     {
       type: 'event',
@@ -75,40 +99,80 @@ function buildDefaultSections(eventType = 'wedding') {
         ],
       },
     },
+    isCouple && {
+      type: 'timeline',
+      data: {
+        heading: 'Our Story',
+        items: [
+          { date: '2021', title: 'First meeting', text: 'A chance meeting at a friend’s dinner.', image: '' },
+          { date: '2024', title: 'The proposal', text: 'A question, a ring and a very happy yes.', image: '' },
+          { date: '2026', title: 'Forever begins', text: 'And now we celebrate with you.', image: '' },
+        ],
+      },
+    },
+    { type: 'story', enabled: false, data: { heading: 'Our Story', text: p.story || 'Every love story is beautiful, but ours is our favourite.', image: '' } },
     { type: 'venue', data: { heading: 'Venue', name: 'Venue name', address: 'Street, City', mapQuery: '', image: '' } },
     { type: 'gallery', data: { heading: 'Gallery', images: [], layout: 'grid' } },
     { type: 'video', enabled: false, data: { heading: 'Watch', url: '' } },
-    { type: 'dresscode', enabled: false, data: { heading: 'Dress Code', text: 'Traditional / Formal', colors: ['#be185d', '#f9a8d4', '#fde68a'] } },
+    { type: 'dresscode', enabled: false, data: { heading: 'Dress Code', text: 'Traditional / Formal', colors: ['#7a2430', '#c9a24a', '#f3e9dc'] } },
+    {
+      type: 'gifts',
+      enabled: false,
+      data: {
+        heading: 'Gifts',
+        text: 'Your presence is our gift. Should you wish to bless us, details are below.',
+        accounts: [{ label: 'Bank transfer', title: 'Account title', number: 'PK00 XXXX 0000 0000 0000', note: 'Bank name' }],
+      },
+    },
     { type: 'rsvp', data: { heading: 'Will you join us?', text: 'Kindly let us know by the date below.', deadline: inDays(20), maxGuests: 5, askPhone: true } },
     { type: 'wishes', data: { heading: 'Send your wishes', text: 'Leave a message for us' } },
+    {
+      type: 'faq',
+      enabled: isCouple,
+      data: {
+        heading: 'Good to know',
+        items: [
+          { q: 'Is there parking at the venue?', a: 'Yes, free parking is available on site.' },
+          { q: 'Can I bring children?', a: 'Children are most welcome.' },
+        ],
+      },
+    },
     { type: 'contact', data: { heading: 'Contact', people: [{ name: 'Family contact', phone: '', whatsapp: true }] } },
-    { type: 'note', data: { heading: 'With love', text: 'Your presence is the greatest gift. We look forward to celebrating with you!' } },
+    { type: 'closing', data: { text: 'Your presence is the greatest gift. We look forward to celebrating with you!', signature: p.heroTitle } },
   ].filter(Boolean);
 
   return {
     themePreset: p.theme,
+    monogram: p.monogram,
     sections: sections.map((s) => ({ id: id(), enabled: s.enabled ?? true, type: s.type, data: s.data })),
   };
 }
 
-// Mirrors the frontend theme presets so new invitations start fully styled.
+// Mirrors the frontend theme presets (frontend/src/data/themes.js) so new invitations start fully styled.
 const THEMES = {
-  blush: { primary: '#be185d', secondary: '#f9a8d4', background: '#fff7fb', surface: '#ffffff', text: '#3f3f46', fontHeading: 'Great Vibes', fontBody: 'Poppins', animation: 'petals' },
-  emerald: { primary: '#047857', secondary: '#d4af37', background: '#f0fdf4', surface: '#ffffff', text: '#1f2937', fontHeading: 'Amiri', fontBody: 'Lora', animation: 'stars' },
-  royal: { primary: '#4c1d95', secondary: '#d4af37', background: '#faf5ff', surface: '#ffffff', text: '#27272a', fontHeading: 'Cinzel', fontBody: 'Lora', animation: 'stars' },
-  marigold: { primary: '#c2410c', secondary: '#facc15', background: '#fffbeb', surface: '#ffffff', text: '#3f2a14', fontHeading: 'Pacifico', fontBody: 'Poppins', animation: 'petals' },
-  'rose-gold': { primary: '#b76e79', secondary: '#e8c4a0', background: '#fdf6f0', surface: '#ffffff', text: '#4a3a3a', fontHeading: 'Playfair Display', fontBody: 'Lora', animation: 'hearts' },
-  candy: { primary: '#db2777', secondary: '#38bdf8', background: '#fdf4ff', surface: '#ffffff', text: '#312e81', fontHeading: 'Pacifico', fontBody: 'Quicksand', animation: 'confetti' },
-  sky: { primary: '#0284c7', secondary: '#fbcfe8', background: '#f0f9ff', surface: '#ffffff', text: '#1e3a5f', fontHeading: 'Dancing Script', fontBody: 'Quicksand', animation: 'hearts' },
-  champagne: { primary: '#a16207', secondary: '#e7d3a8', background: '#fefaf2', surface: '#ffffff', text: '#3b3025', fontHeading: 'Playfair Display', fontBody: 'Lora', animation: 'stars' },
-  midnight: { primary: '#facc15', secondary: '#a78bfa', background: '#0f172a', surface: '#1e293b', text: '#e2e8f0', fontHeading: 'Cinzel', fontBody: 'Poppins', animation: 'confetti' },
-  slate: { primary: '#1d4ed8', secondary: '#94a3b8', background: '#f8fafc', surface: '#ffffff', text: '#0f172a', fontHeading: 'Playfair Display', fontBody: 'Inter', animation: 'none' },
-  sage: { primary: '#4d7c0f', secondary: '#d9c8a9', background: '#f7f9f2', surface: '#ffffff', text: '#2f3a22', fontHeading: 'Parisienne', fontBody: 'Cormorant Garamond', animation: 'petals' },
-  ruby: { primary: '#9f1239', secondary: '#f59e0b', background: '#fff1f2', surface: '#ffffff', text: '#3f1d24', fontHeading: 'Alex Brush', fontBody: 'Montserrat', animation: 'petals' },
+  blush: { primary: '#9f2f45', secondary: '#e8b4b8', background: '#fffaf7', surface: '#ffffff', text: '#3d2b2f', fontHeading: 'Great Vibes', fontBody: 'Cormorant Garamond', animation: 'petals', entryStyle: 'linen-monogram', sealColor: '#7a2430', sealIcon: 'monogram' },
+  emerald: { primary: '#0f5c46', secondary: '#c9a24a', background: '#f5f8f3', surface: '#ffffff', text: '#1f2a24', fontHeading: 'Cinzel', fontBody: 'Cormorant Garamond', animation: 'stars', entryStyle: 'sage-botanical', sealColor: '#c9a24a', sealIcon: 'crest' },
+  royal: { primary: '#6b1e2a', secondary: '#c9a24a', background: '#fbf6f1', surface: '#ffffff', text: '#2e1a1e', fontHeading: 'Cinzel', fontBody: 'Cormorant Garamond', animation: 'stars', entryStyle: 'burgundy-dove', sealColor: '#c9a24a', sealIcon: 'dove' },
+  marigold: { primary: '#b4471a', secondary: '#f2b33d', background: '#fffaf0', surface: '#ffffff', text: '#3f2a14', fontHeading: 'Great Vibes', fontBody: 'Poppins', animation: 'petals', entryStyle: 'door-garden', sealColor: '#b4471a', sealIcon: 'rose' },
+  'rose-gold': { primary: '#a8636e', secondary: '#e6c3a5', background: '#fdf7f3', surface: '#ffffff', text: '#4a3a3a', fontHeading: 'Parisienne', fontBody: 'Cormorant Garamond', animation: 'hearts', entryStyle: 'ivory-gatefold', sealColor: '#7c2b2b', sealIcon: 'heart' },
+  candy: { primary: '#db2777', secondary: '#38bdf8', background: '#fdf4ff', surface: '#ffffff', text: '#312e81', fontHeading: 'Pacifico', fontBody: 'Quicksand', animation: 'confetti', entryStyle: 'door-garden', sealColor: '#db2777', sealIcon: 'heart' },
+  sky: { primary: '#2f6f9a', secondary: '#f3c6d3', background: '#f4f9fc', surface: '#ffffff', text: '#1e3a5f', fontHeading: 'Dancing Script', fontBody: 'Quicksand', animation: 'hearts', entryStyle: 'linen-monogram', sealColor: '#2f6f9a', sealIcon: 'heart' },
+  champagne: { primary: '#8a6a2f', secondary: '#e7d3a8', background: '#fdf9f1', surface: '#ffffff', text: '#3b3025', fontHeading: 'Playfair Display', fontBody: 'Cormorant Garamond', animation: 'stars', entryStyle: 'linen-monogram', sealColor: '#8a6a2f', sealIcon: 'monogram' },
+  midnight: { primary: '#d9b25f', secondary: '#8b7cc8', background: '#11152b', surface: '#1b2140', text: '#e8e4d8', fontHeading: 'Cinzel', fontBody: 'Cormorant Garamond', animation: 'stars', entryStyle: 'midnight-gold', sealColor: '#c9a24a', sealIcon: 'crest' },
+  slate: { primary: '#1c1a3d', secondary: '#e8544a', background: '#f8f7f4', surface: '#ffffff', text: '#1c1a3d', fontHeading: 'Playfair Display', fontBody: 'Plus Jakarta Sans', animation: 'none', entryStyle: 'midnight-gold', sealColor: '#e8544a', sealIcon: 'monogram' },
+  sage: { primary: '#4f5d3a', secondary: '#c9b48a', background: '#f7f8f2', surface: '#ffffff', text: '#2f3a22', fontHeading: 'Parisienne', fontBody: 'Cormorant Garamond', animation: 'petals', entryStyle: 'sage-monogram', sealColor: '#b8646e', sealIcon: 'monogram' },
+  ruby: { primary: '#8c1c2e', secondary: '#d9a441', background: '#fff8f5', surface: '#ffffff', text: '#3f1d24', fontHeading: 'Great Vibes', fontBody: 'Cormorant Garamond', animation: 'petals', entryStyle: 'burgundy-dove', sealColor: '#c9a24a', sealIcon: 'dove' },
 };
 
-function themeFor(preset) {
-  return { preset, bgType: 'color', bgValue: '', envelope: true, ...(THEMES[preset] || THEMES.blush) };
+// "Zayd & Layla" / "Ayesha weds Ahmed" -> "Z&L" / "A&A"; "Zara's Birthday" -> "Z".
+function monogramFrom(title = '') {
+  const parts = String(title).split(/\s*(?:&|\+|\band\b|\bweds\b|\bwith\b)\s*/i).map((s) => s.trim()).filter(Boolean);
+  const initial = (s) => (s.match(/[\p{L}\p{N}]/u) || [''])[0].toUpperCase();
+  return parts.length >= 2 ? `${initial(parts[0])}&${initial(parts[1])}` : initial(parts[0] || '');
 }
 
-module.exports = { buildDefaultSections, themeFor, newId: id };
+function themeFor(preset, monogram = '') {
+  return { preset, bgType: 'color', bgValue: '', envelope: true, monogram, ...(THEMES[preset] || THEMES.blush) };
+}
+
+module.exports = { buildDefaultSections, themeFor, monogramFrom, newId: id };

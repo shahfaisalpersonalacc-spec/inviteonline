@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Download, Phone, Trash2, Users } from "lucide-react";
 import { api, downloadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { FullPageSpinner } from "@/components/ui/Spinner";
@@ -63,17 +64,17 @@ export default function GuestsPage() {
 
   return (
     <div>
-      <Link href="/dashboard" className="text-sm text-zinc-500 hover:text-brand-600">
-        ← All invitations
+      <Link href="/dashboard" className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-500 hover:text-ink">
+        <ArrowLeft className="h-4 w-4" /> All invitations
       </Link>
       <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <h1 className="text-2xl font-bold text-zinc-900">{inv.title} — Guests</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight text-ink">{inv.title} <span className="font-display font-semibold italic text-ink-500">· Guests</span></h1>
         <div className="flex gap-2">
           <Link href={`/dashboard/edit/${id}`} className="btn-secondary">
             Edit invitation
           </Link>
           <button className="btn-primary" onClick={() => downloadFile(`/invitations/${id}/rsvps?format=csv`, `rsvps-${inv.slug}.csv`).catch((e) => toast(e.message, "error"))}>
-            ⬇ Export CSV
+            <Download className="h-4 w-4" /> Export CSV
           </button>
         </div>
       </div>
@@ -81,23 +82,23 @@ export default function GuestsPage() {
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ["Attending", s.yes, "text-green-600"],
-          ["Total guests coming", s.totalGuests, "text-brand-600"],
+          ["Total guests coming", s.totalGuests, "text-brand-500"],
           ["Maybe", s.maybe, "text-amber-600"],
           ["Not attending", s.no, "text-red-600"],
         ].map(([label, n, cls]) => (
           <div key={label} className="card p-4">
-            <p className="text-xs text-zinc-500">{label}</p>
+            <p className="text-xs text-ink-500">{label}</p>
             <p className={`mt-1 text-3xl font-bold ${cls}`}>{n}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-8 flex gap-1 rounded-full bg-zinc-100 p-1 sm:inline-flex">
+      <div className="mt-8 flex gap-1 rounded-full bg-ink/[0.06] p-1 sm:inline-flex">
         {[
           ["rsvps", `RSVPs (${rsvp.rsvps.length})`],
           ["wishes", `Wishes (${wishes.length})`],
         ].map(([k, label]) => (
-          <button key={k} onClick={() => setTab(k)} className={`flex-1 rounded-full px-5 py-2 text-sm font-semibold ${tab === k ? "bg-white shadow" : "text-zinc-500"}`}>
+          <button key={k} onClick={() => setTab(k)} className={`flex-1 rounded-full px-5 py-2 text-sm font-semibold ${tab === k ? "bg-white shadow" : "text-ink-500"}`}>
             {label}
           </button>
         ))}
@@ -115,29 +116,29 @@ export default function GuestsPage() {
             </select>
           </div>
           {list.length === 0 ? (
-            <p className="card mt-4 p-10 text-center text-sm text-zinc-500">No responses yet. Share your invitation link to start collecting RSVPs!</p>
+            <p className="card mt-4 p-10 text-center text-sm text-ink-500">No responses yet. Share your invitation link to start collecting RSVPs!</p>
           ) : (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {list.map((r) => (
                 <div key={r._id} className="card p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-zinc-900">{r.name}</p>
-                      <p className="text-xs text-zinc-500">{timeAgo(r.createdAt)}</p>
+                      <p className="truncate font-semibold text-ink">{r.name}</p>
+                      <p className="text-xs text-ink-500">{timeAgo(r.createdAt)}</p>
                     </div>
                     <span className={`chip shrink-0 ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-600">
-                    {r.status !== "no" && <span>👥 {r.guests} guest{r.guests > 1 ? "s" : ""}</span>}
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-500">
+                    {r.status !== "no" && <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {r.guests} guest{r.guests > 1 ? "s" : ""}</span>}
                     {r.phone && (
-                      <a href={whatsappLink(r.phone)} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
-                        📱 {r.phone}
+                      <a href={whatsappLink(r.phone)} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
+                        <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {r.phone}</span>
                       </a>
                     )}
                   </div>
-                  {r.message && <p className="mt-2 rounded-xl bg-zinc-50 p-3 text-sm text-zinc-700">“{r.message}”</p>}
-                  <button onClick={() => delRsvp(r._id)} className="mt-2 text-xs text-red-600 hover:underline">
-                    Delete
+                  {r.message && <p className="mt-2 rounded-xl bg-cream p-3 text-sm text-ink/80">“{r.message}”</p>}
+                  <button onClick={() => delRsvp(r._id)} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline">
+                    <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 </div>
               ))}
@@ -145,14 +146,14 @@ export default function GuestsPage() {
           )}
         </>
       ) : wishes.length === 0 ? (
-        <p className="card mt-4 p-10 text-center text-sm text-zinc-500">No wishes yet.</p>
+        <p className="card mt-4 p-10 text-center text-sm text-ink-500">No wishes yet.</p>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {wishes.map((w) => (
             <div key={w._id} className="card p-4">
               <p className="whitespace-pre-line text-sm text-zinc-800">{w.message}</p>
               <div className="mt-3 flex items-center justify-between text-xs">
-                <span className="font-semibold text-brand-700">
+                <span className="font-semibold text-brand-600">
                   — {w.name} <span className="font-normal text-zinc-400">· {timeAgo(w.createdAt)}</span>
                 </span>
                 <button onClick={() => delWish(w._id)} className="text-red-600 hover:underline">

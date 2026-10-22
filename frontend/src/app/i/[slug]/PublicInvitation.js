@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import InvitationRenderer, { ThemeFonts, themeVars } from "@/components/invite/InvitationRenderer";
-import Envelope from "@/components/invite/Envelope";
+import EntryScreen from "@/components/invite/entry/EntryScreen";
+import { CircleAlert, Share2 } from "lucide-react";
 import MusicPlayer from "@/components/invite/MusicPlayer";
 import ShareSheet from "@/components/invite/ShareSheet";
 import PasswordGate from "@/components/invite/PasswordGate";
 import { FullPageSpinner } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
-import { backgroundCss } from "@/data/themes";
+import { backgroundCss, resolveTheme } from "@/data/themes";
 
 const tokenKey = (slug) => `unlock:${slug}`;
 
@@ -68,7 +69,7 @@ export default function PublicInvitation({ slug, initial }) {
     if (error === "loading") return <FullPageSpinner />;
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
-        <div className="text-5xl">😕</div>
+        <CircleAlert className="h-12 w-12 text-brand-500" strokeWidth={1.5} />
         <p className="text-lg font-semibold">We couldn&apos;t load this invitation</p>
         <p className="text-sm text-zinc-500">{error}</p>
         <button className="btn-primary mt-2" onClick={() => load(unlockToken)}>
@@ -79,7 +80,7 @@ export default function PublicInvitation({ slug, initial }) {
   }
 
   const inv = data.invitation;
-  const theme = inv.theme || {};
+  const theme = resolveTheme(inv.theme || {});
 
   if (data.locked) {
     return (
@@ -99,13 +100,13 @@ export default function PublicInvitation({ slug, initial }) {
       <InvitationRenderer invitation={inv} mode="public" unlockToken={unlockToken} />
 
       {showEnvelope && (
-        <Envelope
+        <EntryScreen
+          theme={theme}
           title={hero.title || inv.title}
-          subtitle={hero.subtitle}
-          onOpen={() => {
-            if (music) setPlaying(true); // user gesture → browsers allow audio
-            setTimeout(() => setOpened(true), 850);
-          }}
+          subtitle={hero.tagline}
+          date={hero.date}
+          onStart={() => music && setPlaying(true)} // user gesture → browsers allow audio
+          onOpened={() => setOpened(true)}
         />
       )}
 
@@ -113,10 +114,10 @@ export default function PublicInvitation({ slug, initial }) {
 
       <button
         onClick={() => setShareOpen(true)}
-        className="fixed bottom-5 right-4 z-[50] inline-flex items-center gap-2 rounded-full px-5 py-3 text-sm font-semibold shadow-xl"
+        className="fixed right-3 top-3 z-[50] inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-lg backdrop-blur md:bottom-5 md:right-4 md:top-auto md:px-5 md:py-3"
         style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)" }}
       >
-        ↗ Share
+        <Share2 className="h-4 w-4" /> Share
       </button>
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} url={url} title={inv.title} />
     </div>

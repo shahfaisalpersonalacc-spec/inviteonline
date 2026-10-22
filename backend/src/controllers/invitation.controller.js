@@ -5,7 +5,7 @@ const Rsvp = require('../models/Rsvp');
 const Wish = require('../models/Wish');
 const HttpError = require('../utils/HttpError');
 const { isValidSlug, uniqueSlug, slugify } = require('../utils/slug');
-const { buildDefaultSections, themeFor, newId } = require('../utils/defaults');
+const { buildDefaultSections, themeFor, monogramFrom, newId } = require('../utils/defaults');
 
 const { SECTION_TYPES, EVENT_TYPES } = Invitation;
 const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a hex colour');
@@ -13,6 +13,7 @@ const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a hex colour');
 const themeSchema = z
   .object({
     preset: z.string().max(40),
+    mode: z.enum(['light', 'dark']),
     primary: color,
     secondary: color,
     background: color,
@@ -23,6 +24,10 @@ const themeSchema = z
     bgType: z.enum(['color', 'gradient', 'pattern', 'image']),
     bgValue: z.string().max(1000),
     envelope: z.boolean(),
+    entryStyle: z.string().max(40),
+    sealColor: color,
+    sealIcon: z.enum(['monogram', 'dove', 'heart', 'butterfly', 'rose', 'crest']),
+    monogram: z.string().max(6),
     animation: z.enum(['none', 'petals', 'confetti', 'hearts', 'stars', 'snow']),
   })
   .partial();
@@ -52,6 +57,7 @@ const schemas = {
     title: z.string().trim().min(1).max(120),
     eventType: z.enum(EVENT_TYPES).default('wedding'),
     themePreset: z.string().max(40).optional(),
+    mode: z.enum(['light', 'dark']).default('light'),
   }),
   update: z.object({
     title: z.string().trim().min(1).max(120).optional(),
@@ -87,7 +93,7 @@ function serialize(inv, extra = {}) {
 
 async function list(req, res) {
   const invitations = await Invitation.find({ owner: req.user._id })
-    .select('title slug eventType coverImage published views theme.primary theme.preset createdAt updatedAt')
+    .select('title slug eventType coverImage published views theme.primary theme.preset theme.sealColor theme.sealIcon theme.monogram theme.entryStyle createdAt updatedAt')
     .sort({ updatedAt: -1 })
     .lean();
   const ids = invitations.map((i) => i._id);
@@ -104,14 +110,14 @@ async function list(req, res) {
 }
 
 async function create(req, res) {
-  const { title, eventType, themePreset } = req.body;
-  const { sections, themePreset: defaultPreset } = buildDefaultSections(eventType);
+  const { title, eventType, themePreset, mode } = req.body;
+  const { sections, themePreset: defaultPreset, monogram } = buildDefaultSections(eventType, title);
   const inv = await Invitation.create({
     owner: req.user._id,
     title,
     eventType,
     slug: await uniqueSlug(Invitation, title),
-    theme: themeFor(themePreset || defaultPreset),
+    theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(title) || monogram), mode },
     sections,
   });
   res.status(201).json({ invitation: serialize(inv) });

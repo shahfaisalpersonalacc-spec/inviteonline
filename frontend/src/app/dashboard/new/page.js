@@ -2,30 +2,37 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ArrowRight, Check, Moon, Sun } from "lucide-react";
 import { EVENT_TYPES } from "@/data/eventTypes";
-import { THEMES } from "@/data/themes";
+import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
+import WaxSeal from "@/components/invite/entry/WaxSeal";
+
+function Step({ n, children }) {
+  return (
+    <h2 className="mt-10 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-ink-500">
+      <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs text-gold">{n}</span>
+      {children}
+    </h2>
+  );
+}
 
 export default function NewInvitationPage() {
   const router = useRouter();
   const [eventType, setEventType] = useState("wedding");
   const [theme, setTheme] = useState(EVENT_TYPES[0].theme);
   const [title, setTitle] = useState("");
+  const [mode, setMode] = useState("light");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-
-  function pickEvent(e) {
-    setEventType(e.id);
-    setTheme(e.theme);
-  }
 
   async function create(ev) {
     ev.preventDefault();
     setBusy(true);
     setError("");
     try {
-      const d = await api("/invitations", { method: "POST", body: { title: title.trim() || "My Invitation", eventType, themePreset: theme } });
+      const d = await api("/invitations", { method: "POST", body: { title: title.trim() || "My Invitation", eventType, themePreset: theme, mode } });
       router.replace(`/dashboard/edit/${d.invitation._id}`);
     } catch (e) {
       setError(e.message);
@@ -34,57 +41,98 @@ export default function NewInvitationPage() {
   }
 
   return (
-    <form onSubmit={create} className="mx-auto max-w-4xl">
-      <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl">Create a new invitation</h1>
-      <p className="mt-1 text-sm text-zinc-600">We&apos;ll fill it with sample content you can change in the editor.</p>
+    <form onSubmit={create} className="mx-auto max-w-4xl pb-10">
+      <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Create a new invitation</h1>
+      <p className="mt-2 font-display text-xl text-ink/65">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">1. What are you celebrating?</h2>
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {EVENT_TYPES.map((e) => (
-          <button
-            type="button"
-            key={e.id}
-            onClick={() => pickEvent(e)}
-            className={`card flex flex-col items-start gap-1 p-4 text-left transition ${eventType === e.id ? "!border-brand-500 ring-4 ring-brand-100" : "hover:border-zinc-300"}`}
-          >
-            <span className="text-3xl">{e.emoji}</span>
-            <span className="text-sm font-semibold text-zinc-900">{e.label}</span>
-            <span className="text-xs text-zinc-500">{e.hint}</span>
-          </button>
-        ))}
-      </div>
-
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">2. Choose a theme</h2>
-      <div className="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:px-0 lg:grid-cols-6">
-        {Object.entries(THEMES).map(([id, t]) => (
-          <button
-            type="button"
-            key={id}
-            onClick={() => setTheme(id)}
-            className={`card w-32 shrink-0 overflow-hidden text-left transition sm:w-auto ${theme === id ? "!border-brand-500 ring-4 ring-brand-100" : ""}`}
-          >
-            <div className="flex h-16 items-center justify-center" style={{ background: t.background }}>
-              <span className="text-2xl" style={{ color: t.primary, fontFamily: "var(--font-great-vibes)" }}>
-                Aa
+      <Step n="1">What are you celebrating?</Step>
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {EVENT_TYPES.map(({ id, label, hint, Icon, theme: t }) => {
+          const active = eventType === id;
+          return (
+            <button
+              type="button"
+              key={id}
+              onClick={() => {
+                setEventType(id);
+                setTheme(t);
+              }}
+              className={`relative flex flex-col items-start gap-2 rounded-3xl border bg-white p-4 text-left transition ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
+            >
+              <span className={`grid h-10 w-10 place-items-center rounded-2xl ${active ? "bg-ink text-gold" : "bg-brand-50 text-brand-500"}`}>
+                <Icon className="h-5 w-5" strokeWidth={1.7} />
               </span>
-            </div>
-            <div className="flex items-center gap-1.5 p-2">
-              <span className="h-3 w-3 rounded-full" style={{ background: t.primary }} />
-              <span className="h-3 w-3 rounded-full" style={{ background: t.secondary }} />
-              <span className="truncate text-xs font-medium">{t.label}</span>
-            </div>
+              <span className="text-sm font-bold text-ink">{label}</span>
+              <span className="text-xs text-ink-500">{hint}</span>
+              {active && <Check className="absolute right-4 top-4 h-4 w-4 text-ink" />}
+            </button>
+          );
+        })}
+      </div>
+
+      <Step n="2">Choose a theme & entrance</Step>
+      <div className="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-4">
+        {Object.entries(THEMES).map(([id, t]) => {
+          const active = theme === id;
+          const entry = ENTRY_STYLES.find((e) => e.id === t.entryStyle);
+          return (
+            <button
+              type="button"
+              key={id}
+              onClick={() => setTheme(id)}
+              className={`w-40 shrink-0 overflow-hidden rounded-3xl border bg-white text-left transition sm:w-auto ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
+            >
+              <div className="relative h-24" style={{ background: entry?.swatch || t.primary }}>
+                <div className="absolute inset-0" style={{ background: "rgba(0,0,0,.12)", clipPath: "polygon(0 0, 100% 0, 50% 62%)" }} />
+                <WaxSeal color={t.sealColor} icon={t.sealIcon} monogram="A&A" className="absolute left-1/2 top-[62%] w-12 -translate-x-1/2 -translate-y-1/2" />
+              </div>
+              <div className="p-3">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-3 w-3 rounded-full" style={{ background: t.primary }} />
+                  <span className="h-3 w-3 rounded-full" style={{ background: t.secondary }} />
+                  <span className="truncate text-sm font-bold text-ink">{t.label}</span>
+                </div>
+                <p className="mt-1 truncate text-xs text-ink-500">{entry?.label}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <Step n="3">Light or dark?</Step>
+      <div className="mt-4 grid max-w-md grid-cols-2 gap-3" role="radiogroup" aria-label="Invitation appearance">
+        {[
+          ["light", "Light", "Soft, bright paper tones", Sun, "#fffaf3", "#1c1a3d"],
+          ["dark", "Dark", "Deep, glowing evening look", Moon, "#16141f", "#f3eadb"],
+        ].map(([v, label, hint, Icon, bg, fg]) => (
+          <button
+            key={v}
+            type="button"
+            role="radio"
+            aria-checked={mode === v}
+            onClick={() => setMode(v)}
+            className={`flex items-center gap-3 rounded-3xl border p-3 text-left transition ${mode === v ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] bg-white hover:border-ink/25"}`}
+          >
+            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: bg, color: fg, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)" }}>
+              <Icon className="h-6 w-6" strokeWidth={1.6} />
+            </span>
+            <span>
+              <span className="block text-sm font-bold text-ink">{label}</span>
+              <span className="block text-xs text-ink-500">{hint}</span>
+            </span>
           </button>
         ))}
       </div>
+      <p className="mt-2 text-xs text-ink-500">This is how guests will see your invitation. You can switch it any time in the editor.</p>
 
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-zinc-500">3. Give it a name</h2>
-      <input className="input mt-3 !py-3 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Ayesha weds Ahmed" />
-      <p className="mt-1.5 text-xs text-zinc-500">This also becomes your link, e.g. /i/ayesha-weds-ahmed — you can change it later.</p>
+      <Step n="4">Give it a name</Step>
+      <input className="input mt-4 !rounded-2xl !py-3.5 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Ayesha weds Ahmed" />
+      <p className="mt-2 text-xs text-ink-500">This also becomes your link, e.g. /i/ayesha-weds-ahmed. You can change it later.</p>
 
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <div className="mt-8 flex justify-end">
-        <button disabled={busy} className="btn-primary !px-8 !py-3 !text-base">
-          {busy && <Spinner className="h-4 w-4" />} Create & start editing →
+      {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
+      <div className="mt-10 flex justify-end">
+        <button disabled={busy} className="btn-primary !px-8 !py-3.5 !text-base">
+          {busy && <Spinner className="h-4 w-4" />} Create & start editing <ArrowRight className="h-4 w-4" />
         </button>
       </div>
     </form>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ImagePlus, Music, Plus, X } from "lucide-react";
 import { uploadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Spinner from "@/components/ui/Spinner";
@@ -57,7 +58,7 @@ export function Toggle({ label, checked, onChange, hint }) {
         role="switch"
         aria-checked={!!checked}
         onClick={() => onChange(!checked)}
-        className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition ${checked ? "bg-brand-600" : "bg-zinc-300"}`}
+        className={`relative mt-0.5 h-6 w-11 shrink-0 rounded-full transition ${checked ? "bg-ink" : "bg-zinc-300"}`}
       >
         <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? "left-[22px]" : "left-0.5"}`} />
       </button>
@@ -125,7 +126,7 @@ export function ImageInput({ label, hint, value, onChange, shape = "rect" }) {
         <button
           type="button"
           onClick={() => input.current?.click()}
-          className={`relative grid shrink-0 place-items-center overflow-hidden border-2 border-dashed border-zinc-200 bg-zinc-50 text-zinc-400 hover:border-brand-300 ${shape === "circle" ? "h-16 w-16 rounded-full" : "h-16 w-24 rounded-xl"}`}
+          className={`relative grid shrink-0 place-items-center overflow-hidden border-2 border-dashed border-zinc-200 bg-zinc-50 text-zinc-400 hover:border-ink/30 ${shape === "circle" ? "h-16 w-16 rounded-full" : "h-16 w-24 rounded-xl"}`}
         >
           {busy ? (
             <Spinner className="h-5 w-5 text-brand-600" />
@@ -133,7 +134,7 @@ export function ImageInput({ label, hint, value, onChange, shape = "rect" }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="text-xl">＋</span>
+            <ImagePlus className="h-5 w-5" strokeWidth={1.6} />
           )}
         </button>
         <div className="flex flex-wrap gap-1.5 text-xs">
@@ -185,13 +186,13 @@ export function GalleryInput({ value = [], onChange }) {
             <img src={src} alt="" className="h-full w-full object-cover" />
             <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 p-1 text-xs text-white">
               <button type="button" onClick={() => move(i, -1)} aria-label="Move left">
-                ◀
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button type="button" onClick={() => onChange(value.filter((_, k) => k !== i))} aria-label="Remove">
-                ✕
+                <X className="h-4 w-4" />
               </button>
               <button type="button" onClick={() => move(i, 1)} aria-label="Move right">
-                ▶
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -199,9 +200,9 @@ export function GalleryInput({ value = [], onChange }) {
         <button
           type="button"
           onClick={() => input.current?.click()}
-          className="grid aspect-square place-items-center rounded-xl border-2 border-dashed border-zinc-200 text-zinc-400 hover:border-brand-300 hover:text-brand-600"
+          className="grid aspect-square place-items-center rounded-xl border-2 border-dashed border-zinc-200 text-zinc-400 hover:border-ink/30 hover:text-ink"
         >
-          {busy ? <Spinner className="h-5 w-5" /> : <span className="text-center text-xs">＋<br />Add photos</span>}
+          {busy ? <Spinner className="h-5 w-5" /> : <span className="flex flex-col items-center gap-1 text-center text-xs"><ImagePlus className="h-5 w-5" strokeWidth={1.6} />Add photos</span>}
         </button>
       </div>
       <input
@@ -227,7 +228,7 @@ export function AudioInput({ value, onChange }) {
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" className="btn-secondary !py-2 !text-xs" onClick={() => input.current?.click()} disabled={busy}>
-          {busy ? <Spinner className="h-4 w-4" /> : "🎵"} {value ? "Replace song" : "Upload song (MP3)"}
+          {busy ? <Spinner className="h-4 w-4" /> : <Music className="h-4 w-4" />} {value ? "Replace song" : "Upload song (MP3)"}
         </button>
         {value && (
           <button type="button" className="text-xs font-medium text-red-600" onClick={() => onChange("")}>
@@ -275,13 +276,13 @@ export function ListEditor({ label, items = [], onChange, newItem, renderItem, i
               </span>
               <span className="flex gap-1">
                 <button type="button" className="rounded px-1.5 hover:bg-zinc-200" onClick={() => move(i, -1)} aria-label="Move up">
-                  ↑
+                  <ArrowUp className="h-3.5 w-3.5" />
                 </button>
                 <button type="button" className="rounded px-1.5 hover:bg-zinc-200" onClick={() => move(i, 1)} aria-label="Move down">
-                  ↓
+                  <ArrowDown className="h-3.5 w-3.5" />
                 </button>
                 <button type="button" className="rounded px-1.5 text-red-600 hover:bg-red-50" onClick={() => remove(i)} aria-label="Remove">
-                  ✕
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </span>
             </div>
@@ -290,8 +291,8 @@ export function ListEditor({ label, items = [], onChange, newItem, renderItem, i
         ))}
       </div>
       {items.length < max && (
-        <button type="button" onClick={() => onChange([...items, newItem()])} className="mt-3 w-full rounded-xl border-2 border-dashed border-zinc-200 py-2.5 text-sm font-medium text-zinc-500 hover:border-brand-300 hover:text-brand-600">
-          ＋ Add {itemLabel.toLowerCase()}
+        <button type="button" onClick={() => onChange([...items, newItem()])} className="mt-3 w-full rounded-xl border-2 border-dashed border-zinc-200 py-2.5 text-sm font-medium text-zinc-500 hover:border-ink/30 hover:text-ink">
+          <Plus className="mr-1 inline h-4 w-4" /> Add {itemLabel.toLowerCase()}
         </button>
       )}
     </div>

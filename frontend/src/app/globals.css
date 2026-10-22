@@ -1,18 +1,27 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-script: var(--font-great-vibes), cursive;
-  --color-brand-50: #fdf2f8;
-  --color-brand-100: #fce7f3;
-  --color-brand-200: #fbcfe8;
-  --color-brand-300: #f9a8d4;
-  --color-brand-400: #f472b6;
-  --color-brand-500: #ec4899;
-  --color-brand-600: #db2777;
-  --color-brand-700: #be185d;
-  --color-brand-800: #9d174d;
-  --color-brand-900: #831843;
+  /* Brand (from the InviteOnline logo): coral accent, ink, gold, cream */
+  --color-brand-50: #fef4f2;
+  --color-brand-100: #fde6e3;
+  --color-brand-200: #fbd0cb;
+  --color-brand-300: #f6aaa2;
+  --color-brand-400: #ef7d71;
+  --color-brand-500: #e8544a;
+  --color-brand-600: #d13f35;
+  --color-brand-700: #af3129;
+  --color-brand-800: #912c26;
+  --color-brand-900: #782a25;
+  --color-ink: #1c1a3d;
+  --color-ink-700: #2e2b5c;
+  --color-ink-500: #6b6880;
+  --color-gold: #f5c451;
+  --color-gold-600: #c9a24a;
+  --color-cream: #fff8f1;
+  --color-cream-200: #f6ece0;
 }
 
 html {
@@ -21,8 +30,8 @@ html {
 }
 
 body {
-  background: #ffffff;
-  color: #18181b;
+  background: var(--color-cream);
+  color: var(--color-ink);
   overflow-x: hidden;
 }
 
@@ -30,25 +39,28 @@ body {
   @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60;
 }
 @utility btn-primary {
-  @apply btn bg-brand-600 text-white shadow-lg shadow-brand-600/25 hover:bg-brand-700;
+  @apply btn bg-ink text-cream shadow-lg shadow-ink/20 hover:bg-ink-700;
 }
 @utility btn-secondary {
-  @apply btn border border-zinc-200 bg-white text-zinc-800 hover:border-brand-300 hover:text-brand-700;
+  @apply btn border border-ink/15 bg-white/70 text-ink hover:border-ink/40;
 }
 @utility btn-ghost {
-  @apply btn text-zinc-600 hover:bg-zinc-100;
+  @apply btn text-ink/70 hover:bg-ink/5 hover:text-ink;
 }
 @utility btn-danger {
   @apply btn bg-red-600 text-white hover:bg-red-700;
 }
+@utility btn-coral {
+  @apply btn bg-brand-500 text-white shadow-lg shadow-brand-500/30 hover:bg-brand-600;
+}
 @utility input {
-  @apply w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-brand-400 focus:ring-4 focus:ring-brand-100;
+  @apply w-full rounded-xl border border-zinc-200 bg-white px-3.5 py-2.5 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-ink/40 focus:ring-4 focus:ring-gold/25;
 }
 @utility label {
-  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-zinc-500;
+  @apply mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-ink-500;
 }
 @utility card {
-  @apply rounded-2xl border border-zinc-100 bg-white shadow-sm;
+  @apply rounded-3xl border border-ink/[0.06] bg-white shadow-[0_8px_30px_-12px_rgba(28,26,61,0.12)];
 }
 @utility chip {
   @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium;
@@ -99,3 +111,44 @@ body {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* ---------- Entry screens & foil ---------- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes seal-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.04); }
+}
+@keyframes hint-bob {
+  0%, 100% { transform: translateY(0); opacity: 0.85; }
+  50% { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0.4) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.9; }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+.foil-text {
+  background: linear-gradient(100deg, #8a6420 0%, #d9b25f 22%, #fff1c1 38%, #c99a3b 52%, #f3d68a 68%, #8a6420 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+.font-display { font-family: var(--font-display); }
+@keyframes burst {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.6); opacity: 0; }
+}

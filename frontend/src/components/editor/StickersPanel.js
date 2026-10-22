@@ -16,12 +16,12 @@ export default function StickersPanel({ sections, targetSection, setTargetSectio
         <select className="input" value={targetSection} onChange={(e) => setTargetSection(e.target.value)}>
           {visible.map((s) => (
             <option key={s.id} value={s.id}>
-              {SECTION_META[s.type]?.icon} {SECTION_META[s.type]?.label}
+              {SECTION_META[s.type]?.label}
             </option>
           ))}
         </select>
-        <p className="mt-1.5 text-xs text-zinc-500">
-          Tap a sticker to add it, then drag it on the preview. Use the blue handles to resize ⤡ and rotate ⟳. {count > 0 && `(${count} placed)`}
+        <p className="mt-1.5 text-xs text-ink-500">
+          Tap a sticker to add it, then drag it on the preview. Use the blue handles to resize and rotate.{count > 0 && ` ${count} placed.`}
         </p>
       </div>
 
@@ -31,7 +31,7 @@ export default function StickersPanel({ sections, targetSection, setTargetSectio
             key={c.id}
             type="button"
             onClick={() => setCat(c.id)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${cat === c.id ? "bg-brand-600 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"}`}
+            className={`shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold ${cat === c.id ? "bg-ink text-cream" : "bg-ink/[0.06] text-ink-500 hover:bg-ink/10"}`}
           >
             {c.label}
           </button>
@@ -45,14 +45,10 @@ export default function StickersPanel({ sections, targetSection, setTargetSectio
             type="button"
             title={s.name}
             onClick={() => onAdd(s)}
-            className="grid aspect-square place-items-center rounded-xl border border-zinc-100 bg-zinc-50 p-2 transition hover:scale-105 hover:border-brand-200 hover:bg-white hover:shadow"
+            className="grid aspect-square place-items-center rounded-2xl border border-ink/[0.06] bg-cream p-2 transition hover:scale-105 hover:border-gold/60 hover:bg-white hover:shadow"
           >
-            {s.emoji ? (
-              <span className="text-3xl leading-none">{s.emoji}</span>
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={s.src} alt={s.name} className="max-h-full w-full object-contain" draggable={false} />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={s.src} alt={s.name} className="max-h-full w-full object-contain" draggable={false} />
           </button>
         ))}
       </div>

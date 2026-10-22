@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock, Trash2 } from "lucide-react";
 import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import { EVENT_TYPES } from "@/data/eventTypes";
@@ -52,7 +53,7 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
   return (
     <div className="space-y-7">
       <section className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-900">Publishing</h3>
+        <h3 className="text-sm font-bold text-ink">Publishing</h3>
         <Toggle
           label={inv.published ? "Published — anyone with the link can view" : "Draft — link is hidden"}
           hint="Turn off to temporarily hide your invitation."
@@ -60,8 +61,8 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
           onChange={(v) => set({ published: v })}
         />
         <Field label="Your invitation link" hint="Lowercase letters, numbers and hyphens.">
-          <div className="flex items-center overflow-hidden rounded-xl border border-zinc-200 bg-white focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100">
-            <span className="hidden shrink-0 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-500 sm:block">/i/</span>
+          <div className="flex items-center overflow-hidden rounded-xl border border-ink/15 bg-white focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100">
+            <span className="hidden shrink-0 bg-cream px-3 py-2.5 text-xs text-ink-500 sm:block">/i/</span>
             <input
               className="w-full min-w-0 bg-transparent px-3 py-2.5 text-sm outline-none"
               value={slug}
@@ -72,10 +73,10 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
           <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
             <span
               className={
-                { ok: "text-green-600", taken: "text-red-600", invalid: "text-red-600", checking: "text-zinc-500", same: "text-zinc-500" }[slugState]
+                { ok: "text-green-600", taken: "text-red-600", invalid: "text-red-600", checking: "text-ink-500", same: "text-ink-500" }[slugState]
               }
             >
-              {{ ok: "✓ Available", taken: "✗ Already taken", invalid: "✗ 3–60 chars, can't start/end with -", checking: "Checking…", same: inviteUrl(inv.slug) }[slugState]}
+              {{ ok: "Available", taken: "Already taken", invalid: "3–60 characters, can't start or end with -", checking: "Checking…", same: inviteUrl(inv.slug) }[slugState]}
             </span>
             {slugState === "ok" && (
               <button className="btn-primary !px-3 !py-1 !text-xs" onClick={saveSlug}>
@@ -88,27 +89,27 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-900">Details</h3>
+        <h3 className="text-sm font-bold text-ink">Details</h3>
         <Text label="Invitation name" value={inv.title} onChange={(v) => set({ title: v })} maxLength={120} />
         <Select label="Event type" value={inv.eventType} onChange={(v) => set({ eventType: v })} options={EVENT_TYPES.map((e) => ({ value: e.id, label: `${e.emoji} ${e.label}` }))} />
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-900">Link preview (WhatsApp, Facebook…)</h3>
+        <h3 className="text-sm font-bold text-ink">Link preview (WhatsApp, Facebook…)</h3>
         <ImageInput label="Preview image" hint="Shown when your link is shared. Defaults to the cover photo." value={inv.coverImage} onChange={(v) => set({ coverImage: v })} />
         <TextArea label="Preview description" rows={2} maxLength={300} value={inv.description} onChange={(v) => set({ description: v })} placeholder="Join us to celebrate…" />
       </section>
 
       <section className="space-y-4">
-        <h3 className="text-sm font-bold text-zinc-900">Background music</h3>
+        <h3 className="text-sm font-bold text-ink">Background music</h3>
         <Toggle label="Play music" hint="Starts when guests open the envelope; they can pause anytime." checked={music.enabled} onChange={(v) => set({ music: { ...music, enabled: v } })} />
         <AudioInput value={music.url} onChange={(v) => set({ music: { ...music, url: v, enabled: v ? true : music.enabled } })} />
         <Text label="Song title (optional)" value={music.title} onChange={(v) => set({ music: { ...music, title: v } })} maxLength={120} />
       </section>
 
       <section className="space-y-3">
-        <h3 className="text-sm font-bold text-zinc-900">Password protection</h3>
-        <p className="text-xs text-zinc-500">{inv.hasPassword ? "🔒 This invitation is password protected." : "Anyone with the link can view. Add a password to keep it private."}</p>
+        <h3 className="text-sm font-bold text-ink">Password protection</h3>
+        <p className="text-xs text-ink-500">{inv.hasPassword ? (<span className="inline-flex items-center gap-1.5 font-semibold text-ink"><Lock className="h-3.5 w-3.5" /> This invitation is password protected.</span>) : "Anyone with the link can view. Add a password to keep it private."}</p>
         <div className="flex gap-2">
           <input className="input" type="text" minLength={4} maxLength={64} placeholder={inv.hasPassword ? "New password" : "Set a password"} value={password} onChange={(e) => setPassword(e.target.value)} />
           <button className="btn-primary shrink-0 !py-2" disabled={password.length < 4} onClick={() => savePassword(password)}>
@@ -126,7 +127,7 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
         <h3 className="text-sm font-bold text-red-700">Danger zone</h3>
         <p className="mt-1 text-xs text-red-600/80">Deleting removes the invitation, all RSVPs and wishes. This can&apos;t be undone.</p>
         <button className="btn-danger mt-3 !py-2 !text-xs" onClick={onDelete}>
-          Delete invitation
+          <Trash2 className="h-3.5 w-3.5" /> Delete invitation
         </button>
       </section>
     </div>

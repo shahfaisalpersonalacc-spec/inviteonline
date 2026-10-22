@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { Disc3, VolumeX } from "lucide-react";
 
 export default function MusicPlayer({ url, title, playing, setPlaying }) {
   const audio = useRef(null);
@@ -18,12 +19,12 @@ export default function MusicPlayer({ url, title, playing, setPlaying }) {
       <audio ref={audio} src={url} loop preload="auto" />
       <button
         onClick={() => setPlaying((p) => !p)}
-        className="fixed bottom-5 left-4 z-[50] grid h-12 w-12 place-items-center rounded-full shadow-xl"
+        className="fixed left-3 top-3 z-[50] grid h-11 w-11 place-items-center rounded-full shadow-lg md:bottom-5 md:left-4 md:top-auto md:h-12 md:w-12"
         style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)" }}
         aria-label={playing ? "Pause music" : "Play music"}
         title={title || "Music"}
       >
-        <span className={`text-xl ${playing ? "animate-spin-slow" : ""}`}>{playing ? "💿" : "🔇"}</span>
+        {playing ? <Disc3 className="animate-spin-slow h-6 w-6" strokeWidth={1.6} /> : <VolumeX className="h-5 w-5" strokeWidth={1.8} />}
       </button>
     </>
   );

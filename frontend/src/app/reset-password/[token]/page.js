@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
       title="Set a new password"
       subtitle="Choose a strong password you haven't used before."
       footer={
-        <Link href="/forgot-password" className="font-semibold text-brand-600 hover:underline">
+        <Link href="/forgot-password" className="font-semibold text-brand-500 hover:underline">
           Request a new link
         </Link>
       }
@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
           <label className="label" htmlFor="confirm">Confirm password</label>
           <PasswordInput id="confirm" minLength={8} autoComplete="new-password" placeholder="Repeat password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         </div>
-        {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+        {error && <p className="rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
         <button disabled={busy} className="btn-primary w-full !py-3">
           {busy && <Spinner className="h-4 w-4" />} Update password
         </button>
