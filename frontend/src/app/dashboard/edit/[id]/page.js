@@ -1,0 +1,322 @@
+"use client";
+
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { api, inviteUrl } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
+import { FullPageSpinner } from "@/components/ui/Spinner";
+import Modal from "@/components/ui/Modal";
+import InvitationRenderer from "@/components/invite/InvitationRenderer";
+import ShareSheet from "@/components/invite/ShareSheet";
+import SectionsPanel from "@/components/editor/SectionsPanel";
+import DesignPanel from "@/components/editor/DesignPanel";
+import StickersPanel from "@/components/editor/StickersPanel";
+import SettingsPanel from "@/components/editor/SettingsPanel";
+import StickerToolbar from "@/components/editor/StickerToolbar";
+import { newId } from "@/data/sections";
+
+const TABS = [
+  { id: "content", label: "Content", icon: "📝" },
+  { id: "design", label: "Design", icon: "🎨" },
+  { id: "stickers", label: "Stickers", icon: "🌸" },
+  { id: "settings", label: "Settings", icon: "⚙️" },
+];
+
+// Fields that autosave; slug & password are saved explicitly from Settings.
+const AUTOSAVE_FIELDS = ["title", "eventType", "description", "coverImage", "theme", "sections", "stickers", "music", "published"];
+const pick = (o) => Object.fromEntries(AUTOSAVE_FIELDS.map((k) => [k, o[k]]));
+
+export default function EditorPage() {
+  const { id } = useParams();
+  const router = useRouter();
+  const toast = useToast();
+
+  const [inv, setInv] = useState(null);
+  const [tab, setTab] = useState("content");
+  const [status, setStatus] = useState("saved"); // saved | unsaved | saving | error
+  const [selected, setSelected] = useState(null);
+  const [targetSection, setTargetSection] = useState("");
+  const [mobileView, setMobileView] = useState("edit"); // edit | preview
+  const [device, setDevice] = useState("phone"); // phone | desktop
+  const [shareOpen, setShareOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  const latest = useRef(null);
+  const timer = useRef(null);
+  const inFlight = useRef(false);
+  const pending = useRef(false);
+  const previewRef = useRef(null);
+
+  useEffect(() => {
+    api(`/invitations/${id}`)
+      .then((d) => {
+        setInv(d.invitation);
+        latest.current = d.invitation;
+        setTargetSection(d.invitation.sections[0]?.id || "");
+      })
+      .catch((e) => {
+        toast(e.message, "error");
+        router.replace("/dashboard");
+      });
+  }, [id, router, toast]);
+
+  const flush = useCallback(async () => {
+    if (inFlight.current) {
+      pending.current = true;
+      return;
+    }
+    inFlight.current = true;
+    setStatus("saving");
+    try {
+      await api(`/invitations/${id}`, { method: "PUT", body: pick(latest.current) });
+      setStatus(pending.current ? "unsaved" : "saved");
+    } catch (e) {
+      setStatus("error");
+      toast(e.message, "error");
+    } finally {
+      inFlight.current = false;
+      if (pending.current) {
+        pending.current = false;
+        flush();
+      }
+    }
+  }, [id, toast]);
+
+  // Update local state and schedule an autosave.
+  const set = useCallback(
+    (patch) => {
+      setInv((cur) => {
+        const next = { ...cur, ...(typeof patch === "function" ? patch(cur) : patch) };
+        latest.current = next;
+        return next;
+      });
+      setStatus("unsaved");
+      clearTimeout(timer.current);
+      timer.current = setTimeout(flush, 800);
+    },
+    [flush]
+  );
+
+  // Immediate save for slug/password; merges server response.
+  const saveNow = useCallback(
+    async (body) => {
+      const d = await api(`/invitations/${id}`, { method: "PUT", body: { ...pick(latest.current), ...body } });
+      setInv((cur) => {
+        const next = { ...cur, slug: d.invitation.slug, hasPassword: d.invitation.hasPassword };
+        latest.current = next;
+        return next;
+      });
+    },
+    [id]
+  );
+
+  useEffect(() => {
+    const warn = (e) => {
+      if (status === "unsaved" || status === "saving") {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [status]);
+
+  // ----- stickers -----
+  const updateSticker = useCallback((sid, patch) => set((cur) => ({ stickers: cur.stickers.map((s) => (s.id === sid ? { ...s, ...patch } : s)) })), [set]);
+
+  const deleteSticker = useCallback(
+    (sid) => {
+      set((cur) => ({ stickers: cur.stickers.filter((s) => s.id !== sid) }));
+      setSelected(null);
+    },
+    [set]
+  );
+
+  function addSticker(def) {
+    const sectionId = targetSection || inv.sections[0]?.id;
+    const n = inv.stickers.length;
+    const st = {
+      id: newId(),
+      stickerId: def.id,
+      sectionId,
+      x: 20 + ((n * 17) % 60),
+      y: 15 + ((n * 23) % 50),
+      size: def.emoji ? 12 : 22,
+      rotation: 0,
+      opacity: 1,
+      flip: false,
+      zIndex: n + 1,
+    };
+    set((cur) => ({ stickers: [...cur.stickers, st] }));
+    setSelected(st.id);
+    setMobileView("preview");
+    setTimeout(() => focusSection(sectionId), 60);
+  }
+
+  function duplicateSticker() {
+    const s = inv.stickers.find((x) => x.id === selected);
+    if (!s) return;
+    const copy = { ...s, id: newId(), x: Math.min(110, s.x + 6), y: Math.min(100, s.y + 4) };
+    set((cur) => ({ stickers: [...cur.stickers, copy] }));
+    setSelected(copy.id);
+  }
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!selected) return;
+      const tag = document.activeElement?.tagName;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        deleteSticker(selected);
+      }
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selected, deleteSticker]);
+
+  function focusSection(sid) {
+    const root = previewRef.current;
+    const el = root?.querySelector(`[data-section-id="${sid}"]`);
+    if (root && el) root.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
+  }
+
+  async function removeInvitation() {
+    try {
+      await api(`/invitations/${id}`, { method: "DELETE" });
+      toast("Invitation deleted");
+      router.replace("/dashboard");
+    } catch (e) {
+      toast(e.message, "error");
+    }
+  }
+
+  if (!inv) return <FullPageSpinner />;
+
+  const selectedSticker = inv.stickers.find((s) => s.id === selected);
+  const statusLabel = { saved: "✓ Saved", unsaved: "Unsaved…", saving: "Saving…", error: "⚠ Not saved" }[status];
+
+  return (
+    <div className="flex h-[100dvh] flex-col bg-zinc-100">
+      {/* Top bar */}
+      <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-zinc-200 bg-white px-3 sm:px-4">
+        <Link href="/dashboard" className="rounded-lg px-2 py-1.5 text-sm text-zinc-600 hover:bg-zinc-100" aria-label="Back to dashboard">
+          ←<span className="hidden sm:inline"> Dashboard</span>
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-zinc-900">{inv.title}</p>
+          <p className={`text-[11px] ${status === "error" ? "text-red-600" : "text-zinc-400"}`}>
+            {statusLabel}
+            {status === "error" && (
+              <button className="ml-1 underline" onClick={flush}>
+                Retry
+              </button>
+            )}
+          </p>
+        </div>
+        <div className="hidden items-center gap-1 rounded-full bg-zinc-100 p-1 lg:flex">
+          {[
+            ["phone", "📱"],
+            ["desktop", "🖥️"],
+          ].map(([d, icon]) => (
+            <button key={d} onClick={() => setDevice(d)} className={`rounded-full px-3 py-1 text-xs ${device === d ? "bg-white shadow" : ""}`} aria-label={`${d} preview`}>
+              {icon}
+            </button>
+          ))}
+        </div>
+        <Link href={`/dashboard/${id}/guests`} className="btn-ghost hidden !px-3 !py-2 md:inline-flex">
+          Guests
+        </Link>
+        <a href={`/i/${inv.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary !px-3 !py-2">
+          <span className="hidden sm:inline">View live</span>
+          <span className="sm:hidden">👁</span>
+        </a>
+        <button onClick={() => setShareOpen(true)} className="btn-primary !px-3 !py-2">
+          ↗<span className="hidden sm:inline"> Share</span>
+        </button>
+      </header>
+
+      <div className="flex min-h-0 flex-1">
+        {/* Panel */}
+        <aside className={`${mobileView === "edit" ? "flex" : "hidden"} w-full min-w-0 flex-col border-r border-zinc-200 bg-white lg:flex lg:w-[420px] lg:shrink-0`}>
+          <nav className="grid shrink-0 grid-cols-4 border-b border-zinc-100">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex flex-col items-center gap-0.5 border-b-2 py-2.5 text-[11px] font-semibold transition ${tab === t.id ? "border-brand-600 text-brand-700" : "border-transparent text-zinc-500 hover:text-zinc-800"}`}
+              >
+                <span className="text-base">{t.icon}</span>
+                {t.label}
+              </button>
+            ))}
+          </nav>
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 lg:pb-6">
+            {tab === "content" && <SectionsPanel sections={inv.sections} onChange={(sections) => set({ sections })} onFocusSection={focusSection} />}
+            {tab === "design" && <DesignPanel theme={inv.theme} onChange={(theme) => set({ theme })} />}
+            {tab === "stickers" && (
+              <StickersPanel sections={inv.sections} targetSection={targetSection} setTargetSection={setTargetSection} onAdd={addSticker} count={inv.stickers.length} />
+            )}
+            {tab === "settings" && <SettingsPanel inv={inv} set={set} saveNow={saveNow} onDelete={() => setConfirmDelete(true)} />}
+          </div>
+        </aside>
+
+        {/* Preview */}
+        <main className={`${mobileView === "preview" ? "flex" : "hidden"} relative min-w-0 flex-1 justify-center lg:flex lg:p-6`}>
+          <div
+            className={`relative flex h-full w-full flex-col overflow-hidden bg-white lg:shadow-2xl ${
+              device === "phone" ? "lg:max-w-[400px] lg:rounded-[2.2rem] lg:border-[10px] lg:border-zinc-900" : "lg:max-w-[1100px] lg:rounded-2xl"
+            }`}
+          >
+            <div ref={previewRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+              <InvitationRenderer
+                invitation={inv}
+                mode="editor"
+                selectedStickerId={selected}
+                onSelectSticker={setSelected}
+                onStickerChange={updateSticker}
+              />
+            </div>
+            <StickerToolbar
+              sticker={selectedSticker}
+              sections={inv.sections}
+              onChange={(patch) => updateSticker(selected, patch)}
+              onDelete={() => deleteSticker(selected)}
+              onDuplicate={duplicateSticker}
+              onClose={() => setSelected(null)}
+            />
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile edit/preview switch */}
+      {!selectedSticker && (
+        <div className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1 rounded-full bg-zinc-900 p-1 shadow-2xl lg:hidden">
+          {[
+            ["edit", "✏️ Edit"],
+            ["preview", "👁 Preview"],
+          ].map(([v, label]) => (
+            <button key={v} onClick={() => setMobileView(v)} className={`rounded-full px-5 py-2.5 text-sm font-semibold ${mobileView === v ? "bg-white text-zinc-900" : "text-white"}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} url={inviteUrl(inv.slug)} title={inv.title} />
+      <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} title="Delete invitation?">
+        <p className="text-sm text-zinc-600">This permanently deletes the invitation with all RSVPs and wishes.</p>
+        <div className="mt-6 flex justify-end gap-2">
+          <button className="btn-secondary" onClick={() => setConfirmDelete(false)}>
+            Cancel
+          </button>
+          <button className="btn-danger" onClick={removeInvitation}>
+            Delete
+          </button>
+        </div>
+      </Modal>
+    </div>
+  );
+}

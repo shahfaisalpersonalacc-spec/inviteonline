@@ -1,0 +1,134 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { api, inviteUrl } from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
+import { EVENT_TYPES } from "@/data/eventTypes";
+import { AudioInput, Field, ImageInput, Select, Text, TextArea, Toggle } from "./fields";
+
+const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
+
+export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
+  const toast = useToast();
+  const [slug, setSlug] = useState(inv.slug);
+  const [slugState, setSlugState] = useState("same"); // same | checking | ok | taken | invalid
+  const [password, setPassword] = useState("");
+
+  useEffect(() => setSlug(inv.slug), [inv.slug]);
+
+  useEffect(() => {
+    if (slug === inv.slug) return setSlugState("same");
+    if (!SLUG_RE.test(slug)) return setSlugState("invalid");
+    setSlugState("checking");
+    const t = setTimeout(() => {
+      api(`/invitations/slug-available/${slug}?exclude=${inv._id}`)
+        .then((d) => setSlugState(d.available ? "ok" : "taken"))
+        .catch(() => setSlugState("invalid"));
+    }, 400);
+    return () => clearTimeout(t);
+  }, [slug, inv.slug, inv._id]);
+
+  async function saveSlug() {
+    try {
+      await saveNow({ slug });
+      toast("Link updated");
+    } catch (e) {
+      toast(e.message, "error");
+    }
+  }
+
+  async function savePassword(value) {
+    try {
+      await saveNow({ password: value });
+      setPassword("");
+      toast(value ? "Password set — share it with your guests" : "Password removed");
+    } catch (e) {
+      toast(e.message, "error");
+    }
+  }
+
+  const music = inv.music || {};
+
+  return (
+    <div className="space-y-7">
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold text-zinc-900">Publishing</h3>
+        <Toggle
+          label={inv.published ? "Published — anyone with the link can view" : "Draft — link is hidden"}
+          hint="Turn off to temporarily hide your invitation."
+          checked={inv.published}
+          onChange={(v) => set({ published: v })}
+        />
+        <Field label="Your invitation link" hint="Lowercase letters, numbers and hyphens.">
+          <div className="flex items-center overflow-hidden rounded-xl border border-zinc-200 bg-white focus-within:border-brand-400 focus-within:ring-4 focus-within:ring-brand-100">
+            <span className="hidden shrink-0 bg-zinc-50 px-3 py-2.5 text-xs text-zinc-500 sm:block">/i/</span>
+            <input
+              className="w-full min-w-0 bg-transparent px-3 py-2.5 text-sm outline-none"
+              value={slug}
+              maxLength={60}
+              onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-"))}
+            />
+          </div>
+          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs">
+            <span
+              className={
+                { ok: "text-green-600", taken: "text-red-600", invalid: "text-red-600", checking: "text-zinc-500", same: "text-zinc-500" }[slugState]
+              }
+            >
+              {{ ok: "✓ Available", taken: "✗ Already taken", invalid: "✗ 3–60 chars, can't start/end with -", checking: "Checking…", same: inviteUrl(inv.slug) }[slugState]}
+            </span>
+            {slugState === "ok" && (
+              <button className="btn-primary !px-3 !py-1 !text-xs" onClick={saveSlug}>
+                Save link
+              </button>
+            )}
+          </div>
+          {slugState === "ok" && <p className="mt-1 text-xs text-amber-600">Note: the old link will stop working.</p>}
+        </Field>
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold text-zinc-900">Details</h3>
+        <Text label="Invitation name" value={inv.title} onChange={(v) => set({ title: v })} maxLength={120} />
+        <Select label="Event type" value={inv.eventType} onChange={(v) => set({ eventType: v })} options={EVENT_TYPES.map((e) => ({ value: e.id, label: `${e.emoji} ${e.label}` }))} />
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold text-zinc-900">Link preview (WhatsApp, Facebook…)</h3>
+        <ImageInput label="Preview image" hint="Shown when your link is shared. Defaults to the cover photo." value={inv.coverImage} onChange={(v) => set({ coverImage: v })} />
+        <TextArea label="Preview description" rows={2} maxLength={300} value={inv.description} onChange={(v) => set({ description: v })} placeholder="Join us to celebrate…" />
+      </section>
+
+      <section className="space-y-4">
+        <h3 className="text-sm font-bold text-zinc-900">Background music</h3>
+        <Toggle label="Play music" hint="Starts when guests open the envelope; they can pause anytime." checked={music.enabled} onChange={(v) => set({ music: { ...music, enabled: v } })} />
+        <AudioInput value={music.url} onChange={(v) => set({ music: { ...music, url: v, enabled: v ? true : music.enabled } })} />
+        <Text label="Song title (optional)" value={music.title} onChange={(v) => set({ music: { ...music, title: v } })} maxLength={120} />
+      </section>
+
+      <section className="space-y-3">
+        <h3 className="text-sm font-bold text-zinc-900">Password protection</h3>
+        <p className="text-xs text-zinc-500">{inv.hasPassword ? "🔒 This invitation is password protected." : "Anyone with the link can view. Add a password to keep it private."}</p>
+        <div className="flex gap-2">
+          <input className="input" type="text" minLength={4} maxLength={64} placeholder={inv.hasPassword ? "New password" : "Set a password"} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <button className="btn-primary shrink-0 !py-2" disabled={password.length < 4} onClick={() => savePassword(password)}>
+            Save
+          </button>
+        </div>
+        {inv.hasPassword && (
+          <button className="text-xs font-medium text-red-600 hover:underline" onClick={() => savePassword(null)}>
+            Remove password
+          </button>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-red-100 bg-red-50/50 p-4">
+        <h3 className="text-sm font-bold text-red-700">Danger zone</h3>
+        <p className="mt-1 text-xs text-red-600/80">Deleting removes the invitation, all RSVPs and wishes. This can&apos;t be undone.</p>
+        <button className="btn-danger mt-3 !py-2 !text-xs" onClick={onDelete}>
+          Delete invitation
+        </button>
+      </section>
+    </div>
+  );
+}

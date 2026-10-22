@@ -1,0 +1,116 @@
+const { describe, test, before: beforeAll, after: afterAll } = require('node:test');
+const request = require('supertest');
+const { start, stop, register, expect } = require('./setup');
+const app = require('../src/app');
+
+beforeAll(start);
+afterAll(stop);
+
+const auth = (token) => ({ Authorization: `Bearer ${token}` });
+
+async function createInvite(token, body = { title: 'Ali & Sara', eventType: 'wedding' }) {
+  const res = await request(app).post('/api/invitations').set(auth(token)).send(body);
+  expect(res.status).toBe(201);
+  return res.body.invitation;
+}
+
+describe('invitations', () => {
+  test('create gives default sections, theme and a slug', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token);
+    expect(inv.slug).toMatch(/^ali-and-sara/);
+    expect(inv.sections.find((s) => s.type === 'hero')).toBeTruthy();
+    expect(inv.theme.primary).toMatch(/^#/);
+    expect(inv.passwordHash).toBeUndefined();
+  });
+
+  test('only the owner can read, edit and delete', async () => {
+    const owner = await register(request, app);
+    const other = await register(request, app);
+    const inv = await createInvite(owner.token);
+
+    expect((await request(app).get(`/api/invitations/${inv._id}`).set(auth(other.token))).status).toBe(404);
+    expect((await request(app).put(`/api/invitations/${inv._id}`).set(auth(other.token)).send({ title: 'hacked' })).status).toBe(404);
+    expect((await request(app).delete(`/api/invitations/${inv._id}`).set(auth(other.token))).status).toBe(404);
+
+    const ok = await request(app).put(`/api/invitations/${inv._id}`).set(auth(owner.token)).send({ title: 'Updated', theme: { primary: '#123456' } });
+    expect(ok.status).toBe(200);
+    expect(ok.body.invitation.title).toBe('Updated');
+    expect(ok.body.invitation.theme.primary).toBe('#123456');
+    expect(ok.body.invitation.theme.fontBody).toBeTruthy(); // partial theme update keeps other fields
+  });
+
+  test('slug validation and uniqueness', async () => {
+    const { token } = await register(request, app);
+    const a = await createInvite(token, { title: 'Party A' });
+    const b = await createInvite(token, { title: 'Party B' });
+    expect((await request(app).put(`/api/invitations/${b._id}`).set(auth(token)).send({ slug: a.slug })).status).toBe(409);
+    expect((await request(app).put(`/api/invitations/${b._id}`).set(auth(token)).send({ slug: 'Bad Slug!' })).status).toBe(400);
+    expect((await request(app).put(`/api/invitations/${b._id}`).set(auth(token)).send({ slug: 'my-cool-party' })).status).toBe(200);
+  });
+
+  test('public page: published only, no owner data', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token);
+    const pub = await request(app).get(`/api/public/${inv.slug}`);
+    expect(pub.status).toBe(200);
+    expect(pub.body.invitation.owner).toBeUndefined();
+    expect(pub.body.locked).toBe(false);
+
+    await request(app).put(`/api/invitations/${inv._id}`).set(auth(token)).send({ published: false });
+    expect((await request(app).get(`/api/public/${inv.slug}`)).status).toBe(404);
+  });
+
+  test('password protected page needs unlock token', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token);
+    await request(app).put(`/api/invitations/${inv._id}`).set(auth(token)).send({ password: 'secret' }).expect(200);
+
+    const locked = await request(app).get(`/api/public/${inv.slug}`);
+    expect(locked.body.locked).toBe(true);
+    expect(locked.body.invitation.sections).toBeUndefined();
+
+    expect((await request(app).post(`/api/public/${inv.slug}/unlock`).send({ password: 'wrong' })).status).toBe(401);
+    const { body } = await request(app).post(`/api/public/${inv.slug}/unlock`).send({ password: 'secret' });
+    const open = await request(app).get(`/api/public/${inv.slug}`).set('x-unlock-token', body.unlockToken);
+    expect(open.body.locked).toBe(false);
+    expect(open.body.invitation.sections.length).toBeGreaterThan(0);
+
+    const rsvpLocked = await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'G', status: 'yes' });
+    expect(rsvpLocked.status).toBe(403);
+  });
+
+  test('guests RSVP and leave wishes; owner sees and exports them', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token);
+
+    await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'Guest One', status: 'yes', guests: 3 }).expect(201);
+    await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'Guest Two', status: 'no', guests: 4 }).expect(201);
+    await request(app).post(`/api/public/${inv.slug}/wishes`).send({ name: 'Aunt', message: 'Congrats!' }).expect(201);
+
+    const list = await request(app).get(`/api/invitations/${inv._id}/rsvps`).set(auth(token));
+    expect(list.body.summary).toEqual({ yes: 1, no: 1, maybe: 0, totalGuests: 3 });
+
+    const csv = await request(app).get(`/api/invitations/${inv._id}/rsvps?format=csv`).set(auth(token));
+    expect(csv.headers['content-type']).toMatch(/text\/csv/);
+    expect(csv.text).toContain('Guest One');
+
+    const wishes = await request(app).get(`/api/public/${inv.slug}/wishes`);
+    expect(wishes.body.wishes[0].message).toBe('Congrats!');
+
+    const dash = await request(app).get('/api/invitations').set(auth(token));
+    const row = dash.body.invitations.find((i) => i._id === inv._id);
+    expect(row.rsvpCount).toBe(2);
+    expect(row.wishCount).toBe(1);
+  });
+
+  test('duplicate and delete', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token);
+    const dup = await request(app).post(`/api/invitations/${inv._id}/duplicate`).set(auth(token));
+    expect(dup.status).toBe(201);
+    expect(dup.body.invitation.slug).not.toBe(inv.slug);
+    await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token)).expect(200);
+    expect((await request(app).get(`/api/public/${inv.slug}`)).status).toBe(404);
+  });
+});
