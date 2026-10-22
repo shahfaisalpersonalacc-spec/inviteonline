@@ -1,10 +1,28 @@
 const mongoose = require('mongoose');
 
-async function connectDB(uri) {
-  if (!uri) throw new Error('MONGODB_URI is not set');
-  mongoose.set('strictQuery', true);
-  await mongoose.connect(uri);
-  console.log('MongoDB connected');
+mongoose.set('strictQuery', true);
+
+// One shared connection per process. On serverless hosts (Vercel) the module stays warm
+// between requests, so the cached promise is reused instead of reconnecting every time.
+let pending = null;
+
+function connectDB(uri = process.env.MONGODB_URI) {
+  if (mongoose.connection.readyState === 1) return Promise.resolve(mongoose.connection);
+  if (!uri) return Promise.reject(Object.assign(new Error('MONGODB_URI is not set'), { status: 503 }));
+  if (!pending) {
+    pending = mongoose
+      .connect(uri, { serverSelectionTimeoutMS: 8000 })
+      .then((m) => {
+        console.log('MongoDB connected');
+        return m.connection;
+      })
+      .catch((err) => {
+        pending = null; // allow the next request to retry
+        console.error('MongoDB connection failed:', err.message);
+        throw Object.assign(new Error('Database is unavailable, please try again shortly'), { status: 503 });
+      });
+  }
+  return pending;
 }
 
 module.exports = connectDB;

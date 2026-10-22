@@ -1,4 +1,8 @@
+// Load .env for local runs (tests set their own env; on Vercel the host injects variables).
+if (process.env.NODE_ENV !== 'test') require('dotenv').config();
 const express = require('express');
+const mongoose = require('mongoose');
+const connectDB = require('./config/db');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -22,7 +26,23 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 if (process.env.NODE_ENV !== 'test') app.use(morgan('dev'));
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+app.get('/', (req, res) => res.json({ name: 'InviteOnline API', health: '/api/health' }));
+
+// Reports whether the database is reachable (handy right after deploying).
+app.get('/api/health', async (req, res) => {
+  try {
+    await connectDB();
+    res.json({ ok: true, db: 'connected' });
+  } catch (err) {
+    res.status(503).json({ ok: false, db: 'not connected', reason: process.env.MONGODB_URI ? 'cannot reach MongoDB (check Atlas Network Access and the URI)' : 'MONGODB_URI is not set' });
+  }
+});
+
+// Connect on first use so the app works however it is started (node server, Vercel functions, tests).
+app.use('/api', async (req, res, next) => {
+  await connectDB();
+  next();
+});
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/invitations', require('./routes/invitation.routes'));
 app.use('/api/uploads', require('./routes/upload.routes'));
