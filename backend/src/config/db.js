@@ -11,7 +11,8 @@ function connectDB(uri = process.env.MONGODB_URI) {
   if (!uri) return Promise.reject(Object.assign(new Error('MONGODB_URI is not set'), { status: 503 }));
   if (!pending) {
     pending = mongoose
-      .connect(uri, { serverSelectionTimeoutMS: 8000 })
+      // MONGODB_DB picks the database when the URI doesn't name one (e.g. ".../?retryWrites=true").
+      .connect(uri, { serverSelectionTimeoutMS: 8000, ...(process.env.MONGODB_DB ? { dbName: process.env.MONGODB_DB } : {}) })
       .then((m) => {
         console.log('MongoDB connected');
         return m.connection;

@@ -16,9 +16,12 @@ app.use(helmet());
 const allowed = (process.env.CLIENT_URL || 'http://localhost:3000')
   .split(',')
   .map((s) => s.trim().replace(/\/$/, ''));
+// Outside production, a local frontend (any localhost port) is always allowed, even when
+// CLIENT_URL points at the deployed site.
+const isLocalDev = (origin) => process.env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 app.use(
   cors({
-    origin: (origin, cb) => cb(null, !origin || allowed.includes(origin)),
+    origin: (origin, cb) => cb(null, !origin || allowed.includes(origin) || isLocalDev(origin)),
     allowedHeaders: ['Content-Type', 'Authorization', 'x-unlock-token'],
   })
 );
@@ -40,7 +43,7 @@ app.get('/api/health', async (req, res) => {
 
 // Connect on first use so the app works however it is started (node server, Vercel functions, tests).
 app.use('/api', async (req, res, next) => {
-  await connectDB();
+  if (req.method !== 'OPTIONS') await connectDB(); // CORS preflights never need the database
   next();
 });
 app.use('/api/auth', require('./routes/auth.routes'));

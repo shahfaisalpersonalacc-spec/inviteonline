@@ -34,10 +34,20 @@ function uploadBuffer(buffer, { folder, resourceType = 'image' }) {
           ? { transformation: [{ width: 2000, height: 2000, crop: 'limit', quality: 'auto', fetch_format: 'auto' }] }
           : {}),
       },
-      (err, result) => (err ? reject(err) : resolve(result))
+      (err, result) => (err ? reject(friendlyError(err)) : resolve(result))
     );
     stream.end(buffer);
   });
+}
+
+// Cloudinary credential problems come back as raw signature dumps; turn them into a clear message.
+function friendlyError(err) {
+  const msg = String(err && err.message);
+  if (/Invalid Signature|api_secret mismatch|Invalid api_key|Unknown API key|cloud_name/i.test(msg)) {
+    console.error('[cloudinary] credentials rejected:', msg.split('.')[0]);
+    return Object.assign(new Error('Uploads are unavailable: the server’s Cloudinary keys are not valid (API key and secret must be from the same Cloudinary key).'), { status: 502 });
+  }
+  return Object.assign(new Error('Upload failed, please try again'), { status: 502 });
 }
 
 module.exports = { uploadBuffer };
