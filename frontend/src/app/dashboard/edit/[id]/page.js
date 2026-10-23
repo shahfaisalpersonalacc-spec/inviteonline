@@ -284,7 +284,7 @@ export default function EditorPage() {
               device === "phone" ? "lg:max-w-[400px] lg:rounded-[2.2rem] lg:border-[10px] lg:border-ink" : "lg:max-w-[1100px] lg:rounded-2xl"
             }`}
           >
-            <div ref={previewRef} className="relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+            <div ref={previewRef} className="no-scrollbar relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
               <InvitationRenderer
                 invitation={inv}
                 mode="editor"

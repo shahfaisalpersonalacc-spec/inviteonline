@@ -12,12 +12,12 @@ function HeroDate({ date, light }) {
       <div className="flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.35em] opacity-80 @md:text-xs">
         <span>{formatDate(date, { weekday: "long" })}</span>
       </div>
-      <div className="mt-2 flex items-center gap-4" style={{ color: light ? "#fff" : "var(--inv-primary)" }}>
-        <span className="h-px w-10 @md:w-16" style={{ background: "currentColor", opacity: 0.5 }} />
-        <span className="text-2xl font-semibold tracking-[0.12em] @md:text-3xl" style={{ fontFamily: "var(--inv-font-body)" }}>
+      <div className="mt-2 flex items-center gap-2.5 @sm:gap-4" style={{ color: light ? "#fff" : "var(--inv-primary)" }}>
+        <span className="h-px w-5 shrink-0 @sm:w-10 @md:w-16" style={{ background: "currentColor", opacity: 0.5 }} />
+        <span className="whitespace-nowrap font-semibold tracking-[0.08em] @sm:tracking-[0.12em]" style={{ fontSize: "clamp(1.05rem, 6cqw, 1.9rem)", fontFamily: "var(--inv-font-body)" }}>
           {formatDate(date, { day: "numeric", month: "long", year: "numeric" })}
         </span>
-        <span className="h-px w-10 @md:w-16" style={{ background: "currentColor", opacity: 0.5 }} />
+        <span className="h-px w-5 shrink-0 @sm:w-10 @md:w-16" style={{ background: "currentColor", opacity: 0.5 }} />
       </div>
     </div>
   );
@@ -26,8 +26,8 @@ function HeroDate({ date, light }) {
 function Title({ data, light }) {
   return (
     <h1
-      className={`animate-float-up break-words text-[3.1rem] leading-[1.08] @sm:text-[4rem] @lg:text-[4.8rem] @5xl:text-[6.5rem] ${data.foil && !light ? "foil-text" : ""}`}
-      style={{ fontFamily: "var(--inv-font-heading)", color: light ? "#fff" : data.foil ? undefined : "var(--inv-primary)", animationDelay: "120ms" }}
+      className={`animate-float-up break-words leading-[1.08] ${data.foil && !light ? "foil-text" : ""}`}
+      style={{ fontSize: "clamp(2.2rem, 13cqw, 6.5rem)", fontFamily: "var(--inv-font-heading)", color: light ? "#fff" : data.foil ? undefined : "var(--inv-primary)", animationDelay: "120ms" }}
     >
       {data.title}
     </h1>
@@ -35,13 +35,13 @@ function Title({ data, light }) {
 }
 
 export function Hero({ data }) {
-  const { mode } = useInvite();
+  const { mode, theme } = useInvite();
   const minH = mode === "public" ? "min-h-[100svh]" : "min-h-[640px]";
   const layout = data.layout === "portrait" ? "circle" : data.layout === "center" ? "full" : data.layout || "arch";
   const full = layout === "full" && data.image;
 
   return (
-    <div className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 py-16 text-center`}>
+    <div className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 pb-28 pt-16 text-center @3xl:py-16`}>
       {full && (
         <>
           <Img src={data.image} className="absolute inset-0 h-full w-full object-cover" />
@@ -60,13 +60,13 @@ export function Hero({ data }) {
         )}
 
         {layout === "arch" && (
-          <div className="animate-float-up relative mb-8 w-[68%] max-w-[300px] @5xl:max-w-[340px]">
+          <div className="animate-float-up relative mb-7 w-[52%] max-w-[210px] @md:max-w-[280px] @5xl:max-w-[340px]">
             <div className="absolute -inset-2.5 rounded-t-full" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary)" }} />
             <div className="overflow-hidden rounded-t-full p-1.5" style={{ background: "linear-gradient(160deg, var(--inv-secondary), color-mix(in srgb, var(--inv-secondary) 40%, white), var(--inv-secondary))" }}>
               {data.image ? (
                 <Img src={data.image} className="aspect-[3/4] w-full rounded-t-full object-cover" />
               ) : (
-                <Placeholder className="aspect-[3/4] w-full rounded-t-full" label="Add a couple photo" />
+                <Placeholder className="aspect-[3/4] w-full rounded-t-full" label="Add a couple photo" monogram={theme.monogram} />
               )}
             </div>
           </div>
@@ -76,7 +76,7 @@ export function Hero({ data }) {
             {data.image ? (
               <Img src={data.image} className="h-48 w-48 rounded-full border-4 border-white object-cover @md:h-60 @md:w-60" />
             ) : (
-              <Placeholder className="h-48 w-48 rounded-full border-4 border-white @md:h-60 @md:w-60" />
+              <Placeholder className="h-48 w-48 rounded-full border-4 border-white @md:h-60 @md:w-60" monogram={theme.monogram} />
             )}
           </div>
         )}
@@ -92,7 +92,7 @@ export function Hero({ data }) {
         {layout === "classic" && <Ornament className="mt-7 w-48 rotate-180" />}
       </div>
 
-      <ChevronDown className="absolute bottom-6 left-1/2 z-[1] h-6 w-6 -translate-x-1/2 animate-bounce opacity-60" aria-hidden />
+      <ChevronDown className="absolute bottom-6 left-1/2 z-[1] hidden h-6 w-6 -translate-x-1/2 animate-bounce opacity-60 @3xl:block" aria-hidden />
     </div>
   );
 }
@@ -139,7 +139,7 @@ function PersonBlock({ p, i, pair }) {
         {p.photo ? (
           <Img src={p.photo} alt={p.name} className="h-56 w-44 rounded-t-full object-cover shadow-lg @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64" />
         ) : (
-          <Placeholder className="h-56 w-44 rounded-t-full @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64" />
+          <Placeholder className="h-56 w-44 rounded-t-full @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64" monogram={(p.name || "").trim().charAt(0)} />
         )}
       </div>
       {p.role && <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em] opacity-60">{p.role}</p>}

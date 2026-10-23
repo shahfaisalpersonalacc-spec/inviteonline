@@ -103,19 +103,40 @@ export function Scratch({ data }) {
       <SectionHeading sub={!revealed ? data.text : undefined}>{data.heading}</SectionHeading>
       <Reveal className="mx-auto max-w-md">
         <FramedCard className="!p-3">
-          <div ref={wrap} className="relative h-44 overflow-hidden rounded-2xl @md:h-52" style={{ background: "color-mix(in srgb, var(--inv-secondary) 18%, var(--inv-surface))" }}>
-            {/* the hidden date */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+          <div
+            ref={wrap}
+            className="@container relative h-44 overflow-hidden rounded-2xl @md:h-52"
+            style={{ background: "radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--inv-secondary) 30%, var(--inv-surface)), color-mix(in srgb, var(--inv-secondary) 10%, var(--inv-surface)))" }}
+          >
+            {/* the hidden date, set like a printed invitation: MONTH | day | YEAR */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center px-[6cqw] text-center">
               {date ? (
                 <>
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] opacity-70">{formatDate(date, { weekday: "long" })}</p>
-                  <p className="mt-1 flex items-baseline gap-3" style={{ color: "var(--inv-primary)" }}>
-                    <span className="text-xl font-semibold uppercase tracking-[0.2em]">{formatDate(date, { month: "long" })}</span>
-                    <span className="text-6xl font-bold leading-none" style={{ fontFamily: "var(--inv-font-body)" }}>
-                      {formatDate(date, { day: "numeric" })}
-                    </span>
-                    <span className="text-xl font-semibold tracking-[0.2em]">{formatDate(date, { year: "numeric" })}</span>
+                  <p className="font-semibold uppercase opacity-75" style={{ fontSize: "clamp(9px, 3.6cqw, 13px)", letterSpacing: "0.4em" }}>
+                    {formatDate(date, { weekday: "long" })}
                   </p>
+                  <div className="mt-[3cqw] grid w-full grid-cols-[1fr_auto_1fr] items-center gap-[3.5cqw]" style={{ color: "var(--inv-primary)" }}>
+                    {[formatDate(date, { month: "long" }), null, formatDate(date, { year: "numeric" })].map((txt, i) =>
+                      txt === null ? (
+                        <span key={i} className="leading-none" style={{ fontSize: "clamp(2.8rem, 19cqw, 5rem)", fontFamily: "var(--inv-font-heading)" }}>
+                          {formatDate(date, { day: "numeric" })}
+                        </span>
+                      ) : (
+                        <span
+                          key={i}
+                          className="whitespace-nowrap py-[2cqw] font-semibold uppercase"
+                          style={{
+                            fontSize: "clamp(10px, 4.3cqw, 17px)",
+                            letterSpacing: "0.18em",
+                            borderTop: "1px solid color-mix(in srgb, var(--inv-primary) 55%, transparent)",
+                            borderBottom: "1px solid color-mix(in srgb, var(--inv-primary) 55%, transparent)",
+                          }}
+                        >
+                          {txt}
+                        </span>
+                      )
+                    )}
+                  </div>
                 </>
               ) : (
                 <p className="italic opacity-70">Add a date in the editor</p>

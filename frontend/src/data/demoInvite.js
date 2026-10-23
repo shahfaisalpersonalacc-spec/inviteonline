@@ -7,17 +7,17 @@ const inDays = (d) => {
   return t.toISOString();
 };
 
-// A sample invitation used for the landing-page live demos (no backend needed).
+// A sample invitation used for the landing-page live demos (no backend needed), shown in dark mode.
 export function demoInvitation(preset = "royal", entryStyle) {
   const { label, ...theme } = THEMES[preset] || THEMES.royal;
   const date = inDays(45);
   return {
     slug: "demo",
     title: "Ayesha & Ahmed",
-    theme: { ...theme, preset, bgType: "pattern", bgValue: "floral", envelope: true, monogram: "A&A", ...(entryStyle ? { entryStyle } : {}) },
+    theme: { ...theme, preset, mode: "dark", bgType: "color", bgValue: "", envelope: true, monogram: "A&A", ...(entryStyle ? { entryStyle } : {}) },
     stickers: [],
     sections: [
-      { id: "h", type: "hero", enabled: true, data: { title: "Ayesha & Ahmed", subtitle: "request the honour of your presence at the celebration of their marriage", tagline: "Together with their families", date, layout: "classic", foil: true } },
+      { id: "h", type: "hero", enabled: true, data: { title: "Ayesha & Ahmed", subtitle: "request the honour of your presence at the celebration of their marriage", tagline: "Together with their families", date, layout: "arch", foil: true } },
       { id: "q", type: "quote", enabled: true, data: { arabic: "وَخَلَقْنَاكُمْ أَزْوَاجًا", text: "And We created you in pairs.", source: "Surah An-Naba 78:8" } },
       { id: "s", type: "scratch", enabled: true, data: { heading: "Save the date", text: "Scratch the gold foil to reveal the date", date } },
       { id: "c", type: "countdown", enabled: true, data: { heading: "Counting down", target: date } },

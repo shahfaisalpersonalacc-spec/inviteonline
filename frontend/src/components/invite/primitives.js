@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
+import { useInvite } from "./InviteContext";
 
 // Fades children in when scrolled into view.
 export function Reveal({ children, className = "", as: Tag = "div", delay = 0 }) {
@@ -52,7 +53,7 @@ export function SectionHeading({ children, sub, eyebrow, align = "center" }) {
     <div className={`mb-9 text-center @3xl:mb-12 ${split ? "@5xl:mb-0 @5xl:text-left" : ""}`}>
       {eyebrow && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.32em] opacity-60">{eyebrow}</p>}
       {children && (
-        <h2 className="text-[2.6rem] leading-tight @md:text-[3.4rem] @5xl:text-[3.9rem]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+        <h2 className="break-words leading-tight" style={{ fontSize: "clamp(1.9rem, 10.5cqw, 3.9rem)", fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
           {children}
         </h2>
       )}
@@ -116,12 +117,26 @@ export function Img({ src, alt = "", className = "", style }) {
   return <img src={src} alt={alt} loading="lazy" decoding="async" className={className} style={style} draggable={false} />;
 }
 
-export function Placeholder({ label = "Add a photo", className = "" }) {
+// Missing photo: the owner sees an "add a photo" hint in the editor; guests see an
+// ornamental monogram/initial instead, never an empty upload box.
+export function Placeholder({ label = "Add a photo", monogram = "", className = "" }) {
+  const { mode } = useInvite();
+  const base = { background: "linear-gradient(160deg, color-mix(in srgb, var(--inv-secondary) 30%, var(--inv-surface)), color-mix(in srgb, var(--inv-secondary) 12%, var(--inv-surface)))", color: "var(--inv-primary)" };
+  if (mode !== "editor") {
+    return (
+      <div className={`flex flex-col items-center justify-center gap-2 ${className}`} style={base} aria-hidden>
+        <Ornament className="w-1/2 max-w-[120px]" />
+        {monogram && (
+          <span className="px-2 text-center text-[clamp(2rem,9cqw,4rem)] leading-none" style={{ fontFamily: "var(--inv-font-heading)" }}>
+            {monogram}
+          </span>
+        )}
+        <Ornament className="w-1/2 max-w-[120px] rotate-180" />
+      </div>
+    );
+  }
   return (
-    <div
-      className={`flex flex-col items-center justify-center gap-1 text-xs font-medium ${className}`}
-      style={{ background: "color-mix(in srgb, var(--inv-secondary) 28%, var(--inv-surface))", color: "var(--inv-primary)" }}
-    >
+    <div className={`flex flex-col items-center justify-center gap-1 text-xs font-medium ${className}`} style={base}>
       <ImagePlus className="h-6 w-6 opacity-70" strokeWidth={1.4} />
       <span className="opacity-70">{label}</span>
     </div>

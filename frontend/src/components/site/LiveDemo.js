@@ -45,7 +45,7 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
     <div className="flex flex-col items-center">
       <PhoneFrame className={className}>
         <div className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden">
-          <InvitationRenderer invitation={inv} mode="editor" showFooter={false} />
+          <InvitationRenderer invitation={inv} mode="demo" showFooter={false} />
         </div>
         {!opened && (
           <EntryScreen

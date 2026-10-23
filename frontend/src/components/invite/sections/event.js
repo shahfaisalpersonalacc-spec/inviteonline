@@ -133,14 +133,14 @@ export function Schedule({ data }) {
     <Shell className="@5xl:grid @5xl:grid-cols-[1fr_1.25fr] @5xl:items-start @5xl:gap-16">
       <SectionHeading align="split" sub={data.text}>{data.heading}</SectionHeading>
       <ol className="relative mx-auto max-w-md @5xl:mx-0 @5xl:max-w-none">
-        <span className="absolute bottom-2 left-[5.5rem] top-2 w-px" style={{ background: "var(--inv-secondary)" }} aria-hidden />
+        <span className="absolute bottom-2 left-[5.25rem] top-2 w-px" style={{ background: "var(--inv-secondary)" }} aria-hidden />
         {items.map((x, i) => (
-          <Reveal as="li" key={i} delay={i * 80} className="relative mb-8 grid grid-cols-[5rem_1fr] gap-6 last:mb-0">
-            <span className="pt-0.5 text-right text-sm font-bold tracking-wide" style={{ color: "var(--inv-primary)" }}>
+          <Reveal as="li" key={i} delay={i * 80} className="relative mb-8 grid grid-cols-[4.25rem_1fr] gap-8 last:mb-0">
+            <span className="whitespace-nowrap pt-0.5 text-right text-[13px] font-bold" style={{ color: "var(--inv-primary)" }}>
               {x.time}
             </span>
             <span
-              className="absolute left-[5.5rem] top-1 h-3.5 w-3.5 -translate-x-1/2 rotate-45"
+              className="absolute left-[5.25rem] top-1 h-3.5 w-3.5 -translate-x-1/2 rotate-45"
               style={{ background: "var(--inv-primary)", boxShadow: "0 0 0 4px var(--inv-bg)" }}
               aria-hidden
             />

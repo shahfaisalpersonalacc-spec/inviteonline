@@ -70,12 +70,14 @@ function bandStyle(type, index, theme) {
     const vars = themeVars(theme);
     const dark = vars["--inv-band-dark"];
     const on = vars["--inv-on-band-dark"];
+    const accent = (luminance(theme.background || "#ffffff") < 0.35 ? theme.primary : theme.secondary) || "#c9a24a";
     return {
       background: dark,
       color: on,
       "--inv-text": on,
-      "--inv-primary": theme.secondary,
-      "--inv-on-primary": readableOn(theme.secondary || "#c9a24a"),
+      // on an already-dark page keep the glowing primary; on light pages the accent pops on the dark band
+      "--inv-primary": accent,
+      "--inv-on-primary": readableOn(accent),
       "--inv-bg": dark,
       "--inv-surface": shade(dark, 0.06),
     };
@@ -114,6 +116,8 @@ export default function InvitationRenderer({
   }, [invitation.stickers, sections]);
 
   const hero = sections.find((s) => s.type === "hero")?.data || {};
+  // the closing section already signs off with the names; don't repeat them in the footer
+  const hasSignature = sections.some((s) => s.type === "closing" && s.data?.signature);
   const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme }), [mode, invitation.slug, unlockToken, theme]);
 
   return (
@@ -152,7 +156,7 @@ export default function InvitationRenderer({
               </section>
             );
           })}
-          {showFooter ? <InviteFooter title={hero.title || invitation.title} date={hero.date} /> : showChrome && <div className="h-24 @3xl:hidden" />}
+          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} /> : showChrome && <div className="h-24 @3xl:hidden" />}
           {showChrome && <TabBar sections={sections} />}
         </div>
       </div>

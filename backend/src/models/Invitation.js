@@ -60,6 +60,7 @@ const invitationSchema = new mongoose.Schema(
       envelope: { type: Boolean, default: true }, // show the entry screen
       entryStyle: { type: String, default: 'linen-monogram' }, // envelope or door design
       sealColor: { type: String, default: '#7a2430' },
+      doorColor: { type: String, default: '' }, // door entrances; empty = the style's own colour
       sealIcon: { type: String, enum: ['monogram', 'dove', 'heart', 'butterfly', 'rose', 'crest'], default: 'monogram' },
       monogram: { type: String, default: '', maxlength: 6 },
       animation: { type: String, enum: ['none', 'petals', 'confetti', 'hearts', 'stars', 'snow'], default: 'petals' },

@@ -26,6 +26,7 @@ const themeSchema = z
     envelope: z.boolean(),
     entryStyle: z.string().max(40),
     sealColor: color,
+    doorColor: z.union([color, z.literal('')]),
     sealIcon: z.enum(['monogram', 'dove', 'heart', 'butterfly', 'rose', 'crest']),
     monogram: z.string().max(6),
     animation: z.enum(['none', 'petals', 'confetti', 'hearts', 'stars', 'snow']),

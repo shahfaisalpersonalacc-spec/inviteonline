@@ -114,10 +114,11 @@ export default function PublicInvitation({ slug, initial }) {
 
       <button
         onClick={() => setShareOpen(true)}
-        className="fixed right-3 top-3 z-[50] inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-lg backdrop-blur md:bottom-5 md:right-4 md:top-auto md:px-5 md:py-3"
+        className="fixed right-3 top-3 z-[50] grid h-11 w-11 place-items-center rounded-full text-sm font-semibold shadow-lg backdrop-blur md:bottom-5 md:right-4 md:top-auto md:inline-flex md:h-auto md:w-auto md:gap-2 md:px-5 md:py-3"
+        aria-label="Share invitation"
         style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)" }}
       >
-        <Share2 className="h-4 w-4" /> Share
+        <Share2 className="h-[18px] w-[18px]" /> <span className="hidden md:inline">Share</span>
       </button>
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} url={url} title={inv.title} />
     </div>

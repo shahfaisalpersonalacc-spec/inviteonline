@@ -114,12 +114,12 @@ export default function DesignPanel({ theme, onChange, onPreviewEntry }) {
       {theme.envelope !== false && isDoor && (
         <Group title="Door colour">
           <div className="flex flex-wrap gap-2">
-            {[...new Set([theme.primary, "#86a99a", "#4f7f7c", "#8fa9c2", "#c98b93", "#e8dcc6", "#5a3a2a", "#263a5a", "#2b2b2b"])].map((c) => (
+            {["#8fae9f", "#4f7f7c", "#8fa9c2", "#c98b93", "#e8dcc6", "#b4471a", "#5a3a2a", "#263a5a", "#2b2b2b"].map((c) => (
               <button
                 key={c}
                 type="button"
-                onClick={() => set({ sealColor: c })}
-                className={`h-9 w-9 rounded-xl border-2 ${theme.sealColor === c ? "border-ink ring-2 ring-gold/50" : "border-white shadow"}`}
+                onClick={() => set({ doorColor: c })}
+                className={`h-9 w-9 rounded-xl border-2 ${(theme.doorColor || "#8fae9f") === c ? "border-ink ring-2 ring-gold/50" : "border-white shadow"}`}
                 style={{ background: c }}
                 aria-label={`Door colour ${c}`}
               />

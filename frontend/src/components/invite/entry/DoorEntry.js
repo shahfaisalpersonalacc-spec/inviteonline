@@ -1,23 +1,38 @@
 "use client";
 
+import { useEffect, useId, useRef, useState } from "react";
 import { KeyRound } from "lucide-react";
 import useOpenSequence from "./useOpenSequence";
-import { noise, stucco, damask } from "./textures";
+import { noise } from "./textures";
 import { mix, shade } from "@/lib/color";
+
+/*
+ * The door entrance is one scene in a fixed 400x860 coordinate space, scaled to cover the
+ * screen (like a photo). Two SVG layers sandwich an HTML doorway:
+ *   back SVG  : lit plaster wall, stone arch, steps, floor, light & leaf shadows
+ *   doorway   : the hall + two 3D door leaves (HTML, so they can swing in perspective)
+ *   front SVG : bougainvillea / marigolds, lanterns, pots (they hang over the doors)
+ */
+const W = 400;
+const H = 860;
+const DOOR = { x: 82, y: 262, w: 236, h: 378 }; // doorway opening (semicircular top, r = w/2)
+// The part of the scene that must always be visible (arch top to the floor under the steps).
+// It is fitted inside the screen; wall and floor are drawn far beyond it to fill any shape.
+const SAFE = { x: 0, y: 70, w: 400, h: 760 };
 
 export const DOORS = {
   "door-garden": {
-    wall: () => `${stucco()}, radial-gradient(ellipse at 25% 0%, #fff9ec 0%, #f6e8cf 40%, #e8d3b0 100%)`,
-    frame: "#f1e6d2",
-    door: "#86a99a",
+    wall: "#efe2c9",
+    stone: "#efe6d6",
+    door: "#8fae9f",
     hardware: "#c9a24a",
-    floor: "#e4d3b8",
+    floor: "#e6d6bd",
     text: "#3b2f25",
     flowers: "bougainvillea",
   },
   "door-royal": {
-    wall: () => `${damask("#f0c97a", "#2a0b0d")}, ${noise(0.2)}, radial-gradient(ellipse at 50% 10%, #7a2b2b 0%, #4a1517 60%, #2c0c0e 100%)`,
-    frame: "#d8b56a",
+    wall: "#6e2226",
+    stone: "#d8b56a",
     door: "#5a3a2a",
     hardware: "#e9c46a",
     floor: "#3a1f18",
@@ -26,110 +41,172 @@ export const DOORS = {
   },
 };
 
-// Deterministic pseudo-random (same on server and client).
+// Deterministic pseudo-random so server and client agree.
 const rnd = (i, s = 1) => {
   const x = Math.sin(i * 127.1 + s * 311.7) * 43758.5453;
   return x - Math.floor(x);
 };
 
-/* ---------------- flowers ---------------- */
+/* ---------------- foliage ---------------- */
 
-// Bougainvillea: papery three-bract blooms over dark leaves, densest at the top of the box.
-function Bougainvillea({ style, colors, seed = 1, count = 70, flip }) {
-  const items = Array.from({ length: count }, (_, i) => {
-    const y = Math.pow(rnd(i, seed), 1.6) * 100; // bias towards the top
-    const x = rnd(i, seed + 7) * 100;
-    return { x, y, r: 2.4 + rnd(i, seed + 3) * 2.6, c: colors[i % colors.length], a: rnd(i, seed + 5) * 360 };
+// Clusters of blooms: [cx, cy, spreadX, spreadY, count]. Laid out around the arch.
+const CLUSTERS = [
+  [70, 40, 95, 70, 70], [190, 25, 80, 40, 45], [330, 45, 90, 70, 70], [120, 120, 70, 55, 45], [290, 120, 70, 55, 45],
+  [200, 215, 60, 26, 26], [150, 185, 40, 30, 18], [255, 185, 40, 30, 18],
+  [48, 230, 26, 50, 22], [352, 230, 26, 50, 22], [40, 330, 20, 55, 18], [360, 330, 20, 55, 18],
+  [36, 440, 16, 55, 12], [364, 440, 16, 55, 12], [34, 540, 12, 40, 7], [366, 540, 12, 40, 7],
+];
+
+function buildFoliage(seed) {
+  const blooms = [];
+  const leaves = [];
+  CLUSTERS.forEach(([cx, cy, sx, sy, n], k) => {
+    for (let i = 0; i < Math.round(n * 1.7); i++) {
+      const a = rnd(i + k * 97, seed) * Math.PI * 2;
+      const r = Math.sqrt(rnd(i + k * 53, seed + 1));
+      const x = cx + Math.cos(a) * sx * r;
+      const y = cy + Math.sin(a) * sy * r;
+      blooms.push({ x, y, s: 3.4 + rnd(i + k * 31, seed + 2) * 3, rot: rnd(i + k, seed + 3) * 360, c: (i + k) % 4, back: rnd(i + k * 7, seed + 4) < 0.35 });
+      if (i % 2 === 0 || i % 5 === 0) leaves.push({ x: x + (rnd(i, k + 9) - 0.5) * 14, y: y + (rnd(i, k + 11) - 0.5) * 12, s: 5 + rnd(i, k + 13) * 5, rot: rnd(i, k + 15) * 360 });
+    }
   });
+  return { blooms, leaves };
+}
+
+// A papery three-bract bougainvillea flower.
+function Bloom({ b, id }) {
   return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute" style={{ ...style, transform: flip ? "scaleX(-1)" : undefined }} aria-hidden="true">
-      {items.map((b, i) => (
-        <ellipse key={`l${i}`} cx={b.x + 2.5} cy={b.y + 1.5} rx={b.r * 1.2} ry={b.r * 0.55} fill={i % 3 ? "#3f6b34" : "#5a8a44"} transform={`rotate(${b.a} ${b.x} ${b.y})`} />
+    <g transform={`translate(${b.x.toFixed(1)} ${b.y.toFixed(1)}) rotate(${b.rot.toFixed(0)}) scale(${(b.s / 6).toFixed(2)})`}>
+      {[0, 120, 240].map((a) => (
+        <path key={a} d="M0 0 C -4.6 -3 -4.2 -8.4 0 -8.6 C 4.2 -8.4 4.6 -3 0 0Z" fill={`url(#${id}-b${b.c})`} transform={`rotate(${a})`} />
       ))}
-      {items.map((b, i) => (
-        <g key={`b${i}`} transform={`translate(${b.x} ${b.y}) rotate(${b.a})`}>
-          {[0, 120, 240].map((a) => (
-            <path key={a} d={`M0 0 C ${-b.r * 0.7} ${-b.r * 0.5} ${-b.r * 0.6} ${-b.r * 1.3} 0 ${-b.r * 1.25} C ${b.r * 0.6} ${-b.r * 1.3} ${b.r * 0.7} ${-b.r * 0.5} 0 0Z`} fill={b.c} transform={`rotate(${a})`} />
-          ))}
-          <circle r={b.r * 0.16} fill="#fff6d8" />
-        </g>
-      ))}
-    </svg>
+      <circle r="0.9" fill="#fff6dc" />
+    </g>
   );
 }
 
-function MarigoldStrings({ style }) {
+function Leaf({ l, id }) {
   return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute" style={style} aria-hidden="true">
-      <path d="M0 3 Q50 30 100 3" fill="none" stroke="#14532d" strokeWidth=".5" />
-      {Array.from({ length: 34 }, (_, i) => {
-        const t = i / 33;
-        return <circle key={`s${i}`} cx={t * 100} cy={3 + Math.sin(t * Math.PI) * 26} r="1.9" fill={i % 3 ? "#f97316" : "#facc15"} />;
-      })}
-      {[6, 18, 82, 94].map((x, k) =>
-        Array.from({ length: 16 }, (_, i) => <circle key={`h${k}-${i}`} cx={x} cy={4 + i * 3.4} r="1.6" fill={(i + k) % 3 ? "#f97316" : "#facc15"} />)
-      )}
-    </svg>
+    <g transform={`translate(${l.x.toFixed(1)} ${l.y.toFixed(1)}) rotate(${l.rot.toFixed(0)}) scale(${(l.s / 8).toFixed(2)})`}>
+      <path d="M-8 0 C -4 -4.4 4 -4.4 8 0 C 4 4.4 -4 4.4 -8 0Z" fill={`url(#${id}-leaf)`} />
+      <path d="M-7 0 L7 0" stroke="#2f5426" strokeWidth=".5" opacity=".6" />
+    </g>
   );
 }
 
-function Pot({ style, colors, flip }) {
+function Bougainvillea({ id, palette }) {
+  const { blooms, leaves } = buildFoliage(1);
   return (
-    <svg viewBox="0 0 60 90" className="pointer-events-none absolute" style={{ ...style, transform: flip ? "scaleX(-1)" : undefined }} aria-hidden="true">
-      {Array.from({ length: 22 }, (_, i) => (
-        <ellipse key={`l${i}`} cx={14 + rnd(i, 9) * 32} cy={12 + rnd(i, 4) * 40} rx="5" ry="2.4" fill={i % 2 ? "#3f6b34" : "#5a8a44"} transform={`rotate(${rnd(i, 2) * 180} ${14 + rnd(i, 9) * 32} ${12 + rnd(i, 4) * 40})`} />
-      ))}
-      {Array.from({ length: 16 }, (_, i) => (
-        <circle key={`f${i}`} cx={14 + rnd(i, 11) * 32} cy={10 + rnd(i, 13) * 34} r="2.6" fill={colors[i % colors.length]} />
-      ))}
-      <path d="M12 56 L48 56 L44 86 Q30 90 16 86Z" fill="#b8643b" />
-      <path d="M10 52 L50 52 L50 58 L10 58Z" fill="#c97448" />
-      <path d="M16 62 L44 62" stroke="#9a4f2c" strokeWidth="1" opacity=".5" />
-    </svg>
-  );
-}
-
-function Lantern({ style, hardware }) {
-  return (
-    <div className="pointer-events-none absolute" style={style} aria-hidden="true">
-      <div className="absolute left-1/2 top-[45%] h-[260%] w-[260%] -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ background: "radial-gradient(circle, rgba(255,210,130,.55), rgba(255,210,130,0) 62%)", animation: "glow-pulse 3.4s ease-in-out infinite" }} />
-      <svg viewBox="0 0 40 90" className="relative h-full w-full">
-        <path d="M6 10 L20 10 L20 4" stroke="#2a2420" strokeWidth="2" fill="none" />
-        <path d="M2 8 Q6 2 10 8" stroke="#2a2420" strokeWidth="2" fill="none" />
-        <path d="M12 14 L28 14 L34 22 L6 22Z" fill="#2a2420" />
-        <rect x="9" y="22" width="22" height="40" rx="2" fill="#ffe2a3" stroke="#2a2420" strokeWidth="2.5" />
-        <path d="M20 22 L20 62 M9 42 L31 42" stroke="#2a2420" strokeWidth="1.4" />
-        <ellipse cx="20" cy="44" rx="4.5" ry="8" fill="#fff7dc" />
-        <path d="M6 62 L34 62 L27 70 L13 70Z" fill="#2a2420" />
-        <circle cx="20" cy="74" r="2.5" fill={hardware} />
-      </svg>
-    </div>
-  );
-}
-
-// Soft, swaying shadows of leaves falling across the wall (sunlight through foliage).
-function LeafShadows() {
-  return (
-    <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full mix-blend-multiply" style={{ animation: "sway 9s ease-in-out infinite", transformOrigin: "0 0" }} aria-hidden="true">
+    <>
       <defs>
-        <filter id="leafBlur" x="-10%" y="-10%" width="120%" height="120%">
-          <feGaussianBlur stdDeviation="0.9" />
+        {palette.map((c, i) => (
+          <radialGradient key={i} id={`${id}-b${i}`} cx="50%" cy="80%" r="90%">
+            <stop offset="0" stopColor={mix(c, "#ffffff", 0.45)} />
+            <stop offset=".55" stopColor={c} />
+            <stop offset="1" stopColor={shade(c, -0.3)} />
+          </radialGradient>
+        ))}
+        <linearGradient id={`${id}-leaf`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#6f9a52" />
+          <stop offset="1" stopColor="#2f5a2a" />
+        </linearGradient>
+        <filter id={`${id}-mass`} x="-20%" y="-20%" width="140%" height="140%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" result="t" />
+          <feDisplacementMap in="SourceGraphic" in2="t" scale="22" result="d" />
+          <feGaussianBlur in="d" stdDeviation="2.5" />
+        </filter>
+        <filter id={`${id}-soft`} x="-5%" y="-5%" width="110%" height="110%">
+          <feGaussianBlur stdDeviation=".7" />
+        </filter>
+        <filter id={`${id}-depth`} x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="1.2" dy="2" stdDeviation="1.4" floodColor="#3b2410" floodOpacity=".35" />
         </filter>
       </defs>
-      <g filter="url(#leafBlur)" fill="rgba(70,50,20,.16)">
-        {Array.from({ length: 46 }, (_, i) => {
-          const x = rnd(i, 21) * 100;
-          const y = Math.pow(rnd(i, 22), 0.9) * 75;
-          return <ellipse key={i} cx={x} cy={y} rx={1.4 + rnd(i, 23) * 2.6} ry={0.6 + rnd(i, 24) * 0.9} transform={`rotate(${rnd(i, 25) * 180} ${x} ${y})`} />;
-        })}
-        <path d="M-5 20 Q30 35 60 10" stroke="rgba(70,50,20,.12)" strokeWidth="1.2" fill="none" />
-        <path d="M55 -5 Q75 30 105 45" stroke="rgba(70,50,20,.12)" strokeWidth="1" fill="none" />
+      {/* leafy mass the flowers grow from */}
+      <g filter={`url(#${id}-mass)`} fill="#2f5226" opacity=".55">
+        {CLUSTERS.map(([cx, cy, sx, sy], k) => (
+          <ellipse key={k} cx={cx} cy={cy} rx={sx * 0.8} ry={sy * 0.8} />
+        ))}
       </g>
-    </svg>
+      {/* back layer: slightly blurred, darker = depth */}
+      <g filter={`url(#${id}-soft)`} opacity=".85">
+        {leaves.map((l, i) => i % 2 === 0 && <Leaf key={i} l={l} id={id} />)}
+        {blooms.filter((b) => b.back).map((b, i) => <Bloom key={i} b={b} id={id} />)}
+      </g>
+      {/* front layer */}
+      <g filter={`url(#${id}-depth)`}>
+        {leaves.map((l, i) => i % 2 === 1 && <Leaf key={i} l={l} id={id} />)}
+        {blooms.filter((b) => !b.back).map((b, i) => <Bloom key={i} b={b} id={id} />)}
+      </g>
+    </>
   );
 }
 
-/* ---------------- the room behind the doors ---------------- */
+function Marigolds({ id }) {
+  const strand = (x, y0, n, k) =>
+    Array.from({ length: n }, (_, i) => <circle key={`${k}-${i}`} cx={x + Math.sin(i * 0.9 + k) * 1.2} cy={y0 + i * 9} r="5.2" fill={`url(#${id}-m${(i + k) % 2})`} />);
+  return (
+    <>
+      <defs>
+        {["#f59e0b", "#ea580c"].map((c, i) => (
+          <radialGradient key={i} id={`${id}-m${i}`} cx="40%" cy="35%" r="70%">
+            <stop offset="0" stopColor={mix(c, "#fff3c4", 0.5)} />
+            <stop offset="1" stopColor={shade(c, -0.2)} />
+          </radialGradient>
+        ))}
+        <filter id={`${id}-depth`} x="-5%" y="-5%" width="110%" height="110%">
+          <feDropShadow dx="1" dy="2" stdDeviation="1.2" floodColor="#000" floodOpacity=".35" />
+        </filter>
+      </defs>
+      <g filter={`url(#${id}-depth)`}>
+        {Array.from({ length: 38 }, (_, i) => {
+          const t = i / 37;
+          return <circle key={`s${i}`} cx={30 + t * 340} cy={70 + Math.sin(t * Math.PI) * 70} r="6" fill={`url(#${id}-m${i % 2})`} />;
+        })}
+        {strand(44, 80, 30, 1)}
+        {strand(356, 80, 30, 2)}
+        {strand(110, 140, 12, 3)}
+        {strand(290, 140, 12, 4)}
+      </g>
+    </>
+  );
+}
+
+function Lantern({ x, y, hardware, id }) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <circle cx="0" cy="22" r="46" fill={`url(#${id}-glow)`} style={{ animation: "glow-pulse 3.4s ease-in-out infinite" }} />
+      <path d="M-10 -14 L0 -14 L0 -20" stroke="#24201c" strokeWidth="2" fill="none" />
+      <path d="M-14 -16 Q-10 -22 -6 -16" stroke="#24201c" strokeWidth="2" fill="none" />
+      <path d="M-8 -10 L8 -10 L13 -2 L-13 -2Z" fill="#24201c" />
+      <rect x="-10" y="-2" width="20" height="36" rx="1.5" fill="#ffe4a8" stroke="#24201c" strokeWidth="2.4" />
+      <path d="M0 -2 L0 34 M-10 16 L10 16" stroke="#24201c" strokeWidth="1.3" />
+      <ellipse cx="0" cy="17" rx="4" ry="7" fill="#fff8de" />
+      <path d="M-13 34 L13 34 L7 41 L-7 41Z" fill="#24201c" />
+      <circle cx="0" cy="45" r="2.2" fill={hardware} />
+    </g>
+  );
+}
+
+function Pot({ x, palette, id, flowers }) {
+  return (
+    <g transform={`translate(${x} 640)`}>
+      {Array.from({ length: 26 }, (_, i) => (
+        <g key={i} transform={`translate(${(rnd(i, 71) - 0.5) * 46} ${-12 - rnd(i, 72) * 52}) rotate(${rnd(i, 73) * 360})`}>
+          {flowers && i % 3 === 0 ? (
+            <circle r="3.6" fill={`url(#${id}-b${i % palette.length})`} />
+          ) : (
+            <path d="M-6 0 C -3 -3.4 3 -3.4 6 0 C 3 3.4 -3 3.4 -6 0Z" fill={i % 2 ? "#3f6b34" : "#5f8f48"} />
+          )}
+        </g>
+      ))}
+      <path d="M-24 0 L24 0 L19 48 Q0 53 -19 48Z" fill="url(#potGrad)" />
+      <rect x="-27" y="-6" width="54" height="9" rx="2" fill="#c97448" />
+    </g>
+  );
+}
+
+/* ---------------- hall behind the doors ---------------- */
 
 function Hall({ accent }) {
   const chair = (x, y, s) => (
@@ -141,30 +218,21 @@ function Hall({ accent }) {
     </g>
   );
   return (
-    <div className="absolute inset-0 overflow-hidden" style={{ background: "linear-gradient(#fff8ea, #f7e6c6 55%, #e9cfa3)" }}>
+    <div className="absolute inset-0 overflow-hidden" style={{ background: "linear-gradient(#fff9ee, #f6e5c6 55%, #e7cc9f)" }}>
       <svg viewBox="0 0 100 160" preserveAspectRatio="xMidYMid slice" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        {/* back wall arched windows */}
         {[22, 50, 78].map((x) => (
-          <path key={x} d={`M${x - 8} 70 L${x - 8} 40 Q${x} 26 ${x + 8} 40 L${x + 8} 70Z`} fill="#fffdf6" stroke="#ead8b4" strokeWidth=".8" />
+          <path key={x} d={`M${x - 8} 74 L${x - 8} 44 Q${x} 30 ${x + 8} 44 L${x + 8} 74Z`} fill="#fffdf6" stroke="#ead8b4" strokeWidth=".8" />
         ))}
-        {/* floral arch at the end of the aisle */}
-        <path d="M30 96 L30 64 Q50 40 70 64 L70 96" fill="none" stroke="#f3e2c2" strokeWidth="3" />
+        <path d="M30 98 L30 66 Q50 42 70 66 L70 98" fill="none" stroke="#f3e2c2" strokeWidth="3" />
         {Array.from({ length: 30 }, (_, i) => {
           const t = i / 29;
           const a = Math.PI * (1 - t);
-          return <circle key={i} cx={50 + 20 * Math.cos(a)} cy={66 - 22 * Math.sin(a) + (t < 0.15 || t > 0.85 ? 10 : 0)} r={2.2 + rnd(i, 31)} fill={i % 3 ? mix(accent, "#f3a6c0", 0.45) : "#fff4f6"} />;
+          return <circle key={i} cx={50 + 20 * Math.cos(a)} cy={68 - 22 * Math.sin(a) + (t < 0.15 || t > 0.85 ? 10 : 0)} r={2.2 + rnd(i, 31)} fill={i % 3 ? mix(accent, "#f3a6c0", 0.45) : "#fff4f6"} />;
         })}
-        {/* floor & aisle */}
-        <path d="M0 96 L100 96 L100 160 L0 160Z" fill="#efdfc1" />
-        <path d="M44 96 L56 96 L80 160 L20 160Z" fill="#fffaf2" />
-        <path d="M44 96 L20 160 M56 96 L80 160" stroke="#e2c99c" strokeWidth=".5" />
-        {/* petals on the aisle */}
-        {Array.from({ length: 24 }, (_, i) => (
-          <ellipse key={i} cx={30 + rnd(i, 41) * 40} cy={100 + rnd(i, 42) * 58} rx="1" ry=".55" fill={mix(accent, "#f08fb0", 0.5)} transform={`rotate(${rnd(i, 43) * 180} ${30 + rnd(i, 41) * 40} ${100 + rnd(i, 42) * 58})`} />
-        ))}
-        {/* chairs in perspective */}
+        <path d="M0 98 L100 98 L100 160 L0 160Z" fill="#efdfc1" />
+        <path d="M44 98 L56 98 L80 160 L20 160Z" fill="#fffaf2" />
         {[0, 1, 2, 3].map((r) => {
-          const y = 104 + r * 14;
+          const y = 106 + r * 14;
           const s = 0.55 + r * 0.22;
           const spread = 8 + r * 7;
           return (
@@ -176,21 +244,15 @@ function Hall({ accent }) {
             </g>
           );
         })}
-        {/* chandelier */}
         <path d="M50 0 L50 14" stroke="#b08a3e" strokeWidth=".5" />
         <path d="M36 22 Q50 32 64 22 M41 18 Q50 25 59 18" fill="none" stroke="#b08a3e" strokeWidth="1" />
         {[36, 41, 46, 50, 54, 59, 64].map((x, i) => (
-          <g key={x}>
-            <circle cx={x} cy={i % 2 ? 18 : 22} r="1.4" fill="#ffd27a" />
-            <path d={`M${x} ${(i % 2 ? 18 : 22) + 2} L${x} ${(i % 2 ? 18 : 22) + 9}`} stroke="#fff3cf" strokeWidth=".5" strokeDasharray="1 1" />
-          </g>
+          <circle key={x} cx={x} cy={i % 2 ? 18 : 22} r="1.4" fill="#ffd27a" />
         ))}
       </svg>
-      {/* fairy lights */}
-      {Array.from({ length: 18 }, (_, i) => (
+      {Array.from({ length: 16 }, (_, i) => (
         <span key={i} className="absolute rounded-full" style={{ left: `${rnd(i, 51) * 100}%`, top: `${5 + rnd(i, 52) * 40}%`, width: 4, height: 4, background: "#fff2c4", boxShadow: "0 0 8px 3px rgba(255,220,140,.8)", animation: `twinkle ${2 + rnd(i, 53) * 2}s ease-in-out ${rnd(i, 54) * 2}s infinite` }} />
       ))}
-      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 35%, rgba(255,250,235,.0) 30%, rgba(120,80,40,.25) 100%)" }} />
     </div>
   );
 }
@@ -199,131 +261,245 @@ function Hall({ accent }) {
 
 function DoorLeaf({ side, color, hardware, phase }) {
   const left = side === "left";
-  const wood = `linear-gradient(90deg, ${shade(color, -0.16)} 0%, ${color} 12%, ${shade(color, 0.07)} 50%, ${color} 88%, ${shade(color, -0.18)} 100%)`;
-  const bevel = `inset 2px 2px 2px ${shade(color, 0.3)}, inset -2px -2px 3px ${shade(color, -0.42)}, 0 0 0 3px ${shade(color, -0.06)}, 0 0 0 4px ${shade(color, -0.25)}`;
+  const grain = `repeating-linear-gradient(90deg, ${shade(color, -0.05)} 0 2px, ${shade(color, 0.03)} 2px 5px, ${shade(color, -0.02)} 5px 9px)`;
+  const light = `linear-gradient(${left ? "100deg" : "80deg"}, rgba(255,255,255,.18), transparent 40%, rgba(0,0,0,.12) 100%)`;
+  const bevel = `inset 2px 2px 2px ${shade(color, 0.32)}, inset -2px -2px 3px ${shade(color, -0.45)}, 0 0 0 3px ${shade(color, -0.04)}, 0 0 0 4px ${shade(color, -0.28)}`;
   const inner = left ? { left: "17%", right: "11%" } : { left: "11%", right: "17%" };
   return (
     <div
       className="absolute bottom-0 top-0 w-1/2"
       style={{
         [side]: 0,
-        background: `${noise(0.14, 0.6)}, ${wood}`,
+        background: `${light}, ${noise(0.12, 0.7)}, ${grain}`,
         transformOrigin: `${side} center`,
-        transformStyle: "preserve-3d",
         transition: "transform 2.1s cubic-bezier(.55,.05,.2,1), filter 2.1s ease",
         transform: phase >= 1 ? `rotateY(${left ? -104 : 104}deg)` : "none",
-        filter: phase >= 1 ? "brightness(.72)" : "none",
-        borderTopLeftRadius: left ? "100% 30%" : 0,
-        borderTopRightRadius: left ? 0 : "100% 30%",
-        boxShadow: left ? "inset -3px 0 3px rgba(0,0,0,.4)" : "inset 3px 0 3px rgba(0,0,0,.4)",
+        filter: phase >= 1 ? "brightness(.7)" : "none",
+        borderTopLeftRadius: left ? "100% 31%" : 0,
+        borderTopRightRadius: left ? 0 : "100% 31%",
+        boxShadow: left ? "inset -3px 0 3px rgba(0,0,0,.35)" : "inset 3px 0 3px rgba(0,0,0,.35)",
       }}
     >
-      {/* upper arched panel */}
-      <div className="absolute" style={{ ...inner, top: "11%", height: "38%", borderTopLeftRadius: left ? "100% 42%" : 4, borderTopRightRadius: left ? 4 : "100% 42%", borderBottomLeftRadius: 4, borderBottomRightRadius: 4, boxShadow: bevel }} />
-      {/* lower panel */}
-      <div className="absolute rounded-[4px]" style={{ ...inner, top: "55%", bottom: "7%", boxShadow: bevel }} />
-      {/* brass pull */}
+      <div className="absolute" style={{ ...inner, top: "12%", height: "38%", borderTopLeftRadius: left ? "100% 42%" : 4, borderTopRightRadius: left ? 4 : "100% 42%", borderBottomLeftRadius: 4, borderBottomRightRadius: 4, boxShadow: bevel }} />
+      <div className="absolute rounded-[4px]" style={{ ...inner, top: "56%", bottom: "7%", boxShadow: bevel }} />
       <div
         className="absolute rounded-full"
         style={{
-          [left ? "right" : "left"]: "5%",
-          top: "44%",
-          width: "3.6%",
-          height: "15%",
-          background: `linear-gradient(90deg, ${shade(hardware, -0.35)}, ${mix(hardware, "#ffffff", 0.5)} 45%, ${hardware} 60%, ${shade(hardware, -0.25)})`,
+          [left ? "right" : "left"]: "6%",
+          top: "45%",
+          width: "3.4%",
+          height: "14%",
+          background: `linear-gradient(90deg, ${shade(hardware, -0.35)}, ${mix(hardware, "#ffffff", 0.55)} 45%, ${hardware} 60%, ${shade(hardware, -0.25)})`,
           boxShadow: "2px 3px 4px rgba(0,0,0,.35)",
         }}
       />
-      {/* sunlit sheen */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(115deg, rgba(255,255,255,.14), transparent 45%)", borderRadius: "inherit" }} />
     </div>
   );
 }
 
 /* ---------------- scene ---------------- */
 
+// Fits the SAFE area inside the container (like object-fit: contain) and reports the mapping.
+function useFit(ref) {
+  const [box, setBox] = useState(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const { width, height } = el.getBoundingClientRect();
+      const s = Math.min(width / SAFE.w, height / SAFE.h);
+      setBox({ s, ox: (width - SAFE.w * s) / 2 - SAFE.x * s, oy: (height - SAFE.h * s) / 2 - SAFE.y * s });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return box;
+}
+
 export function DoorEntry({ styleId, theme = {}, onStart, onDone }) {
   const d = DOORS[styleId] || DOORS["door-garden"];
-  const { phase, open } = useOpenSequence(DOOR_STEPS, 3300, { onStart, onDone });
-  const doorColor = theme.sealColor && theme.entryStyle === styleId ? theme.sealColor : d.door;
-  const accent = theme.primary || "#e2558f";
-  const blooms = [mix(accent, "#e2558f", 0.55), mix(accent, "#f07aa8", 0.65), mix(accent, "#c73a76", 0.6), "#f4a3c4"];
-  const archW = "min(74cqw, 41cqh)";
   const garden = d.flowers === "bougainvillea";
+  const { phase, open } = useOpenSequence(DOOR_STEPS, 3300, { onStart, onDone });
+  const root = useRef(null);
+  const box = useFit(root);
+  const id = useId().replace(/:/g, "");
+  const doorColor = theme.doorColor || d.door;
+  const accent = theme.primary || "#c2185b";
+  const palette = ["#c2185b", "#e0457b", "#d81b60", "#f06292"].map((c, i) => (i === 3 ? c : mix(c, accent, 0.18)));
+
+  const svgProps = { viewBox: `${SAFE.x} ${SAFE.y} ${SAFE.w} ${SAFE.h}`, preserveAspectRatio: "xMidYMid meet", className: "pointer-events-none absolute inset-0 h-full w-full", style: { overflow: "visible" }, "aria-hidden": true };
+  const doorway = box && {
+    left: box.ox + DOOR.x * box.s,
+    top: box.oy + DOOR.y * box.s,
+    width: DOOR.w * box.s,
+    height: DOOR.h * box.s,
+  };
+  const origin = doorway ? `${doorway.left + doorway.width / 2}px ${doorway.top + doorway.height * 0.55}px` : "50% 55%";
 
   return (
-    <button
-      type="button"
-      onClick={open}
-      aria-label="Open the doors to the invitation"
-      className="absolute inset-0 block h-full w-full cursor-pointer overflow-hidden text-left"
-      style={{ containerType: "size", background: d.wall() }}
-    >
-      <div className="absolute inset-0" style={{ transformOrigin: "50% 50%", transition: "transform 1.5s cubic-bezier(.65,0,.35,1), opacity 1.5s", transform: phase >= 2 ? "scale(3.4)" : "none" }}>
-        {/* warm light from the top-left + vignette */}
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 18% 8%, rgba(255,244,214,.55), transparent 55%), radial-gradient(ellipse at 50% 60%, transparent 50%, rgba(60,35,15,.28) 100%)" }} />
+    <button type="button" onClick={open} aria-label="Open the doors to the invitation" className="absolute inset-0 block h-full w-full cursor-pointer overflow-hidden text-left" style={{ background: d.wall, containerType: "size" }}>
+      <div ref={root} className="absolute inset-0" style={{ transformOrigin: origin, transition: "transform 1.5s cubic-bezier(.65,0,.35,1)", transform: phase >= 2 ? "scale(3.2)" : "none" }}>
+        {/* ---- back: wall, stone arch, steps ---- */}
+        <svg {...svgProps}>
+          <defs>
+            <filter id={`${id}-plaster`} x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="4" seed="7" result="n" />
+              <feDiffuseLighting in="n" surfaceScale="1.6" lightingColor="#fff" result="lit">
+                <feDistantLight azimuth="225" elevation="58" />
+              </feDiffuseLighting>
+              <feComposite in="lit" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" />
+            </filter>
+            <filter id={`${id}-stone`} x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="3" seed="3" result="n" />
+              <feDiffuseLighting in="n" surfaceScale="1" lightingColor="#fff" result="lit">
+                <feDistantLight azimuth="225" elevation="65" />
+              </feDiffuseLighting>
+              <feComposite in="lit" in2="SourceGraphic" operator="arithmetic" k1="1" k2="0" k3="0" k4="0" />
+            </filter>
+            <linearGradient id={`${id}-sun`} x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stopColor="#fff6dc" stopOpacity=".75" />
+              <stop offset=".6" stopColor="#fff6dc" stopOpacity="0" />
+            </linearGradient>
+            <radialGradient id={`${id}-vignette`} cx="50%" cy="45%" r="75%">
+              <stop offset=".55" stopColor="#000" stopOpacity="0" />
+              <stop offset="1" stopColor="#2a1608" stopOpacity=".45" />
+            </radialGradient>
+            <linearGradient id={`${id}-frame`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor={shade(d.stone, -0.16)} />
+              <stop offset=".3" stopColor={shade(d.stone, 0.06)} />
+              <stop offset=".55" stopColor={shade(d.stone, 0.1)} />
+              <stop offset="1" stopColor={shade(d.stone, -0.18)} />
+            </linearGradient>
+            <linearGradient id={`${id}-reveal`} x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor={shade(d.stone, -0.38)} />
+              <stop offset=".12" stopColor={shade(d.stone, -0.2)} />
+              <stop offset=".88" stopColor={shade(d.stone, -0.2)} />
+              <stop offset="1" stopColor={shade(d.stone, -0.4)} />
+            </linearGradient>
+            <radialGradient id={`${id}-soffit`} cx="50%" cy="62%" r="62%">
+              <stop offset=".55" stopColor="#2a1a10" stopOpacity=".42" />
+              <stop offset="1" stopColor="#2a1a10" stopOpacity=".05" />
+            </radialGradient>
+            <filter id={`${id}-blur6`}>
+              <feGaussianBlur stdDeviation="6" />
+            </filter>
+            <filter id={`${id}-shadow`} x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#2a1608" floodOpacity=".35" />
+            </filter>
+          </defs>
 
-        {/* floor + steps */}
-        <div className="absolute inset-x-0 bottom-0 h-[15%]" style={{ background: `${noise(0.18)}, linear-gradient(${shade(d.floor, 0.06)}, ${shade(d.floor, -0.12)})` }}>
-          <div className="absolute inset-0 opacity-40" style={{ background: `repeating-linear-gradient(90deg, transparent 0 18%, ${shade(d.floor, -0.25)} 18% 18.4%)` }} />
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i} className="absolute rounded-[50%]" style={{ left: `${rnd(i, 61) * 100}%`, top: `${20 + rnd(i, 62) * 70}%`, width: 7, height: 4, background: blooms[i % blooms.length], transform: `rotate(${rnd(i, 63) * 180}deg)`, opacity: 0.85 }} />
+          {/* lit plaster wall */}
+          <rect x="-700" y="-700" width="1800" height="1400" fill={d.wall} filter={`url(#${id}-plaster)`} />
+          {garden ? (
+            <>
+              <path d="M0 0 L260 0 L0 520Z" fill={`url(#${id}-sun)`} style={{ mixBlendMode: "screen" }} />
+              {/* soft leaf shadows on the wall (behind the arch) */}
+              <g filter={`url(#${id}-blur6)`} fill="#4a3216" opacity=".16" style={{ animation: "sway 9s ease-in-out infinite", transformOrigin: "0 0" }}>
+                {Array.from({ length: 40 }, (_, i) => {
+                  const x = rnd(i, 21) * W;
+                  const y = 140 + rnd(i, 22) * 380;
+                  return <ellipse key={i} cx={x} cy={y} rx={8 + rnd(i, 23) * 12} ry={3 + rnd(i, 24) * 4} transform={`rotate(${rnd(i, 25) * 180} ${x} ${y})`} />;
+                })}
+              </g>
+            </>
+          ) : (
+            <rect x="-700" y="-700" width="1800" height="1400" fill="#000" opacity=".12" />
+          )}
+
+          {/* floor */}
+          <rect x="-700" y="690" width="1800" height="900" fill={d.floor} filter={`url(#${id}-stone)`} />
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <path key={i} d={`M${200 + (i - 2.5) * 30} 690 L${200 + (i - 2.5) * 120} ${H}`} stroke={shade(d.floor, -0.22)} strokeWidth="1" opacity=".55" />
           ))}
-        </div>
-        <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: "15%", width: `calc(${archW} * 1.42)`, height: "2.2%", background: `linear-gradient(${shade(d.frame, 0.08)}, ${shade(d.frame, -0.14)})`, boxShadow: "0 6px 10px rgba(0,0,0,.22)", borderRadius: 3 }} />
-        <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: "17.2%", width: `calc(${archW} * 1.24)`, height: "1.8%", background: `linear-gradient(${shade(d.frame, 0.1)}, ${shade(d.frame, -0.1)})`, boxShadow: "0 4px 8px rgba(0,0,0,.2)", borderRadius: 3 }} />
+          {[720, 760, 812].map((y) => (
+            <path key={y} d={`M-700 ${y} L1100 ${y}`} stroke={shade(d.floor, -0.2)} strokeWidth="1" opacity=".45" />
+          ))}
 
-        {/* arch: outer molding, deep reveal, room, doors */}
-        <div className="absolute left-1/2 -translate-x-1/2" style={{ bottom: "19%", width: archW, aspectRatio: "0.6" }}>
-          <div className="absolute" style={{ inset: "-9% -14% 0 -14%", borderRadius: "50% 50% 0 0 / 31% 31% 0 0", background: `${noise(0.14)}, linear-gradient(90deg, ${shade(d.frame, -0.1)}, ${shade(d.frame, 0.06)} 25%, ${shade(d.frame, 0.1)} 50%, ${shade(d.frame, 0.04)} 75%, ${shade(d.frame, -0.12)})`, boxShadow: "0 20px 40px -18px rgba(0,0,0,.5), inset 0 0 0 1.5px rgba(255,255,255,.35)" }} />
-          <div className="absolute" style={{ inset: "-4% -6% 0 -6%", borderRadius: "50% 50% 0 0 / 31% 31% 0 0", boxShadow: `inset 0 0 0 2px ${shade(d.frame, -0.18)}, 0 0 0 2px ${shade(d.frame, 0.12)}` }} />
+          {/* stone arch: outer molding, frame, deep reveal */}
+          <g filter={`url(#${id}-shadow)`}>
+            <path d={`M40 640 L40 ${DOOR.y + 4} A160 160 0 0 1 360 ${DOOR.y + 4} L360 640Z`} fill={`url(#${id}-frame)`} />
+          </g>
+          <path d={`M40 640 L40 ${DOOR.y + 4} A160 160 0 0 1 360 ${DOOR.y + 4} L360 640Z`} fill={d.stone} filter={`url(#${id}-stone)`} opacity=".55" />
+          {/* carved molding: alternating highlight / shadow rings */}
+          {[
+            [44, 156, -0.32, 1.6],
+            [48, 152, 0.18, 2],
+            [54, 146, -0.22, 1.4],
+            [58, 142, 0.14, 1.6],
+          ].map(([x, r, t, sw]) => (
+            <path key={r} d={`M${x} 640 L${x} ${DOOR.y + 4} A${r} ${r} 0 0 1 ${400 - x} ${DOOR.y + 4} L${400 - x} 640`} fill="none" stroke={shade(d.stone, t)} strokeWidth={sw} />
+          ))}
+          <path d={`M64 640 L64 ${DOOR.y + 2} A136 136 0 0 1 336 ${DOOR.y + 2} L336 640Z`} fill={`url(#${id}-reveal)`} />
+          {/* the recess is in shade: darker towards the door */}
+          <path d={`M64 640 L64 ${DOOR.y + 2} A136 136 0 0 1 336 ${DOOR.y + 2} L336 640Z`} fill={`url(#${id}-soffit)`} />
+          <path d={`M${DOOR.x} 640 L${DOOR.x} ${DOOR.y + DOOR.w / 2} A${DOOR.w / 2} ${DOOR.w / 2} 0 0 1 ${DOOR.x + DOOR.w} ${DOOR.y + DOOR.w / 2} L${DOOR.x + DOOR.w} 640`} fill="none" stroke="#1a0f08" strokeWidth="14" opacity=".35" filter={`url(#${id}-blur6)`} />
           {/* keystone */}
-          <div className="absolute left-1/2 -translate-x-1/2" style={{ top: "-11%", width: "13%", height: "8%", background: `linear-gradient(${shade(d.frame, 0.1)}, ${shade(d.frame, -0.1)})`, clipPath: "polygon(12% 0, 88% 0, 100% 100%, 0 100%)", boxShadow: "inset 0 -2px 3px rgba(0,0,0,.2)" }} />
-          {/* deep reveal (jambs) */}
-          <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: "50% 50% 0 0 / 31% 31% 0 0", boxShadow: "inset 10px 0 14px rgba(0,0,0,.28), inset -10px 0 14px rgba(0,0,0,.28), inset 0 14px 18px rgba(0,0,0,.25)" }}>
-            <div className="absolute inset-[3%] overflow-hidden" style={{ borderRadius: "50% 50% 0 0 / 31% 31% 0 0", perspective: "1600px" }}>
-              <Hall accent={accent} />
-              <DoorLeaf side="left" color={doorColor} hardware={d.hardware} phase={phase} />
-              <DoorLeaf side="right" color={doorColor} hardware={d.hardware} phase={phase} />
-            </div>
+          <path d={`M186 ${DOOR.y - 162} L214 ${DOOR.y - 162} L220 ${DOOR.y - 128} L180 ${DOOR.y - 128}Z`} fill={shade(d.stone, 0.06)} stroke={shade(d.stone, -0.25)} strokeWidth="1" />
+          {/* doorway shadow */}
+          <path d={`M${DOOR.x} 640 L${DOOR.x} ${DOOR.y + DOOR.w / 2} A${DOOR.w / 2} ${DOOR.w / 2} 0 0 1 ${DOOR.x + DOOR.w} ${DOOR.y + DOOR.w / 2} L${DOOR.x + DOOR.w} 640Z`} fill="#2a1a10" />
+
+          {/* steps */}
+          <rect x="26" y="638" width="348" height="18" rx="2" fill={shade(d.stone, 0.04)} filter={`url(#${id}-stone)`} />
+          <rect x="26" y="654" width="348" height="4" fill={shade(d.stone, -0.25)} opacity=".6" />
+          <rect x="6" y="658" width="388" height="22" rx="2" fill={shade(d.stone, -0.02)} filter={`url(#${id}-stone)`} />
+          <rect x="6" y="678" width="388" height="6" fill={shade(d.stone, -0.3)} opacity=".55" />
+
+          {/* petals on the floor */}
+          {Array.from({ length: 22 }, (_, i) => (
+            <ellipse key={i} cx={rnd(i, 61) * W} cy={700 + rnd(i, 62) * 150} rx="3.4" ry="2" fill={garden ? palette[i % 4] : i % 2 ? "#f59e0b" : "#ea580c"} opacity=".85" transform={`rotate(${rnd(i, 63) * 180} ${rnd(i, 61) * W} ${700 + rnd(i, 62) * 150})`} />
+          ))}
+          <rect x="-700" y="-700" width="1800" height="2300" fill={`url(#${id}-vignette)`} />
+        </svg>
+
+        {/* ---- doorway: hall + swinging doors ---- */}
+        {doorway && (
+          <div className="absolute overflow-hidden" style={{ ...doorway, borderRadius: "50% 50% 0 0 / 31% 31% 0 0", perspective: "1600px" }}>
+            <Hall accent={accent} />
+            <DoorLeaf side="left" color={doorColor} hardware={d.hardware} phase={phase} />
+            <DoorLeaf side="right" color={doorColor} hardware={d.hardware} phase={phase} />
+            <div className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 10px 14px rgba(0,0,0,.35), inset 6px 0 10px rgba(0,0,0,.25), inset -6px 0 10px rgba(0,0,0,.25)" }} />
           </div>
-        </div>
-
-        {garden && <LeafShadows />}
-
-        {/* flowers framing the doorway */}
-        {garden ? (
-          <>
-            <Bougainvillea colors={blooms} seed={1} count={90} style={{ left: "-8%", top: "-3%", width: "62%", height: "42%" }} />
-            <Bougainvillea colors={blooms} seed={2} count={90} style={{ right: "-8%", top: "-4%", width: "60%", height: "40%" }} flip />
-            <Bougainvillea colors={blooms} seed={3} count={50} style={{ left: "-6%", top: "30%", width: "24%", height: "34%" }} />
-            <Bougainvillea colors={blooms} seed={4} count={50} style={{ right: "-6%", top: "28%", width: "24%", height: "36%" }} flip />
-            <Pot colors={blooms} style={{ left: "2%", bottom: "12%", width: "17%" }} />
-            <Pot colors={blooms} style={{ right: "2%", bottom: "12%", width: "17%" }} flip />
-          </>
-        ) : (
-          <MarigoldStrings style={{ left: "-2%", top: "0", width: "104%", height: "48%" }} />
         )}
 
-        <Lantern hardware={d.hardware} style={{ left: "5%", top: "40%", width: "9%", aspectRatio: "0.45" }} />
-        <Lantern hardware={d.hardware} style={{ right: "5%", top: "40%", width: "9%", aspectRatio: "0.45" }} />
+        {/* ---- front: foliage, lanterns, pots ---- */}
+        <svg {...svgProps}>
+          <defs>
+            <radialGradient id={`${id}-glow`}>
+              <stop offset="0" stopColor="#ffd98f" stopOpacity=".55" />
+              <stop offset="1" stopColor="#ffd98f" stopOpacity="0" />
+            </radialGradient>
+            <linearGradient id="potGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stopColor="#9a4f2c" />
+              <stop offset=".4" stopColor="#c97448" />
+              <stop offset="1" stopColor="#8a4527" />
+            </linearGradient>
+          </defs>
+          <Lantern x={20} y={410} hardware={d.hardware} id={id} />
+          <Lantern x={380} y={410} hardware={d.hardware} id={id} />
+          {garden ? <Bougainvillea id={id} palette={palette} /> : <Marigolds id={id} />}
+          {garden && (
+            <>
+              <Pot x={34} palette={palette} id={id} flowers />
+              <Pot x={366} palette={palette} id={id} flowers />
+            </>
+          )}
+        </svg>
 
-        {/* light spilling out of the opened doors */}
-        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(ellipse at 50% 52%, rgba(255,246,222,1), rgba(255,246,222,0) 50%)", opacity: phase >= 2 ? 1 : 0, transition: "opacity 1.2s ease .2s" }} />
+        {/* light flooding out of the opened doors */}
+        <div className="pointer-events-none absolute inset-0" style={{ background: `radial-gradient(ellipse at ${origin.replace(" ", " ")}, rgba(255,246,222,1), rgba(255,246,222,0) 50%)`, opacity: phase >= 2 ? 1 : 0, transition: "opacity 1.2s ease .2s" }} />
       </div>
 
       {/* tap to open */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-[3.5%] flex flex-col items-center gap-[1cqh] transition-opacity duration-500" style={{ opacity: phase ? 0 : 1, zIndex: 5 }}>
-        <span
-          className="grid place-items-center rounded-full"
-          style={{ width: "min(13cqw, 7.5cqh)", height: "min(13cqw, 7.5cqh)", background: "rgba(28,26,61,.82)", boxShadow: `0 0 0 2px ${d.hardware}, 0 8px 22px rgba(0,0,0,.35)`, animation: phase ? "none" : "hint-bob 2.4s ease-in-out infinite" }}
-        >
-          <KeyRound color={d.hardware} style={{ width: "48%", height: "48%" }} strokeWidth={1.6} />
+      <div className="pointer-events-none absolute inset-x-0 bottom-[3.5%] flex flex-col items-center gap-[1.2cqh] transition-opacity duration-500" style={{ opacity: phase ? 0 : 1, zIndex: 5 }}>
+        <span className="grid place-items-center rounded-full" style={{ width: "clamp(30px, 14cqw, 56px)", height: "clamp(30px, 14cqw, 56px)", background: "rgba(28,26,61,.82)", boxShadow: `0 0 0 2px ${d.hardware}, 0 8px 22px rgba(0,0,0,.35)`, animation: phase ? "none" : "hint-bob 2.4s ease-in-out infinite" }}>
+          <KeyRound color={d.hardware} style={{ width: "46%", height: "46%" }} strokeWidth={1.6} />
         </span>
-        <span className="text-[4.2cqw] font-semibold uppercase tracking-[0.32em] sm:text-[2.6cqw]" style={{ color: d.text, fontFamily: "var(--font-display), serif", textShadow: garden ? "0 1px 8px rgba(255,255,255,.6)" : "0 1px 8px rgba(0,0,0,.5)" }}>
+        <span className="whitespace-nowrap font-semibold uppercase tracking-[0.35em]" style={{ fontSize: "clamp(8px, 3.6cqw, 14px)", color: d.text, fontFamily: "var(--font-display), serif", textShadow: garden ? "0 1px 8px rgba(255,255,255,.7)" : "0 1px 8px rgba(0,0,0,.6)" }}>
           Tap to open
         </span>
-        <span className="text-[3.6cqw] italic sm:text-[2.3cqw]" style={{ color: d.text, fontFamily: "var(--font-display), serif", opacity: 0.85 }}>
+        <span className="whitespace-nowrap italic" style={{ fontSize: "clamp(9px, 4.2cqw, 17px)", color: d.text, fontFamily: "var(--font-display), serif", opacity: 0.85 }}>
           An invitation awaits
         </span>
       </div>

@@ -118,13 +118,13 @@ export function TabBar({ sections }) {
       className="pointer-events-none sticky bottom-0 z-40 -mt-[92px] px-3 @3xl:hidden"
       style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))" }}
     >
+      {/* progressive blur: frosts whatever scrolls underneath without a coloured band */}
       <div
-        className="pointer-events-auto mx-auto max-w-md overflow-hidden rounded-[2rem] backdrop-blur-xl"
-        style={{
-          background: "color-mix(in srgb, var(--inv-surface) 82%, transparent)",
-          boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 55%, transparent), 0 14px 34px -14px rgba(0,0,0,.45)",
-        }}
-      >
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
+        style={{ backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", maskImage: "linear-gradient(to top, #000 45%, transparent)", WebkitMaskImage: "linear-gradient(to top, #000 45%, transparent)" }}
+        aria-hidden
+      />
+      <div className="pointer-events-auto relative mx-auto max-w-md">
         <div
           ref={scroller}
           className="no-scrollbar overflow-x-auto overscroll-x-contain"
@@ -167,7 +167,11 @@ export function TabBar({ sections }) {
                 </button>
                 <span
                   className="w-full truncate text-center text-[10px] font-semibold leading-tight transition-colors duration-300"
-                  style={{ color: on ? "var(--inv-primary)" : "color-mix(in srgb, var(--inv-text) 55%, transparent)" }}
+                  style={{
+                    color: "var(--inv-primary)",
+                    opacity: on ? 1 : 0, // only the active tab is labelled, so labels never clutter the page
+                    textShadow: "0 0 4px var(--inv-bg), 0 0 8px var(--inv-bg)", // legible over any section without a backing pill
+                  }}
                 >
                   {label}
                 </span>
@@ -184,9 +188,11 @@ export function TabBar({ sections }) {
 export function InviteFooter({ title, date }) {
   return (
     <footer className="px-6 pb-32 pt-16 text-center @3xl:py-20" style={{ background: "var(--inv-band-dark)", color: "var(--inv-on-band-dark)" }}>
-      <p className="text-5xl leading-tight @3xl:text-6xl" style={{ fontFamily: "var(--inv-font-heading)" }}>
-        {title}
-      </p>
+      {title && (
+        <p className="text-5xl leading-tight @3xl:text-6xl" style={{ fontFamily: "var(--inv-font-heading)" }}>
+          {title}
+        </p>
+      )}
       {date && (
         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.4em]" style={{ color: "var(--inv-secondary)" }}>
           {formatDate(date, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, " · ")}

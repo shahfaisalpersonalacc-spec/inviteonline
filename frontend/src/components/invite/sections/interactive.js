@@ -39,7 +39,7 @@ export function Rsvp({ data }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (mode === "editor") return;
+    if (mode !== "public") return;
     setState({ sending: true, done: false, error: "" });
     try {
       await api(`/public/${slug}/rsvp`, { method: "POST", body: { ...form, guests: Number(form.guests) }, headers, auth: false });
@@ -166,10 +166,10 @@ export function Rsvp({ data }) {
               </label>
 
               {state.error && <p className="text-sm text-red-600">{state.error}</p>}
-              <ThemeButton type="submit" disabled={state.sending || mode === "editor"} className="min-h-12 w-full !text-base">
+              <ThemeButton type="submit" disabled={state.sending || mode !== "public"} className="min-h-12 w-full !text-base">
                 <Send className="h-4 w-4" /> {state.sending ? "Sending…" : "Send RSVP"}
               </ThemeButton>
-              {mode === "editor" && <p className="text-center text-xs italic opacity-70">Preview only: guests can reply on the live page.</p>}
+              {mode !== "public" && <p className="text-center text-xs italic opacity-70">Preview only: guests can reply on the live page.</p>}
               {data.deadline && <p className="text-center text-sm opacity-75">Please respond by {formatDate(data.deadline)}</p>}
             </form>
           )}
@@ -187,14 +187,14 @@ const SAMPLE_WISHES = [
 export function Wishes({ data }) {
   const { mode, slug } = useInvite();
   const headers = useGuestHeaders();
-  const [wishes, setWishes] = useState(mode === "editor" ? SAMPLE_WISHES : []);
+  const [wishes, setWishes] = useState(mode !== "public" ? SAMPLE_WISHES : []);
   const [form, setForm] = useState({ name: "", message: "" });
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
   const unlock = headers["x-unlock-token"];
 
   useEffect(() => {
-    if (mode === "editor" || !slug) return;
+    if (mode !== "public" || !slug) return;
     api(`/public/${slug}/wishes`, { auth: false, headers: unlock ? { "x-unlock-token": unlock } : {} })
       .then((d) => setWishes(d.wishes))
       .catch(() => {});
@@ -202,7 +202,7 @@ export function Wishes({ data }) {
 
   async function submit(e) {
     e.preventDefault();
-    if (mode === "editor") return;
+    if (mode !== "public") return;
     setSending(true);
     setError("");
     try {
@@ -225,8 +225,8 @@ export function Wishes({ data }) {
             <input required maxLength={80} placeholder="Your name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={fieldCls} style={fieldStyle} />
             <textarea required rows={3} maxLength={500} placeholder="Write your wishes…" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={fieldCls} style={fieldStyle} />
             {error && <p className="text-sm text-red-600">{error}</p>}
-            <ThemeButton type="submit" disabled={sending || mode === "editor"} className="w-full">
-              {mode === "editor" ? "Wishes (works on the live page)" : sending ? "Sending…" : (<><Send className="h-4 w-4" /> Send wishes</>)}
+            <ThemeButton type="submit" disabled={sending || mode !== "public"} className="w-full">
+              {mode !== "public" ? "Wishes (works on the live page)" : sending ? "Sending…" : (<><Send className="h-4 w-4" /> Send wishes</>)}
             </ThemeButton>
           </form>
         </Card>

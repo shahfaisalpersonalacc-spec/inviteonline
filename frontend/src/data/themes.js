@@ -151,7 +151,9 @@ export function resolveTheme(t = {}) {
     background: mix(base, "#0d0c12", 0.88),
     surface: mix(base, "#1b1a24", 0.8),
     text: "#ece6dc",
-    primary: luminance(base) < 0.55 ? mix(base, "#ffffff", 0.5) : base,
+    // glowing accent: the theme's metallic/secondary colour when it reads well on dark, else the lifted primary
+    primary: luminance(t.secondary || "#000000") > 0.42 && luminance(t.secondary) < 0.88 ? t.secondary : luminance(base) < 0.55 ? mix(base, "#ffffff", 0.5) : base,
+    secondary: luminance(base) < 0.55 ? mix(base, "#ffffff", 0.35) : base,
     // light gradient presets don't suit a dark page; patterns and photos still work
     bgType: t.bgType === "gradient" ? "color" : t.bgType,
   };
