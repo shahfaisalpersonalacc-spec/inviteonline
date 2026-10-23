@@ -70,22 +70,55 @@ const TAB_LABELS = {
 };
 
 // Scroll-spy over every section: the one crossing the middle of the screen is active.
+// Nearest scrolling ancestor (the editor / demo preview), or null for the page itself.
+function scrollParent(el) {
+  for (let p = el?.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+    const oy = getComputedStyle(p).overflowY;
+    if ((oy === "auto" || oy === "scroll") && p.scrollHeight > p.clientHeight + 1) return p;
+  }
+  return null; // the page itself scrolls (window)
+}
+
+// Position-based scroll-spy: the active section is the last one whose top has passed a reading
+// line at 45% of the visible height. It only moves forward as you scroll down, so the tab bar
+// never flickers between neighbours (the old ratio-based observer did, which made it jump).
 function useActiveSection(ids) {
   const [active, setActive] = useState(ids[0]);
   useEffect(() => {
-    if (!("IntersectionObserver" in window)) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        const hit = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (hit) setActive(hit.target.id.replace(/^sec-/, ""));
-      },
-      { rootMargin: "-40% 0px -50% 0px", threshold: [0, 0.2, 0.5] }
-    );
-    ids.forEach((id) => {
-      const el = document.getElementById(`sec-${id}`);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
+    const els = ids.map((id) => document.getElementById(`sec-${id}`)).filter(Boolean);
+    if (!els.length) return;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      if (!els[0].offsetParent) return; // hidden (e.g. editor showing the form instead of the preview)
+      // looked up each time: the editor preview may have been hidden when this effect started
+      const scroller = scrollParent(els[0]);
+      const box = scroller ? scroller.getBoundingClientRect() : { top: 0, height: window.innerHeight };
+      const line = box.top + box.height * 0.45;
+      const atEnd = scroller
+        ? scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 2
+        : window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      let current = els[0];
+      if (atEnd) current = els[els.length - 1];
+      else for (const el of els) if (el.getBoundingClientRect().top <= line) current = el;
+      setActive(current.id.replace(/^sec-/, ""));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    // capture: hears scrolling of the page *and* of any inner scroller (editor / demo preview)
+    window.addEventListener("scroll", onScroll, { passive: true, capture: true });
+    window.addEventListener("resize", onScroll);
+    // re-measure when the preview appears or the layout changes size
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(els[0]);
+    measure();
+    return () => {
+      window.removeEventListener("scroll", onScroll, { capture: true });
+      window.removeEventListener("resize", onScroll);
+      ro.disconnect();
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [ids]);
   return active;
 }
