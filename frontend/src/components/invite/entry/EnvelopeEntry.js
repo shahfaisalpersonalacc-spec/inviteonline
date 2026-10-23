@@ -42,40 +42,81 @@ function BreakingSeal({ phase, color, icon, monogram, size = "min(34cqw, 21cqh)"
   );
 }
 
-function InnerCard({ title, subtitle, date, monogram, ink, phase, gatefold }) {
+// Gold corner flourish, drawn for the top-left corner and mirrored for the others.
+function CornerFlourish({ style, gold }) {
+  return (
+    <svg viewBox="0 0 40 40" className="pointer-events-none absolute" style={{ width: "13cqw", height: "13cqw", ...style }} fill="none" stroke={gold} strokeWidth="1.1" strokeLinecap="round" aria-hidden="true">
+      <path d="M2 30 C2 14 14 2 30 2" />
+      <path d="M8 30 C8 18 18 8 30 8" opacity=".6" />
+      <path d="M2 30 C6 26 10 26 12 30 C10 34 6 34 2 30Z" fill={gold} fillOpacity=".25" />
+      <path d="M30 2 C26 6 26 10 30 12 C34 10 34 6 30 2Z" fill={gold} fillOpacity=".25" />
+      <circle cx="14" cy="14" r="1.6" fill={gold} />
+    </svg>
+  );
+}
+
+// The invitation card revealed inside the envelope / gatefold. A fixed 3:4 portrait card that fits
+// both the width and the height of any screen; every size inside is relative to the card (cqw).
+function InnerCard({ title = "", subtitle, date, monogram, ink, phase }) {
+  const gold = "#b8923a";
+  const nameSize = title.length > 24 ? "7.4cqw" : title.length > 15 ? "9cqw" : "11cqw";
   return (
     <div
-      className="absolute flex flex-col items-center justify-center rounded-[6px] px-[8cqw] text-center"
+      className="absolute left-1/2 top-1/2"
       style={{
-        left: gatefold ? "10%" : "8%",
-        right: gatefold ? "10%" : "8%",
-        top: gatefold ? "8%" : "10%",
-        bottom: gatefold ? "8%" : "12%",
-        background: "linear-gradient(#fffdf8, #fbf4e8)",
-        boxShadow: "0 20px 50px -20px rgba(0,0,0,.5), inset 0 0 0 1px rgba(160,130,80,.25), inset 0 0 0 7px #fffdf8, inset 0 0 0 8px rgba(160,130,80,.35)",
-        color: "#3d2b2f",
+        width: "min(84cqw, 63cqh)",
+        aspectRatio: "3 / 4",
+        transform: `translate(-50%, -50%)${phase >= 4 ? " scale(1.04)" : ""}`,
         transition: "transform 1s cubic-bezier(.2,.8,.2,1)",
-        transform: phase >= 4 ? "scale(1.06)" : "none",
         zIndex: 1,
       }}
     >
-      {monogram && (
-        <span className="foil-text text-[11cqw] leading-none" style={{ fontFamily: "var(--font-great-vibes), cursive" }}>
-          {monogram}
-        </span>
-      )}
-      <span className="mt-[3cqh] text-[2.6cqw] font-semibold uppercase tracking-[0.35em] opacity-70" style={{ fontFamily: "var(--font-display), serif" }}>
-        You are invited
-      </span>
-      <span className="mt-[1.5cqh] text-[8.5cqw] leading-tight" style={{ fontFamily: "var(--font-great-vibes), cursive", color: ink }}>
-        {title}
-      </span>
-      {subtitle && <span className="mt-[1cqh] text-[3.4cqw] italic opacity-80" style={{ fontFamily: "var(--font-display), serif" }}>{subtitle}</span>}
-      {date && (
-        <span className="mt-[2.5cqh] text-[3cqw] font-semibold uppercase tracking-[0.3em]" style={{ fontFamily: "var(--font-display), serif", color: ink }}>
-          {formatDate(date, { day: "numeric", month: "long", year: "numeric" })}
-        </span>
-      )}
+      <div
+        className="relative h-full w-full overflow-hidden rounded-[3px]"
+        style={{ containerType: "inline-size", background: `${noise(0.07)}, linear-gradient(170deg, #fffdf8, #f7eedf)`, boxShadow: "0 30px 60px -22px rgba(0,0,0,.6)", color: "#4a3a32" }}
+      >
+        {/* double gold frame */}
+        <div className="pointer-events-none absolute" style={{ inset: "3.5cqw", border: `1px solid ${gold}99` }} />
+        <div className="pointer-events-none absolute" style={{ inset: "5cqw", border: `1px solid ${gold}55` }} />
+        <CornerFlourish gold={gold} style={{ left: "2cqw", top: "2cqw" }} />
+        <CornerFlourish gold={gold} style={{ right: "2cqw", top: "2cqw", transform: "scaleX(-1)" }} />
+        <CornerFlourish gold={gold} style={{ left: "2cqw", bottom: "2cqw", transform: "scaleY(-1)" }} />
+        <CornerFlourish gold={gold} style={{ right: "2cqw", bottom: "2cqw", transform: "scale(-1,-1)" }} />
+
+        <div className="absolute flex flex-col items-center justify-center text-center" style={{ inset: "10cqw 9cqw" }}>
+          {monogram && (
+            <div className="grid shrink-0 place-items-center rounded-full" style={{ width: "22cqw", height: "22cqw", boxShadow: `inset 0 0 0 1px ${gold}aa, inset 0 0 0 4px #fffdf8, inset 0 0 0 5px ${gold}55` }}>
+              <span className="foil-text leading-none" style={{ fontSize: monogram.length > 3 ? "6.5cqw" : "8.5cqw", fontFamily: "var(--font-great-vibes), cursive" }}>
+                {monogram}
+              </span>
+            </div>
+          )}
+          <span className="font-semibold uppercase" style={{ marginTop: "5cqw", fontSize: "2.9cqw", letterSpacing: "0.38em", opacity: 0.7, fontFamily: "var(--font-display), serif" }}>
+            You are invited
+          </span>
+          <h2 className="w-full break-words" style={{ marginTop: "2.5cqw", fontSize: nameSize, lineHeight: 1.12, color: ink, fontFamily: "var(--font-great-vibes), cursive", textWrap: "balance" }}>
+            {title}
+          </h2>
+          <svg viewBox="0 0 200 24" style={{ width: "38cqw", marginTop: "2.5cqw" }} fill="none" stroke={gold} strokeWidth="1.2" aria-hidden="true">
+            <path d="M100 12 C92 2 80 2 76 9 C73 15 80 19 84 14 M100 12 C108 2 120 2 124 9 C127 15 120 19 116 14 M76 12 L12 12 M124 12 L188 12" />
+            <path d="M100 6 L104 12 L100 18 L96 12Z" fill={gold} />
+          </svg>
+          {subtitle && (
+            <span className="italic" style={{ marginTop: "2.5cqw", fontSize: "4.2cqw", lineHeight: 1.35, opacity: 0.85, fontFamily: "var(--font-display), serif", textWrap: "balance" }}>
+              {subtitle}
+            </span>
+          )}
+          {date && (
+            <span className="flex w-full items-center justify-center gap-[3cqw]" style={{ marginTop: "4cqw" }}>
+              <span className="h-px flex-1" style={{ background: `${gold}99` }} />
+              <span className="whitespace-nowrap font-semibold uppercase" style={{ fontSize: "3.5cqw", letterSpacing: "0.3em", color: ink, fontFamily: "var(--font-display), serif" }}>
+                {formatDate(date, { day: "numeric", month: "long", year: "numeric" })}
+              </span>
+              <span className="h-px flex-1" style={{ background: `${gold}99` }} />
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -179,7 +220,7 @@ export function GatefoldEntry({ styleId, seal, title, subtitle, date, onStart, o
       className="absolute inset-0 block h-full w-full cursor-pointer overflow-hidden text-left"
       style={{ containerType: "size", perspective: "1800px", background: `${noise(0.2)}, #efe6d8` }}
     >
-      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} phase={phase} gatefold />
+      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} phase={phase} />
 
       <div style={panel("left")}>
         {/* scalloped edge */}

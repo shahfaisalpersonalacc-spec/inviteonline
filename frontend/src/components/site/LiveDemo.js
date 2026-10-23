@@ -21,7 +21,9 @@ const PRESET_FOR = {
 
 export function PhoneFrame({ children, className = "" }) {
   return (
-    <div className={`relative rounded-[2.8rem] bg-ink p-[10px] shadow-[0_40px_80px_-30px_rgba(28,26,61,.55)] ${className}`}>
+    // `isolate` seals the phone's inner z-indexes (entrance, notch, buttons) inside it,
+    // so they can never paint over the page's sticky navbar.
+    <div className={`relative isolate rounded-[2.8rem] bg-ink p-[10px] shadow-[0_40px_80px_-30px_rgba(28,26,61,.55)] ${className}`}>
       <div className="absolute left-1/2 top-[14px] z-[80] h-[22px] w-[34%] -translate-x-1/2 rounded-full bg-ink" />
       <div className="relative h-full w-full overflow-hidden rounded-[2.2rem] bg-white">{children}</div>
     </div>

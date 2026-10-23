@@ -16,7 +16,7 @@ import SettingsPanel from "@/components/editor/SettingsPanel";
 import StickerToolbar from "@/components/editor/StickerToolbar";
 import { newId } from "@/data/sections";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
-import { ArrowLeft, Eye, FileText, Monitor, Palette, Pencil, Settings2, Share2, Smartphone, Sticker, Users } from "lucide-react";
+import { ArrowLeft, ExternalLink, FileText, Monitor, Palette, Pencil, Settings2, Share2, Smartphone, Sticker, Users } from "lucide-react";
 
 const TABS = [
   { id: "content", label: "Content", Icon: FileText },
@@ -230,11 +230,30 @@ export default function EditorPage() {
             </button>
           ))}
         </div>
+        {/* Edit / Preview switch lives in the top bar on small screens, so it never covers the invitation */}
+        <div className="flex items-center gap-0.5 rounded-full bg-ink/[0.06] p-1 lg:hidden" role="tablist" aria-label="Editor view">
+          {[
+            ["edit", "Edit", Pencil],
+            ["preview", "Preview", Smartphone],
+          ].map(([v, label, Icon]) => (
+            <button
+              key={v}
+              role="tab"
+              aria-selected={mobileView === v}
+              aria-label={label}
+              onClick={() => setMobileView(v)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold sm:px-3.5 ${mobileView === v ? "bg-ink text-cream shadow" : "text-ink-500"}`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
+        </div>
         <Link href={`/dashboard/${id}/guests`} className="btn-ghost hidden !px-3 !py-2 md:inline-flex">
           <Users className="h-4 w-4" /> Guests
         </Link>
-        <a href={`/i/${inv.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary !px-3 !py-2">
-          <Eye className="h-4 w-4" />
+        <a href={`/i/${inv.slug}`} target="_blank" rel="noopener noreferrer" className="btn-secondary !px-3 !py-2" aria-label="View live invitation">
+          <ExternalLink className="h-4 w-4" />
           <span className="hidden sm:inline">View live</span>
         </a>
         <button onClick={() => setShareOpen(true)} className="btn-primary !px-3 !py-2">
@@ -258,7 +277,7 @@ export default function EditorPage() {
               </button>
             ))}
           </nav>
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-28 lg:pb-6">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-8 lg:pb-6">
             {tab === "content" && <SectionsPanel sections={inv.sections} onChange={(sections) => set({ sections })} onFocusSection={focusSection} />}
             {tab === "design" && (
               <DesignPanel
@@ -315,20 +334,6 @@ export default function EditorPage() {
           </div>
         </main>
       </div>
-
-      {/* Mobile edit/preview switch */}
-      {!selectedSticker && (
-        <div className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 gap-1 rounded-full bg-ink p-1 shadow-2xl lg:hidden">
-          {[
-            ["edit", "Edit", Pencil],
-            ["preview", "Preview", Eye],
-          ].map(([v, label, Icon]) => (
-            <button key={v} onClick={() => setMobileView(v)} className={`inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold ${mobileView === v ? "bg-cream text-ink" : "text-cream"}`}>
-              <Icon className="h-4 w-4" /> {label}
-            </button>
-          ))}
-        </div>
-      )}
 
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} url={inviteUrl(inv.slug)} title={inv.title} />
       <Modal open={confirmDelete} onClose={() => setConfirmDelete(false)} title="Delete invitation?">
