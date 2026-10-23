@@ -210,7 +210,7 @@ export default function EditorPage() {
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-ink">{inv.title}</p>
+          <p className="truncate font-serif text-[1.05rem] leading-tight text-ink">{inv.title}</p>
           <p className={`text-[11px] ${status === "error" ? "text-red-600" : "text-ink-500"}`}>
             {statusLabel}
             {status === "error" && (

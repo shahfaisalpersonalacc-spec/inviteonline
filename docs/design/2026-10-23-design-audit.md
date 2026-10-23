@@ -74,3 +74,42 @@ The brand comes from the InviteOnline logo:
 - **No testimonials, ratings or customer logos:** these were deliberately left out because no verified ones exist.
 - **Doors are illustrated:** they're drawn in SVG/CSS, not photographed. A photo-based door needs licensed assets.
 - **Remaining lint warnings:** `react-hooks/set-state-in-effect` warnings remain for hydration-safe reads of localStorage/sessionStorage on mount. They are intentional.
+
+## 7. Redesign, second pass: "stationery atelier"
+The first pass kept the generic SaaS look (rounded cards, blur blobs, bold sans headlines). This pass changes the visual direction of the site and dashboard. Invitations and entrances are deliberately unchanged.
+
+- **Type:**
+  - **Fraunces** (new, `font-serif` / `display` utility) for all site headlines, with italic accent words in coral or gold.
+  - Plus Jakarta Sans stays for UI.
+  - Cormorant stays for invitations only.
+- **Surfaces:**
+  - Cream and `paper` (#FBF3E8) bands alternate with `night` (#15132E) "evening" chapters.
+  - A faint paper-grain texture (`.grain`, `.grain-dark`).
+  - Hairline rules replace boxed cards (`panel` utility for the cards that remain).
+- **Structure:** homepage sections are numbered chapters (I–VI), each opened by a roman numeral, label and serif headline.
+  - **Hero:** headline "Invitations worth *opening.*" and a live phone on a coral arch, with a printed save-the-date card and a rotating "tap the seal" badge.
+  - **Ticker:** a marquee of guest moments.
+  - **I. Entrances:** night chapter. Swipeable rail on phones, 4-column grid from 640px.
+  - **II. Reveal:** the scratch card with a handwritten "go on, scratch it" note.
+  - **III. Features:** an editorial numbered index, sticky heading on desktop.
+  - **IV. How it works:** night chapter, outlined gold numerals.
+  - **V. Occasions:** serif pill links.
+  - **VI. FAQ:** hairline accordion.
+  - **Close:** an envelope-shaped CTA with a wax seal.
+  - **Footer:** night, with a cropped oversized wordmark.
+- **Navigation:**
+  - A floating capsule that frosts on scroll.
+  - Phones get a full-screen numbered menu that locks page scroll; Esc closes it.
+  - "Start free" moves into the menu below 380px.
+- **Auth:** form on paper; an evening panel shows the envelope inside a gold-ringed arch (≥1024px).
+- **Dashboard:**
+  - Header tabs (Invitations / Profile).
+  - Greeting "Welcome back, *Name.*".
+  - Hairline stats band, 16:10 covers, serif titles.
+  - The create flow uses roman-numeral steps.
+  - Profile, guests and 404 restyled to match.
+- **QA:**
+  - 112 page/viewport combinations: 0px horizontal overflow.
+  - Keyboard: 8/8 pass.
+  - `next build` passes.
+  - The 320px header and mobile menu were checked by screenshot.

@@ -81,45 +81,49 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
         <div>
-          <p className="font-display text-xl italic text-ink-500">Welcome back,</p>
-          <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{user.name.split(" ")[0]}</h1>
+          <p className="eyebrow">
+            <span className="h-px w-8 bg-brand-600/40" /> Your invitations
+          </p>
+          <h1 className="display mt-4 text-[2.6rem] leading-[1.02] sm:text-6xl">
+            Welcome back, <em className="text-brand-600">{user.name.split(" ")[0]}.</em>
+          </h1>
         </div>
       </div>
 
-      <div className="mt-7 grid grid-cols-3 gap-3">
+      <dl className="mt-10 grid grid-cols-3 divide-x divide-ink/10 border-y border-ink/10">
         {[
           ["Views", totals.views, Eye],
           ["RSVPs", totals.rsvps, ListChecks],
           ["Wishes", totals.wishes, MailOpen],
         ].map(([label, n, Icon]) => (
-          <div key={label} className="card flex items-center gap-3 p-4 sm:p-5">
-            <span className="hidden h-11 w-11 place-items-center rounded-2xl bg-gold/20 text-gold-600 sm:grid">
-              <Icon className="h-5 w-5" strokeWidth={1.8} />
+          <div key={label} className="flex items-center gap-4 px-3 py-5 first:pl-0 sm:px-6 sm:py-6 sm:first:pl-0">
+            <span className="hidden h-11 w-11 shrink-0 place-items-center rounded-full border border-ink/10 text-brand-600 sm:grid">
+              <Icon className="h-5 w-5" strokeWidth={1.6} />
             </span>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-ink-500">{label}</p>
-              <p className="text-2xl font-extrabold text-ink sm:text-3xl">{n}</p>
+              <dt className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-500">{label}</dt>
+              <dd className="mt-0.5 font-serif text-3xl leading-none text-ink sm:text-4xl">{n}</dd>
             </div>
           </div>
         ))}
-      </div>
+      </dl>
 
       {items.length === 0 ? (
-        <div className="card mt-8 flex flex-col items-center px-6 py-16 text-center">
+        <div className="panel mt-10 flex flex-col items-center px-6 py-16 text-center">
           <WaxSeal color="#7a2430" icon="heart" className="w-24" />
-          <h2 className="mt-5 text-2xl font-extrabold text-ink">Your first invitation awaits</h2>
-          <p className="mt-2 max-w-sm font-display text-lg text-ink/65">Pick an event and an entrance, make it yours and share one link with everyone.</p>
+          <h2 className="display mt-6 text-3xl sm:text-4xl">Your first invitation <em className="text-brand-600">awaits.</em></h2>
+          <p className="mt-3 max-w-sm leading-relaxed text-ink/65">Pick an event and an entrance, make it yours and share one link with everyone.</p>
           <Link href="/dashboard/new" className="btn-primary mt-7">
             <Plus className="h-4 w-4" /> Create my first invitation
           </Link>
         </div>
       ) : (
-        <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((inv) => (
-            <div key={inv._id} className="card flex flex-col overflow-hidden">
-              <Link href={`/dashboard/edit/${inv._id}`} className="relative block h-40 overflow-hidden">
+            <div key={inv._id} className="panel group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-[0_30px_60px_-36px_rgba(28,26,61,.5)]">
+              <Link href={`/dashboard/edit/${inv._id}`} className="relative block aspect-[16/10] overflow-hidden" aria-label={`Edit ${inv.title}`}>
                 <Cover inv={inv} />
                 <span className={`chip absolute left-3 top-3 backdrop-blur ${inv.published ? "bg-emerald-50/90 text-emerald-700" : "bg-white/90 text-ink-500"}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${inv.published ? "bg-emerald-500" : "bg-zinc-400"}`} />
@@ -130,7 +134,7 @@ export default function DashboardPage() {
                 <p className="text-xs font-medium text-ink-500">
                   {eventTypeLabel(inv.eventType)} · edited {timeAgo(inv.updatedAt)}
                 </p>
-                <h3 className="mt-1 truncate text-lg font-bold text-ink">{inv.title}</h3>
+                <h3 className="mt-1.5 truncate font-serif text-[1.45rem] leading-tight text-ink">{inv.title}</h3>
                 <p className="mt-0.5 truncate text-xs font-medium text-brand-600">/i/{inv.slug}</p>
                 <div className="mt-3 flex gap-4 text-xs font-semibold text-ink-500">
                   <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {inv.views || 0}</span>

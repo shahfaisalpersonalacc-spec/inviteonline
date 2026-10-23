@@ -11,9 +11,9 @@ import WaxSeal from "@/components/invite/entry/WaxSeal";
 
 function Step({ n, children }) {
   return (
-    <h2 className="mt-10 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.18em] text-ink-500">
-      <span className="grid h-7 w-7 place-items-center rounded-full bg-ink text-xs text-gold">{n}</span>
-      {children}
+    <h2 className="mt-14 flex items-baseline gap-4 border-t border-ink/10 pt-6">
+      <span className="font-serif text-2xl italic text-brand-600">{n}.</span>
+      <span className="font-serif text-2xl text-ink sm:text-[1.7rem]">{children}</span>
     </h2>
   );
 }
@@ -42,10 +42,15 @@ export default function NewInvitationPage() {
 
   return (
     <form onSubmit={create} className="mx-auto max-w-4xl pb-10">
-      <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">Create a new invitation</h1>
-      <p className="mt-2 font-display text-xl text-ink/65">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
+      <p className="eyebrow">
+        <span className="h-px w-8 bg-brand-600/40" /> New invitation
+      </p>
+      <h1 className="display mt-4 text-[2.6rem] leading-[1.02] sm:text-6xl">
+        What are we <em className="text-brand-600">celebrating?</em>
+      </h1>
+      <p className="mt-4 max-w-xl leading-relaxed text-ink/65">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
-      <Step n="1">What are you celebrating?</Step>
+      <Step n="I">Choose the occasion</Step>
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {EVENT_TYPES.map(({ id, label, hint, Icon, theme: t }) => {
           const active = eventType === id;
@@ -57,12 +62,12 @@ export default function NewInvitationPage() {
                 setEventType(id);
                 setTheme(t);
               }}
-              className={`relative flex flex-col items-start gap-2 rounded-3xl border bg-white p-4 text-left transition ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
+              className={`relative flex flex-col items-start gap-2 rounded-2xl border bg-white p-4 text-left transition ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
             >
               <span className={`grid h-10 w-10 place-items-center rounded-2xl ${active ? "bg-ink text-gold" : "bg-brand-50 text-brand-600"}`}>
                 <Icon className="h-5 w-5" strokeWidth={1.7} />
               </span>
-              <span className="text-sm font-bold text-ink">{label}</span>
+              <span className="font-serif text-lg leading-tight text-ink">{label}</span>
               <span className="text-xs text-ink-500">{hint}</span>
               {active && <Check className="absolute right-4 top-4 h-4 w-4 text-ink" />}
             </button>
@@ -70,7 +75,7 @@ export default function NewInvitationPage() {
         })}
       </div>
 
-      <Step n="2">Choose a theme & entrance</Step>
+      <Step n="II">Choose a theme & entrance</Step>
       <div className="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 lg:grid-cols-4">
         {Object.entries(THEMES).map(([id, t]) => {
           const active = theme === id;
@@ -80,7 +85,7 @@ export default function NewInvitationPage() {
               type="button"
               key={id}
               onClick={() => setTheme(id)}
-              className={`w-40 shrink-0 overflow-hidden rounded-3xl border bg-white text-left transition sm:w-auto ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
+              className={`w-40 shrink-0 overflow-hidden rounded-2xl border bg-white text-left transition sm:w-auto ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
             >
               <div className="relative h-24" style={{ background: entry?.swatch || t.primary }}>
                 <div className="absolute inset-0" style={{ background: "rgba(0,0,0,.12)", clipPath: "polygon(0 0, 100% 0, 50% 62%)" }} />
@@ -99,7 +104,7 @@ export default function NewInvitationPage() {
         })}
       </div>
 
-      <Step n="3">Light or dark?</Step>
+      <Step n="III">Light or dark?</Step>
       <div className="mt-4 grid max-w-md grid-cols-2 gap-3" role="radiogroup" aria-label="Invitation appearance">
         {[
           ["light", "Light", "Soft, bright paper tones", Sun, "#fffaf3", "#1c1a3d"],
@@ -111,7 +116,7 @@ export default function NewInvitationPage() {
             role="radio"
             aria-checked={mode === v}
             onClick={() => setMode(v)}
-            className={`flex items-center gap-3 rounded-3xl border p-3 text-left transition ${mode === v ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] bg-white hover:border-ink/25"}`}
+            className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${mode === v ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] bg-white hover:border-ink/25"}`}
           >
             <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: bg, color: fg, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)" }}>
               <Icon className="h-6 w-6" strokeWidth={1.6} />
@@ -125,13 +130,13 @@ export default function NewInvitationPage() {
       </div>
       <p className="mt-2 text-xs text-ink-500">This is how guests will see your invitation. You can switch it any time in the editor.</p>
 
-      <Step n="4">Give it a name</Step>
+      <Step n="IV">Give it a name</Step>
       <input className="input mt-4 !rounded-2xl !py-3.5 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Ayesha weds Ahmed" />
       <p className="mt-2 text-xs text-ink-500">This also becomes your link, e.g. /i/ayesha-weds-ahmed. You can change it later.</p>
 
       {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
-      <div className="mt-10 flex justify-end">
-        <button disabled={busy} className="btn-primary !px-8 !py-3.5 !text-base">
+      <div className="mt-12 flex justify-stretch border-t border-ink/10 pt-8 sm:justify-end">
+        <button disabled={busy} className="btn-primary w-full !px-8 !py-4 !text-base sm:w-auto">
           {busy && <Spinner className="h-4 w-4" />} Create & start editing <ArrowRight className="h-4 w-4" />
         </button>
       </div>

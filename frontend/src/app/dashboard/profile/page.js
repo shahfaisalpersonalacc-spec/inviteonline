@@ -28,10 +28,17 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
-      <h1 className="text-3xl font-extrabold tracking-tight text-ink">Profile</h1>
+    <div className="mx-auto max-w-xl space-y-8">
+      <div>
+        <p className="eyebrow">
+          <span className="h-px w-8 bg-brand-600/40" /> Account
+        </p>
+        <h1 className="display mt-4 text-[2.6rem] leading-none sm:text-5xl">
+          Your <em className="text-brand-600">profile.</em>
+        </h1>
+      </div>
       <form
-        className="card space-y-4 p-6"
+        className="panel space-y-4 p-6 sm:p-8"
         onSubmit={(e) => {
           e.preventDefault();
           save({ name }, "name");
@@ -51,13 +58,13 @@ export default function ProfilePage() {
       </form>
 
       <form
-        className="card space-y-4 p-6"
+        className="panel space-y-4 p-6 sm:p-8"
         onSubmit={(e) => {
           e.preventDefault();
           save(pw, "pw");
         }}
       >
-        <h2 className="font-semibold">Change password</h2>
+        <h2 className="font-serif text-2xl text-ink">Change password</h2>
         <div>
           <label className="label">Current password</label>
           <PasswordInput value={pw.currentPassword} onChange={(e) => setPw({ ...pw, currentPassword: e.target.value })} />

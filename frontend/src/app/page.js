@@ -1,34 +1,37 @@
 import Link from "next/link";
 import {
-  ArrowRight, CalendarHeart, Feather, Gift, Image as ImageIcon, KeyRound, Link2, ListChecks, Lock, MailOpen, MapPin, Music, Palette,
-  QrCode, Smartphone, Sparkles, Stamp, Ticket, Wand2, Share2, ChevronDown,
+  ArrowRight, ArrowUpRight, Feather, Gift, Image as ImageIcon, ListChecks, Lock, MailOpen, MapPin, Music, Palette,
+  Plus, QrCode, Stamp, Ticket,
 } from "lucide-react";
 import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import LiveDemo from "@/components/site/LiveDemo";
 import { EntranceGallery, ScratchDemo } from "@/components/site/Showcases";
+import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { EVENT_TYPES } from "@/data/eventTypes";
 
 const FEATURES = [
-  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and two garden doors. Guests tap the seal, it cracks open and your invitation unfolds." },
-  { Icon: Ticket, title: "Scratch to reveal", text: "A gold-foil card hides your date until guests scratch it with their finger." },
-  { Icon: Palette, title: "Couture themes", text: "Twelve palettes with hand-paired fonts, damask, botanical and foil details." },
-  { Icon: Feather, title: "Your love story", text: "A timeline of moments, the couple, the families, a verse — every detail of the day." },
-  { Icon: ImageIcon, title: "Photos & gallery", text: "Arched portraits, a full gallery with lightbox and decorative vector stickers." },
-  { Icon: MapPin, title: "Venues & directions", text: "Every event with its own map, one-tap directions and add-to-calendar." },
-  { Icon: ListChecks, title: "RSVP & guest list", text: "Guests reply in seconds. Track headcount and export the list to Excel." },
-  { Icon: MailOpen, title: "Guestbook wishes", text: "Friends and family leave heartfelt messages right on your page." },
-  { Icon: Music, title: "Background music", text: "Your song starts the moment the envelope opens." },
-  { Icon: Gift, title: "Gifts, done gracefully", text: "Share bank or wallet details with one-tap copy, only if you wish." },
+  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and two garden doors. Guests tap the seal and your invitation unfolds." },
+  { Icon: Ticket, title: "Scratch to reveal", text: "A gold-foil card hides the date until guests scratch it away." },
+  { Icon: Palette, title: "Couture themes", text: "Twelve palettes with paired fonts, in light or evening dark." },
+  { Icon: Feather, title: "Your story", text: "The couple, the families, a verse and a timeline of moments." },
+  { Icon: ImageIcon, title: "Photos & stickers", text: "Arched portraits, a gallery with lightbox and 77 vector stickers." },
+  { Icon: MapPin, title: "Venues & directions", text: "Each event with its own map, directions and add-to-calendar." },
+  { Icon: ListChecks, title: "RSVP & guest list", text: "Guests reply in seconds. Track headcount and export to Excel." },
+  { Icon: MailOpen, title: "Guestbook wishes", text: "Family and friends leave messages right on your page." },
+  { Icon: Music, title: "Background music", text: "Your song begins the moment the envelope opens." },
+  { Icon: Gift, title: "Gifts, gracefully", text: "Share bank or wallet details with one-tap copy, if you wish." },
   { Icon: Lock, title: "Private if you like", text: "Protect the page with a password, or share it openly." },
-  { Icon: QrCode, title: "QR for printed cards", text: "Download a QR code that opens your invitation from any card." },
+  { Icon: QrCode, title: "QR for printed cards", text: "Download a QR code that opens your invitation from paper." },
 ];
 
 const STEPS = [
-  { Icon: Wand2, title: "Choose your entrance", text: "Pick an event, a theme and the envelope or doors your guests will open." },
-  { Icon: Palette, title: "Make it yours", text: "Add names, photos, events, music and stickers. Every change previews live." },
-  { Icon: Share2, title: "Share one link", text: "Send it on WhatsApp, Instagram or anywhere. No app, no login for guests." },
+  { title: "Choose your entrance", text: "Pick the occasion, a theme, light or dark, and the envelope or doors guests will open." },
+  { title: "Make it yours", text: "Add names, photos, events, music and stickers. Every change previews live as you type." },
+  { title: "Share one link", text: "Send it on WhatsApp, Instagram or anywhere. Guests need no app and no account." },
 ];
+
+const MOMENTS = ["Tap the seal", "Scratch the date", "Count down the days", "Find the venue", "RSVP in seconds", "Leave a wish", "Hear your song"];
 
 const FAQ = [
   { q: "Do my guests need an account or an app?", a: "No. Anyone with your link opens the invitation in their browser, RSVPs and leaves wishes. Only you can edit it." },
@@ -38,21 +41,34 @@ const FAQ = [
   { q: "Can I download my RSVP list?", a: "Yes. Export every response to a CSV file that opens in Excel or Google Sheets." },
 ];
 
-function Eyebrow({ children, light }) {
+// Section opener used throughout the page: roman numeral, label, headline.
+function Chapter({ n, label, title, children, light = false, className = "" }) {
   return (
-    <p className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.28em] ${light ? "text-gold" : "text-brand-600"}`}>
-      <span className="h-px w-6 bg-current" />
-      {children}
-    </p>
+    <div className={className}>
+      <p className={`flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.3em] ${light ? "text-gold" : "text-brand-600"}`}>
+        <span className="font-serif text-base font-normal normal-case italic tracking-normal">{n}.</span>
+        <span className={`h-px w-8 ${light ? "bg-gold/50" : "bg-brand-600/40"}`} />
+        {label}
+      </p>
+      <h2 className={`display mt-5 text-[2.5rem] leading-[1.02] sm:text-[3.4rem] lg:text-[4rem] ${light ? "!text-cream" : ""}`}>{title}</h2>
+      {children && <p className={`mt-5 max-w-xl text-[1.05rem] leading-relaxed ${light ? "text-cream/65" : "text-ink/65"}`}>{children}</p>}
+    </div>
   );
 }
 
-function GoldRule({ className = "" }) {
+function SeeBadge() {
   return (
-    <svg viewBox="0 0 200 24" className={className} fill="none" stroke="#c9a24a" strokeWidth="1.3" aria-hidden="true">
-      <path d="M100 12 C92 2 80 2 76 9 C73 15 80 19 84 14 M100 12 C108 2 120 2 124 9 C127 15 120 19 116 14 M76 12 L8 12 M124 12 L192 12" />
-      <path d="M100 6 L104 12 L100 18 L96 12Z" fill="#c9a24a" />
-    </svg>
+    <div className="absolute -right-1 top-6 z-10 grid h-[5.5rem] w-[5.5rem] place-items-center rounded-full bg-gold shadow-[0_14px_30px_-14px_rgba(28,26,61,.6)] sm:-right-6 sm:h-28 sm:w-28" aria-hidden="true">
+      <svg viewBox="0 0 120 120" className="animate-rotate-badge absolute inset-0 h-full w-full">
+        <defs>
+          <path id="badge-ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
+        </defs>
+        <text fill="#1c1a3d" fontSize="10.5" fontWeight="700" letterSpacing="2.4">
+          <textPath href="#badge-ring" textLength="272">TAP THE SEAL ✦ TAP THE SEAL ✦</textPath>
+        </text>
+      </svg>
+      <Stamp className="h-6 w-6 text-ink sm:h-7 sm:w-7" strokeWidth={1.6} />
+    </div>
   );
 }
 
@@ -61,205 +77,248 @@ export default function Home() {
     <>
       <Navbar />
       <main id="main" className="overflow-x-clip">
-        {/* ---------------- Hero ---------------- */}
-        <section className="relative">
-          <div className="pointer-events-none absolute inset-0 -z-10">
-            <div className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-brand-200/40 blur-3xl" />
-            <div className="absolute -right-32 top-20 h-[460px] w-[460px] rounded-full bg-gold/25 blur-3xl" />
-            <div className="absolute inset-0 opacity-[0.35]" style={{ background: "radial-gradient(#1c1a3d14 1px, transparent 1.2px) 0 0/22px 22px" }} />
-          </div>
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-10 sm:px-6 md:pt-16 lg:grid-cols-[1.05fr_.95fr] lg:pb-24">
+        {/* ================= Hero ================= */}
+        <section className="grain relative bg-cream">
+          <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 pb-20 pt-10 sm:px-6 md:pt-14 lg:grid-cols-[1.1fr_.9fr] lg:gap-8 lg:pb-28">
             <div className="text-center lg:text-left">
-              <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white/70 px-4 py-1.5 text-xs font-semibold text-ink shadow-sm backdrop-blur">
-                <Sparkles className="h-3.5 w-3.5 text-gold-600" /> Digital invitations, beautifully opened
-              </span>
-              <h1 className="mt-6 text-[2.7rem] font-extrabold leading-[1.02] tracking-[-0.035em] text-ink sm:text-6xl lg:text-[4.4rem]">
-                Invitations they&apos;ll
-                <span className="relative mx-2 inline-block font-script text-[1.25em] font-normal tracking-normal text-brand-600">love</span>
-                to open.
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl font-display text-xl leading-relaxed text-ink/75 sm:text-2xl lg:mx-0">
-                A wax-sealed envelope that cracks open, garden doors that swing wide, a gold-foil date to scratch — then your whole celebration, on one beautiful link.
+              <p className="eyebrow justify-center lg:justify-start">
+                <span className="hidden h-px w-8 bg-brand-600/40 lg:block" /> Online invitations for every celebration
               </p>
-              <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
-                <Link href="/register" className="btn-primary !px-7 !py-3.5 !text-base">
+              <h1 className="display mt-6 text-[clamp(3.1rem,11.5vw,6.6rem)] leading-[0.94]">
+                Invitations
+                <br />
+                worth{" "}
+                <span className="relative inline-block italic text-brand-600">
+                  opening.
+                  <svg viewBox="0 0 220 18" className="absolute -bottom-1 left-0 w-full sm:-bottom-2" fill="none" aria-hidden="true">
+                    <path d="M3 13 C 55 4, 130 2, 217 9" stroke="#f5c451" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                </span>
+              </h1>
+              <p className="mx-auto mt-8 max-w-[34rem] text-[1.08rem] leading-relaxed text-ink/70 sm:text-lg lg:mx-0">
+                Guests tap a wax seal, the envelope opens, and your whole celebration unfolds: events, photos, RSVPs and wishes, on one link you share anywhere.
+              </p>
+              <div className="mt-9 flex flex-col items-center gap-4 sm:flex-row sm:justify-center lg:justify-start">
+                <Link href="/register" className="btn-primary w-full !px-7 !py-4 !text-base sm:w-auto">
                   Create your invitation <ArrowRight className="h-4 w-4" />
                 </Link>
-                <a href="#entrances" className="btn-secondary !px-7 !py-3.5 !text-base">
-                  See the entrances
+                <a href="#entrances" className="link-quiet inline-flex items-center gap-1.5 px-2 py-2 text-[0.95rem] font-semibold text-ink">
+                  See all eight entrances <ArrowUpRight className="h-4 w-4" />
                 </a>
               </div>
-              <ul className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500 lg:justify-start">
-                <li className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-brand-600" /> No app for guests</li>
-                <li className="flex items-center gap-2"><CalendarHeart className="h-4 w-4 text-brand-600" /> Free to start</li>
-                <li className="flex items-center gap-2"><Link2 className="h-4 w-4 text-brand-600" /> One link, anywhere</li>
-              </ul>
+              <dl className="mx-auto mt-12 grid max-w-md grid-cols-3 divide-x divide-ink/10 border-y border-ink/10 lg:mx-0">
+                {[
+                  ["Free", "to start"],
+                  ["No app", "for guests"],
+                  ["One link", "anywhere"],
+                ].map(([a, b]) => (
+                  <div key={a} className="px-2 py-4 text-center lg:text-left lg:first:pl-0 lg:[&:not(:first-child)]:pl-5">
+                    <dt className="font-serif text-xl text-ink sm:text-2xl">{a}</dt>
+                    <dd className="mt-0.5 text-xs font-medium text-ink-500">{b}</dd>
+                  </div>
+                ))}
+              </dl>
             </div>
 
-            <div className="relative flex justify-center">
-              <svg viewBox="0 0 100 100" className="absolute -left-2 top-10 hidden h-16 w-16 animate-[sway_6s_ease-in-out_infinite] lg:block" aria-hidden="true">
-                <path d="M50 4 Q54 44 96 50 Q54 56 50 96 Q46 56 4 50 Q46 44 50 4Z" fill="#f5c451" />
-              </svg>
-              <svg viewBox="0 0 100 100" className="absolute -right-2 bottom-24 hidden h-10 w-10 animate-[sway_5s_ease-in-out_infinite] lg:block" aria-hidden="true">
-                <path d="M50 4 Q54 44 96 50 Q54 56 50 96 Q46 56 4 50 Q46 44 50 4Z" fill="#e8544a" />
-              </svg>
-              <div>
-                <LiveDemo />
-                <p className="mt-3 text-center text-xs font-medium text-ink-500">Tap the seal to open · pick a colour to try another entrance</p>
+            {/* Stage: arch backdrop, a printed card peeking out and the live phone */}
+            <div className="relative mx-auto w-full max-w-[440px]">
+              <div className="absolute left-1/2 top-8 h-[520px] w-[94%] -translate-x-1/2 rounded-t-full bg-brand-500 sm:top-6 sm:h-[600px]" aria-hidden="true">
+                <div className="absolute inset-3 rounded-t-full border border-white/25" />
+                <div className="absolute inset-0 rounded-t-full opacity-40" style={{ background: "radial-gradient(circle at 50% 18%, #ffd9b0 0, transparent 55%)" }} />
+              </div>
+              <div className="absolute -left-10 top-48 hidden w-40 -rotate-[10deg] rounded-md bg-[#fffaf3] p-2 shadow-[0_24px_40px_-20px_rgba(28,26,61,.55)] sm:block" aria-hidden="true">
+                <div className="flex aspect-[3/4] flex-col items-center justify-center rounded-sm border border-gold-600/50 text-center">
+                  <span className="font-script text-2xl text-brand-600">Save the date</span>
+                  <span className="mt-1 font-serif text-3xl text-ink">12 · 12</span>
+                  <span className="mt-2 text-[8px] font-bold uppercase tracking-[0.3em] text-ink-500">Ayesha & Ahmed</span>
+                </div>
+              </div>
+              <SeeBadge />
+              <div className="relative">
+                <LiveDemo className="h-[560px] w-[272px] min-[380px]:h-[600px] min-[380px]:w-[292px] sm:h-[660px] sm:w-[320px]" />
               </div>
             </div>
           </div>
         </section>
 
-        {/* ---------------- Entrances ---------------- */}
-        <section id="entrances" className="scroll-mt-20 bg-white py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <Eyebrow>The first impression</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-                Eight entrances, <span className="font-display font-semibold italic text-brand-600">one unforgettable moment</span>
-              </h2>
-              <p className="mt-4 font-display text-xl text-ink/70">Every guest begins with something to open. Tap any of them.</p>
+        {/* ================= Ticker ================= */}
+        <div className="marquee overflow-hidden border-y border-ink bg-ink py-4 text-cream" aria-label="What guests can do">
+          <div className="marquee-track">
+            {[0, 1].map((copy) => (
+              <ul key={copy} className="flex shrink-0 items-center" aria-hidden={copy === 1 || undefined}>
+                {MOMENTS.map((m) => (
+                  <li key={m} className="flex items-center whitespace-nowrap font-serif text-xl italic sm:text-2xl">
+                    <span className="px-6 sm:px-8">{m}</span>
+                    <span className="text-gold not-italic">✦</span>
+                  </li>
+                ))}
+              </ul>
+            ))}
+          </div>
+        </div>
+
+        {/* ================= I. Entrances ================= */}
+        <section id="entrances" className="grain grain-dark relative scroll-mt-16 bg-night py-24 text-cream sm:py-32">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] opacity-60" style={{ background: "radial-gradient(ellipse 60% 70% at 50% 0%, rgba(245,196,81,.16), transparent 70%)" }} />
+          <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_.8fr]">
+              <Chapter n="I" label="The first impression" title={<>Eight ways to be <em className="text-gold">opened.</em></>} light />
+              <p className="max-w-md text-[1.05rem] leading-relaxed text-cream/65 lg:pb-3">
+                Every guest begins with something to open: a wax-sealed envelope, a gatefold card or a pair of garden doors. Tap any of them to try it.
+              </p>
             </div>
-            <div className="mt-14">
-              <EntranceGallery />
+            <div className="mt-14 sm:mt-16">
+              <EntranceGallery dark />
             </div>
           </div>
         </section>
 
-        {/* ---------------- Magic moments ---------------- */}
-        <section className="py-20 sm:py-24">
-          <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-            <div>
-              <Eyebrow>Little moments of magic</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Let them scratch the gold to find the date.</h2>
-              <p className="mt-5 font-display text-xl leading-relaxed text-ink/70">
-                A tactile surprise on every phone. Then a live countdown, the music you chose, your story told as a timeline, and a guestbook full of love.
+        {/* ================= II. The reveal ================= */}
+        <section className="grain relative bg-cream py-24 sm:py-32">
+          <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20">
+            <div className="relative order-2 lg:order-1">
+              <div className="mx-auto max-w-md -rotate-[1.5deg] rounded-[1.6rem] bg-white p-3 shadow-[0_40px_70px_-40px_rgba(28,26,61,.55)]">
+                <ScratchDemo />
+              </div>
+              <p className="absolute -top-9 right-2 rotate-[6deg] font-script text-3xl text-brand-600 sm:right-10" aria-hidden="true">
+                go on, scratch it
+                <svg viewBox="0 0 60 40" className="ml-auto mr-10 mt-1 h-8 w-12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M50 4 C 40 22, 26 30, 8 34" />
+                  <path d="M8 34 L 16 26 M8 34 L 18 37" />
+                </svg>
               </p>
-              <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+            </div>
+            <div className="order-1 lg:order-2">
+              <Chapter n="II" label="Little moments of magic" title={<>Let them scratch the gold to find <em className="text-brand-600">the date.</em></>}>
+                A tactile surprise on every phone. Then a live countdown, the music you chose, your story as a timeline and a guestbook full of love.
+              </Chapter>
+              <ul className="mt-10 border-t border-ink/10">
                 {[
-                  [Ticket, "Scratch-to-reveal date"],
-                  [KeyRound, "Doors & envelopes that open"],
-                  [Music, "Music on opening"],
-                  [Feather, "Love story timeline"],
-                ].map(([Icon, t]) => (
-                  <li key={t} className="flex items-center gap-3 font-semibold text-ink">
-                    <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gold/20 text-gold-600">
-                      <Icon className="h-5 w-5" strokeWidth={1.8} />
+                  [Ticket, "Scratch-to-reveal date", "Gold foil that clears under a fingertip"],
+                  [Stamp, "Doors & envelopes that open", "With a seal in your colours and monogram"],
+                  [Music, "Music on opening", "Starts as the envelope lifts"],
+                  [Feather, "Your story as a timeline", "From the first meeting to the big day"],
+                ].map(([Icon, t, d]) => (
+                  <li key={t} className="flex items-center gap-4 border-b border-ink/10 py-4">
+                    <Icon className="h-5 w-5 shrink-0 text-brand-600" strokeWidth={1.6} />
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-ink">{t}</span>
+                      <span className="block text-sm text-ink-500">{d}</span>
                     </span>
-                    {t}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-[2.4rem] bg-white p-3 shadow-[0_30px_70px_-35px_rgba(28,26,61,.45)]">
-              <ScratchDemo />
-            </div>
           </div>
         </section>
 
-        {/* ---------------- Features ---------------- */}
-        <section id="features" className="scroll-mt-20 bg-white py-20 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <Eyebrow>Everything included</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">All an invitation should be</h2>
+        {/* ================= III. Everything inside ================= */}
+        <section id="features" className="grain relative scroll-mt-16 bg-paper py-24 sm:py-32">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
+            <div className="lg:sticky lg:top-28 lg:self-start">
+              <Chapter n="III" label="Everything included" title={<>All that goes <em className="text-brand-600">inside</em> the envelope.</>}>
+                Twelve pieces of a complete invitation suite, ready the moment you create your page. Use the ones you need and hide the rest.
+              </Chapter>
+              <Link href="/register" className="btn-primary mt-9 !px-6 !py-3.5">
+                Start with a template <ArrowRight className="h-4 w-4" />
+              </Link>
             </div>
-            <div className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
-              {FEATURES.map(({ Icon, title, text }) => (
-                <div key={title} className="group flex gap-4 rounded-3xl border border-ink/[0.06] bg-cream/60 p-4 transition hover:bg-white hover:shadow-[0_24px_50px_-30px_rgba(28,26,61,.4)] sm:block sm:p-6 sm:hover:-translate-y-1">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-ink text-gold transition group-hover:bg-brand-500 group-hover:text-white sm:h-12 sm:w-12">
-                    <Icon className="h-5 w-5" strokeWidth={1.7} />
-                  </span>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-bold text-ink sm:mt-5 sm:text-lg">{title}</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-ink-500 sm:mt-1.5 sm:text-[0.95rem]">{text}</p>
+            <ol className="grid border-t border-ink/10 sm:grid-cols-2 sm:gap-x-10">
+              {FEATURES.map(({ Icon, title, text }, i) => (
+                <li key={title} className="group flex gap-4 border-b border-ink/10 py-5 sm:py-6">
+                  <span className="w-7 shrink-0 pt-0.5 font-serif text-sm italic text-ink/35">{String(i + 1).padStart(2, "0")}</span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="flex items-center justify-between gap-3 font-serif text-[1.3rem] leading-tight text-ink">
+                      {title}
+                      <Icon className="h-5 w-5 shrink-0 text-ink/30 transition group-hover:text-brand-600" strokeWidth={1.6} />
+                    </h3>
+                    <p className="mt-1.5 text-[0.93rem] leading-relaxed text-ink-500">{text}</p>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
-        {/* ---------------- How it works ---------------- */}
-        <section id="how" className="relative scroll-mt-20 overflow-hidden bg-ink py-20 text-cream sm:py-24">
-          <div className="pointer-events-none absolute inset-0 opacity-30" style={{ background: "radial-gradient(#f5c45133 1px, transparent 1.2px) 0 0/26px 26px" }} />
+        {/* ================= IV. How it works ================= */}
+        <section id="how" className="grain grain-dark relative scroll-mt-16 overflow-hidden bg-night py-24 text-cream sm:py-32">
+          <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-brand-500/20 blur-[110px]" />
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center">
-              <Eyebrow light>How it works</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">Ready in three graceful steps</h2>
-              <GoldRule className="mx-auto mt-5 w-48" />
-            </div>
-            <div className="mt-14 grid gap-5 md:grid-cols-3">
-              {STEPS.map(({ Icon, title, text }, i) => (
-                <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.04] p-7 backdrop-blur">
-                  <div className="flex items-center justify-between">
-                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gold text-ink">
-                      <Icon className="h-5 w-5" strokeWidth={1.8} />
-                    </span>
-                    <span className="font-display text-5xl font-semibold italic text-white/15">0{i + 1}</span>
-                  </div>
-                  <h3 className="mt-6 text-xl font-bold">{title}</h3>
-                  <p className="mt-2 text-cream/65">{text}</p>
-                </div>
+            <Chapter n="IV" label="How it works" title={<>Ready in three <em className="text-gold">graceful</em> steps.</>} light />
+            <ol className="mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
+              {STEPS.map(({ title, text }, i) => (
+                <li key={title} className="relative border-t border-white/15 pt-8">
+                  <span className="absolute -top-px left-0 h-px w-16 bg-gold" />
+                  <span className="font-serif text-[5.5rem] leading-[0.8] text-transparent [-webkit-text-stroke:1px_rgba(245,196,81,.75)]">{i + 1}</span>
+                  <h3 className="mt-6 font-serif text-2xl">{title}</h3>
+                  <p className="mt-3 max-w-xs leading-relaxed text-cream/60">{text}</p>
+                </li>
               ))}
-            </div>
+            </ol>
           </div>
         </section>
 
-        {/* ---------------- Events ---------------- */}
-        <section id="events" className="scroll-mt-20 py-20 sm:py-24">
+        {/* ================= V. Occasions ================= */}
+        <section id="events" className="grain relative scroll-mt-16 bg-cream py-24 sm:py-32">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <div className="text-center">
-              <Eyebrow>For every celebration</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">From Nikah to first birthdays</h2>
-            </div>
-            <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <Chapter n="V" label="For every celebration" title={<>From Nikah to <em className="text-brand-600">first birthdays.</em></>}>
+              Each occasion starts with its own theme, entrance and sample sections, so you begin from something beautiful rather than a blank page.
+            </Chapter>
+            <ul className="mt-12 flex flex-wrap gap-2.5 sm:gap-3">
               {EVENT_TYPES.map(({ id, label, Icon }) => (
-                <Link key={id} href="/register" className="group flex flex-col items-center gap-3 rounded-3xl border border-ink/[0.06] bg-white p-5 text-center transition hover:-translate-y-1 hover:shadow-lg">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white">
-                    <Icon className="h-5 w-5" strokeWidth={1.7} />
-                  </span>
-                  <span className="text-sm font-semibold text-ink">{label}</span>
-                </Link>
+                <li key={id}>
+                  <Link
+                    href="/register"
+                    className="group inline-flex items-center gap-2.5 rounded-full border border-ink/15 bg-white/70 py-2.5 pl-3 pr-5 font-serif text-lg text-ink transition hover:border-ink hover:bg-ink hover:text-cream sm:py-3 sm:text-xl"
+                  >
+                    <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-50 text-brand-600 transition group-hover:bg-gold group-hover:text-ink">
+                      <Icon className="h-4 w-4" strokeWidth={1.7} />
+                    </span>
+                    {label}
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         </section>
 
-        {/* ---------------- FAQ ---------------- */}
-        <section id="faq" className="scroll-mt-20 bg-white py-20 sm:py-24">
-          <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            <div className="text-center">
-              <Eyebrow>Questions</Eyebrow>
-              <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">Good to know</h2>
+        {/* ================= FAQ ================= */}
+        <section id="faq" className="grain relative scroll-mt-16 bg-paper py-24 sm:py-32">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
+            <div>
+              <Chapter n="VI" label="Questions" title={<>Good to <em className="text-brand-600">know.</em></>}>
+                The things people ask before they send their first invitation.
+              </Chapter>
             </div>
-            <div className="mt-10 space-y-3">
+            <div className="border-t border-ink/15">
               {FAQ.map((f) => (
-                <details key={f.q} className="group rounded-3xl border border-ink/[0.07] bg-cream/50 px-6 py-5 open:bg-white open:shadow-[0_20px_40px_-30px_rgba(28,26,61,.4)]">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-ink">
+                <details key={f.q} className="group border-b border-ink/15">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 font-serif text-xl text-ink sm:text-[1.4rem] [&::-webkit-details-marker]:hidden">
                     {f.q}
-                    <ChevronDown className="h-5 w-5 shrink-0 text-brand-600 transition group-open:rotate-180" />
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-ink/15 transition group-open:rotate-45 group-open:border-ink group-open:bg-ink group-open:text-cream">
+                      <Plus className="h-4 w-4" />
+                    </span>
                   </summary>
-                  <p className="mt-3 leading-relaxed text-ink-500">{f.a}</p>
+                  <p className="-mt-1 max-w-xl pb-6 pr-12 leading-relaxed text-ink-500">{f.a}</p>
                 </details>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ---------------- CTA ---------------- */}
-        <section className="px-4 py-20 sm:px-6">
-          <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] bg-ink px-6 py-16 text-center text-cream shadow-2xl sm:px-12">
-            <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-brand-500/30 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
-            <div className="relative">
-              <GoldRule className="mx-auto w-44" />
-              <h2 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl">
-                Your celebration deserves a <span className="foil-text font-script text-[1.3em] font-normal tracking-normal">grand entrance</span>
+        {/* ================= Closing envelope ================= */}
+        <section className="bg-paper px-4 pb-24 sm:px-6 sm:pb-32">
+          <div className="grain grain-dark relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-ink text-center text-cream shadow-[0_50px_90px_-50px_rgba(28,26,61,.8)]">
+            {/* envelope flap */}
+            <div className="absolute inset-x-0 top-0 h-36 bg-ink-700 sm:h-44" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)" }} aria-hidden="true" />
+            <div className="absolute inset-x-0 top-0 h-36 sm:h-44" style={{ clipPath: "polygon(0 0, 100% 0, 50% 100%)", background: "linear-gradient(180deg, rgba(255,255,255,.06), transparent)" }} aria-hidden="true" />
+            <WaxSeal color="#e8544a" icon="heart" className="absolute left-1/2 top-36 w-20 -translate-x-1/2 -translate-y-1/2 sm:top-44 sm:w-24" />
+            <div className="relative px-6 pb-16 pt-52 sm:px-12 sm:pb-20 sm:pt-64">
+              <h2 className="display mx-auto max-w-3xl text-[2.4rem] leading-[1.02] !text-cream sm:text-6xl">
+                Your celebration deserves a <em className="foil-text">grand entrance.</em>
               </h2>
-              <p className="mx-auto mt-4 max-w-xl font-display text-xl text-cream/75">Start free. Make it yours in minutes and share it with everyone you love.</p>
-              <Link href="/register" className="btn-coral mt-9 !px-8 !py-3.5 !text-base">
+              <p className="mx-auto mt-5 max-w-lg text-cream/65">Start free. Make it yours in minutes and share it with everyone you love.</p>
+              <Link href="/register" className="btn-coral mt-9 !px-8 !py-4 !text-base">
                 Create your invitation <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

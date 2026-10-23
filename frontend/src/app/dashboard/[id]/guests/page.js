@@ -68,7 +68,7 @@ export default function GuestsPage() {
         <ArrowLeft className="h-4 w-4" /> All invitations
       </Link>
       <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-ink">{inv.title} <span className="font-display font-semibold italic text-ink-500">· Guests</span></h1>
+        <h1 className="display text-4xl leading-tight sm:text-5xl">{inv.title} <em className="text-brand-600">· Guests</em></h1>
         <div className="flex gap-2">
           <Link href={`/dashboard/edit/${id}`} className="btn-secondary">
             Edit invitation
@@ -86,9 +86,9 @@ export default function GuestsPage() {
           ["Maybe", s.maybe, "text-amber-600"],
           ["Not attending", s.no, "text-red-600"],
         ].map(([label, n, cls]) => (
-          <div key={label} className="card p-4">
-            <p className="text-xs text-ink-500">{label}</p>
-            <p className={`mt-1 text-3xl font-bold ${cls}`}>{n}</p>
+          <div key={label} className="panel p-4 sm:p-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-ink-500">{label}</p>
+            <p className={`mt-2 font-serif text-4xl leading-none ${cls}`}>{n}</p>
           </div>
         ))}
       </div>
@@ -116,11 +116,11 @@ export default function GuestsPage() {
             </select>
           </div>
           {list.length === 0 ? (
-            <p className="card mt-4 p-10 text-center text-sm text-ink-500">No responses yet. Share your invitation link to start collecting RSVPs!</p>
+            <p className="panel mt-4 p-10 text-center text-sm text-ink-500">No responses yet. Share your invitation link to start collecting RSVPs!</p>
           ) : (
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               {list.map((r) => (
-                <div key={r._id} className="card p-4">
+                <div key={r._id} className="panel p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-ink">{r.name}</p>
@@ -146,11 +146,11 @@ export default function GuestsPage() {
           )}
         </>
       ) : wishes.length === 0 ? (
-        <p className="card mt-4 p-10 text-center text-sm text-ink-500">No wishes yet.</p>
+        <p className="panel mt-4 p-10 text-center text-sm text-ink-500">No wishes yet.</p>
       ) : (
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {wishes.map((w) => (
-            <div key={w._id} className="card p-4">
+            <div key={w._id} className="panel p-4">
               <p className="whitespace-pre-line text-sm text-zinc-800">{w.message}</p>
               <div className="mt-3 flex items-center justify-between text-xs">
                 <span className="font-semibold text-brand-600">

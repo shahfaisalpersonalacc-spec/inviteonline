@@ -14,13 +14,14 @@ const SAMPLE_DATE = (() => {
 })();
 
 // Grid of every entrance; each one opens when tapped, then resets.
-export function EntranceGallery() {
+// On phones it is a swipeable rail; from 640px a 4-column grid.
+export function EntranceGallery({ dark = false }) {
   const [runs, setRuns] = useState({});
   return (
-    <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-4">
-      {ENTRY_STYLES.map((s) => (
-        <figure key={s.id} className="flex flex-col items-center">
-          <PhoneFrame className="h-[300px] w-[150px] !rounded-[2rem] !p-[6px] sm:h-[340px] sm:w-[170px]">
+    <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-4 sm:gap-x-4 sm:gap-y-12 sm:overflow-visible sm:px-0">
+      {ENTRY_STYLES.map((s, i) => (
+        <figure key={s.id} className="flex shrink-0 snap-center flex-col items-center">
+          <PhoneFrame className={`h-[340px] w-[170px] !rounded-[2rem] !p-[6px] lg:h-[380px] lg:w-[190px] ${dark ? "ring-1 ring-white/15" : ""}`}>
             <div className="absolute inset-0 grid place-items-center bg-cream text-center">
               <span className="px-3 font-script text-3xl text-ink">Welcome!</span>
             </div>
@@ -33,8 +34,11 @@ export function EntranceGallery() {
               onOpened={() => setTimeout(() => setRuns((r) => ({ ...r, [s.id]: (r[s.id] || 0) + 1 })), 900)}
             />
           </PhoneFrame>
-          <figcaption className="mt-3 text-sm font-semibold text-ink">{s.label}</figcaption>
-          <span className="text-xs text-ink-500">{s.kind === "door" ? "Doors" : s.kind === "gatefold" ? "Gatefold" : "Wax-sealed envelope"}</span>
+          <figcaption className={`mt-4 text-center font-serif text-lg ${dark ? "text-cream" : "text-ink"}`}>
+            <span className={`mr-1.5 text-sm italic ${dark ? "text-gold/70" : "text-ink/40"}`}>{String(i + 1).padStart(2, "0")}</span>
+            {s.label}
+          </figcaption>
+          <span className={`text-xs ${dark ? "text-cream/50" : "text-ink-500"}`}>{s.kind === "door" ? "Doors" : s.kind === "gatefold" ? "Gatefold" : "Wax-sealed envelope"}</span>
         </figure>
       ))}
     </div>
