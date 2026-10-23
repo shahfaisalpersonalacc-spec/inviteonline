@@ -162,6 +162,13 @@ body {
   background-clip: text;
   color: transparent;
   animation: shimmer 6s linear infinite;
+  /* background-clip:text only paints inside the element box, so script swashes and italic
+     overhangs that reach past it were cut off. Extra padding gives the foil room to paint;
+     the matching negative margin keeps the layout unchanged. */
+  padding: 0.3em 0.25em;
+  margin: -0.3em -0.25em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 .font-display { font-family: var(--font-display); }

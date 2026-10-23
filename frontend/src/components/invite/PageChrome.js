@@ -136,11 +136,16 @@ export function TabBar({ sections }) {
   const items = useRef({});
 
   // Keep the active tab centred in the carousel (horizontal scroll only, never the page).
+  // Waits for the active tab to settle, so a fast scroll past several sections glides once
+  // instead of restarting the carousel animation for every section it crosses.
   useEffect(() => {
-    const box = scroller.current;
-    const el = items.current[active];
-    if (!box || !el) return;
-    box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: "smooth" });
+    const t = setTimeout(() => {
+      const box = scroller.current;
+      const el = items.current[active];
+      if (!box || !el) return;
+      box.scrollTo({ left: el.offsetLeft - (box.clientWidth - el.offsetWidth) / 2, behavior: "smooth" });
+    }, 140);
+    return () => clearTimeout(t);
   }, [active]);
 
   if (tabs.length < 2) return null;
@@ -149,12 +154,14 @@ export function TabBar({ sections }) {
     <nav
       aria-label="Invitation sections"
       className="pointer-events-none sticky bottom-0 z-40 -mt-[92px] px-3 @3xl:hidden"
-      style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))" }}
+      // own compositor layer: the dock stays put while the page scrolls underneath
+      style={{ paddingBottom: "max(0.6rem, env(safe-area-inset-bottom))", transform: "translateZ(0)" }}
     >
-      {/* progressive blur: frosts whatever scrolls underneath without a coloured band */}
+      {/* soft fade in the page colour behind the dock. (A live backdrop blur here, plus one per tab,
+          had to be recomputed every scroll frame and made the dock shimmer and stutter on phones.) */}
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-28"
-        style={{ backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)", maskImage: "linear-gradient(to top, #000 45%, transparent)", WebkitMaskImage: "linear-gradient(to top, #000 45%, transparent)" }}
+        style={{ background: "linear-gradient(to top, color-mix(in srgb, var(--inv-bg) 82%, transparent) 30%, transparent)" }}
         aria-hidden
       />
       <div className="pointer-events-auto relative mx-auto max-w-md">
@@ -173,13 +180,13 @@ export function TabBar({ sections }) {
                     onClick={() => go(id)}
                     aria-label={label}
                     aria-current={on ? "true" : undefined}
-                    className="relative grid h-12 w-12 place-items-center rounded-full transition-transform duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)] will-change-transform active:scale-90"
+                    className="relative grid h-12 w-12 place-items-center rounded-full transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90"
                   style={{ transform: `scale(${on ? 1 : 0.75})` }}
                 >
-                  {/* resting: frosted glass */}
+                  {/* resting: soft paper disc (solid, no per-tab blur) */}
                   <span
-                    className="absolute inset-0 rounded-full backdrop-blur-md transition-opacity duration-300"
-                    style={{ opacity: on ? 0 : 1, background: "color-mix(in srgb, var(--inv-surface) 75%, transparent)", boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 60%, transparent), 0 4px 14px -6px rgba(0,0,0,.25)" }}
+                    className="absolute inset-0 rounded-full transition-opacity duration-300"
+                    style={{ opacity: on ? 0 : 1, background: "color-mix(in srgb, var(--inv-surface) 94%, transparent)", boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 60%, transparent), 0 4px 14px -6px rgba(0,0,0,.25)" }}
                     aria-hidden
                   />
                   {/* active: theme gradient with a glow */}
