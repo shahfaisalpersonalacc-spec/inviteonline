@@ -23,12 +23,16 @@ const clientUrl = () => (process.env.CLIENT_URL || 'http://localhost:3000').repl
 async function register(req, res) {
   const { name, email, password: pw } = req.body;
   if (await User.exists({ email })) throw new HttpError(409, 'An account with this email already exists');
-  const user = await User.create({ name, email, password: pw });
+  // Sign the token before saving, so a server misconfiguration (e.g. missing JWT_SECRET)
+  // can't leave behind an account the person never got logged into.
+  const user = new User({ name, email, password: pw });
+  const token = signAuthToken(user._id);
+  await user.save();
 
   sendEmail({ to: email, toName: name, subject: 'Welcome to InviteOnline 🎉', html: welcomeEmail(name, `${clientUrl()}/dashboard`) })
     .catch((e) => console.error('[email] welcome failed:', e.message));
 
-  res.status(201).json({ token: signAuthToken(user._id), user: user.toPublic() });
+  res.status(201).json({ token, user: user.toPublic() });
 }
 
 async function login(req, res) {
