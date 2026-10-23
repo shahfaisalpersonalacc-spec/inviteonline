@@ -26,6 +26,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${jakarta.variable} ${cormorant.variable} ${greatVibes.variable} antialiased`}>
       <body className="min-h-screen font-sans">
+        <a href="#main" className="skip-link">
+          Skip to content
+        </a>
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>

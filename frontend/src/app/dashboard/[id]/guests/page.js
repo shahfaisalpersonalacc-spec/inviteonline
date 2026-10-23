@@ -82,7 +82,7 @@ export default function GuestsPage() {
       <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ["Attending", s.yes, "text-green-600"],
-          ["Total guests coming", s.totalGuests, "text-brand-500"],
+          ["Total guests coming", s.totalGuests, "text-brand-600"],
           ["Maybe", s.maybe, "text-amber-600"],
           ["Not attending", s.no, "text-red-600"],
         ].map(([label, n, cls]) => (
@@ -98,7 +98,7 @@ export default function GuestsPage() {
           ["rsvps", `RSVPs (${rsvp.rsvps.length})`],
           ["wishes", `Wishes (${wishes.length})`],
         ].map(([k, label]) => (
-          <button key={k} onClick={() => setTab(k)} className={`flex-1 rounded-full px-5 py-2 text-sm font-semibold ${tab === k ? "bg-white shadow" : "text-ink-500"}`}>
+          <button key={k} onClick={() => setTab(k)} className={`flex-1 whitespace-nowrap rounded-full px-5 py-2 text-sm font-semibold ${tab === k ? "bg-white shadow" : "text-ink-500"}`}>
             {label}
           </button>
         ))}
@@ -131,7 +131,7 @@ export default function GuestsPage() {
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-500">
                     {r.status !== "no" && <span className="flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {r.guests} guest{r.guests > 1 ? "s" : ""}</span>}
                     {r.phone && (
-                      <a href={whatsappLink(r.phone)} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:underline">
+                      <a href={whatsappLink(r.phone)} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">
                         <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> {r.phone}</span>
                       </a>
                     )}

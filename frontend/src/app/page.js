@@ -40,7 +40,7 @@ const FAQ = [
 
 function Eyebrow({ children, light }) {
   return (
-    <p className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.28em] ${light ? "text-gold" : "text-brand-500"}`}>
+    <p className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.28em] ${light ? "text-gold" : "text-brand-600"}`}>
       <span className="h-px w-6 bg-current" />
       {children}
     </p>
@@ -60,7 +60,7 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main className="overflow-x-clip">
+      <main id="main" className="overflow-x-clip">
         {/* ---------------- Hero ---------------- */}
         <section className="relative">
           <div className="pointer-events-none absolute inset-0 -z-10">
@@ -75,7 +75,7 @@ export default function Home() {
               </span>
               <h1 className="mt-6 text-[2.7rem] font-extrabold leading-[1.02] tracking-[-0.035em] text-ink sm:text-6xl lg:text-[4.4rem]">
                 Invitations they&apos;ll
-                <span className="relative mx-2 inline-block font-script text-[1.25em] font-normal tracking-normal text-brand-500">love</span>
+                <span className="relative mx-2 inline-block font-script text-[1.25em] font-normal tracking-normal text-brand-600">love</span>
                 to open.
               </h1>
               <p className="mx-auto mt-6 max-w-xl font-display text-xl leading-relaxed text-ink/75 sm:text-2xl lg:mx-0">
@@ -90,9 +90,9 @@ export default function Home() {
                 </a>
               </div>
               <ul className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-500 lg:justify-start">
-                <li className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-brand-500" /> No app for guests</li>
-                <li className="flex items-center gap-2"><CalendarHeart className="h-4 w-4 text-brand-500" /> Free to start</li>
-                <li className="flex items-center gap-2"><Link2 className="h-4 w-4 text-brand-500" /> One link, anywhere</li>
+                <li className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-brand-600" /> No app for guests</li>
+                <li className="flex items-center gap-2"><CalendarHeart className="h-4 w-4 text-brand-600" /> Free to start</li>
+                <li className="flex items-center gap-2"><Link2 className="h-4 w-4 text-brand-600" /> One link, anywhere</li>
               </ul>
             </div>
 
@@ -117,7 +117,7 @@ export default function Home() {
             <div className="mx-auto max-w-2xl text-center">
               <Eyebrow>The first impression</Eyebrow>
               <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
-                Eight entrances, <span className="font-display font-semibold italic text-brand-500">one unforgettable moment</span>
+                Eight entrances, <span className="font-display font-semibold italic text-brand-600">one unforgettable moment</span>
               </h2>
               <p className="mt-4 font-display text-xl text-ink/70">Every guest begins with something to open. Tap any of them.</p>
             </div>
@@ -165,14 +165,16 @@ export default function Home() {
               <Eyebrow>Everything included</Eyebrow>
               <h2 className="mt-4 text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">All an invitation should be</h2>
             </div>
-            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-10 grid gap-3 sm:mt-14 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {FEATURES.map(({ Icon, title, text }) => (
-                <div key={title} className="group rounded-3xl border border-ink/[0.06] bg-cream/60 p-6 transition hover:-translate-y-1 hover:bg-white hover:shadow-[0_24px_50px_-30px_rgba(28,26,61,.4)]">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ink text-gold transition group-hover:bg-brand-500 group-hover:text-white">
+                <div key={title} className="group flex gap-4 rounded-3xl border border-ink/[0.06] bg-cream/60 p-4 transition hover:bg-white hover:shadow-[0_24px_50px_-30px_rgba(28,26,61,.4)] sm:block sm:p-6 sm:hover:-translate-y-1">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-ink text-gold transition group-hover:bg-brand-500 group-hover:text-white sm:h-12 sm:w-12">
                     <Icon className="h-5 w-5" strokeWidth={1.7} />
                   </span>
-                  <h3 className="mt-5 text-lg font-bold text-ink">{title}</h3>
-                  <p className="mt-1.5 text-[0.95rem] leading-relaxed text-ink-500">{text}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-bold text-ink sm:mt-5 sm:text-lg">{title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-ink-500 sm:mt-1.5 sm:text-[0.95rem]">{text}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -215,7 +217,7 @@ export default function Home() {
             <div className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
               {EVENT_TYPES.map(({ id, label, Icon }) => (
                 <Link key={id} href="/register" className="group flex flex-col items-center gap-3 rounded-3xl border border-ink/[0.06] bg-white p-5 text-center transition hover:-translate-y-1 hover:shadow-lg">
-                  <span className="grid h-12 w-12 place-items-center rounded-full bg-brand-50 text-brand-500 transition group-hover:bg-brand-500 group-hover:text-white">
+                  <span className="grid h-12 w-12 place-items-center rounded-full bg-brand-50 text-brand-600 transition group-hover:bg-brand-500 group-hover:text-white">
                     <Icon className="h-5 w-5" strokeWidth={1.7} />
                   </span>
                   <span className="text-sm font-semibold text-ink">{label}</span>
@@ -237,7 +239,7 @@ export default function Home() {
                 <details key={f.q} className="group rounded-3xl border border-ink/[0.07] bg-cream/50 px-6 py-5 open:bg-white open:shadow-[0_20px_40px_-30px_rgba(28,26,61,.4)]">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-bold text-ink">
                     {f.q}
-                    <ChevronDown className="h-5 w-5 shrink-0 text-brand-500 transition group-open:rotate-180" />
+                    <ChevronDown className="h-5 w-5 shrink-0 text-brand-600 transition group-open:rotate-180" />
                   </summary>
                   <p className="mt-3 leading-relaxed text-ink-500">{f.a}</p>
                 </details>

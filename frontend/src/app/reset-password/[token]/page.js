@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
       title="Set a new password"
       subtitle="Choose a strong password you haven't used before."
       footer={
-        <Link href="/forgot-password" className="font-semibold text-brand-500 hover:underline">
+        <Link href="/forgot-password" className="font-semibold text-brand-600 hover:underline">
           Request a new link
         </Link>
       }

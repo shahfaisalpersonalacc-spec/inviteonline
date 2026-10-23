@@ -59,7 +59,7 @@ export default function NewInvitationPage() {
               }}
               className={`relative flex flex-col items-start gap-2 rounded-3xl border bg-white p-4 text-left transition ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
             >
-              <span className={`grid h-10 w-10 place-items-center rounded-2xl ${active ? "bg-ink text-gold" : "bg-brand-50 text-brand-500"}`}>
+              <span className={`grid h-10 w-10 place-items-center rounded-2xl ${active ? "bg-ink text-gold" : "bg-brand-50 text-brand-600"}`}>
                 <Icon className="h-5 w-5" strokeWidth={1.7} />
               </span>
               <span className="text-sm font-bold text-ink">{label}</span>

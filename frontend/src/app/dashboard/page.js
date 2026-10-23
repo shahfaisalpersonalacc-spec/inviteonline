@@ -86,9 +86,6 @@ export default function DashboardPage() {
           <p className="font-display text-xl italic text-ink-500">Welcome back,</p>
           <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{user.name.split(" ")[0]}</h1>
         </div>
-        <Link href="/dashboard/new" className="btn-primary self-start sm:self-auto">
-          <Plus className="h-4 w-4" /> New invitation
-        </Link>
       </div>
 
       <div className="mt-7 grid grid-cols-3 gap-3">
@@ -134,7 +131,7 @@ export default function DashboardPage() {
                   {eventTypeLabel(inv.eventType)} · edited {timeAgo(inv.updatedAt)}
                 </p>
                 <h3 className="mt-1 truncate text-lg font-bold text-ink">{inv.title}</h3>
-                <p className="mt-0.5 truncate text-xs font-medium text-brand-500">/i/{inv.slug}</p>
+                <p className="mt-0.5 truncate text-xs font-medium text-brand-600">/i/{inv.slug}</p>
                 <div className="mt-3 flex gap-4 text-xs font-semibold text-ink-500">
                   <span className="flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> {inv.views || 0}</span>
                   <span className="flex items-center gap-1"><ListChecks className="h-3.5 w-3.5" /> {inv.rsvpCount}</span>
@@ -148,17 +145,17 @@ export default function DashboardPage() {
                     <Share2 className="h-3.5 w-3.5" /> Share
                   </button>
                 </div>
-                <div className="mt-3 flex flex-wrap justify-between gap-1 border-t border-ink/[0.06] pt-3 text-xs font-semibold">
-                  <a href={`/i/${inv.slug}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-ink-500 hover:bg-cream hover:text-ink">
+                <div className="mt-3 grid grid-cols-4 gap-1 border-t border-ink/[0.06] pt-3 text-[11px] font-semibold sm:text-xs">
+                  <a href={`/i/${inv.slug}`} target="_blank" rel="noopener noreferrer" className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink">
                     <Eye className="h-3.5 w-3.5" /> View
                   </a>
-                  <Link href={`/dashboard/${inv._id}/guests`} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-ink-500 hover:bg-cream hover:text-ink">
+                  <Link href={`/dashboard/${inv._id}/guests`} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink">
                     <Users className="h-3.5 w-3.5" /> Guests
                   </Link>
-                  <button onClick={() => duplicate(inv._id)} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-ink-500 hover:bg-cream hover:text-ink">
+                  <button onClick={() => duplicate(inv._id)} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink">
                     <Copy className="h-3.5 w-3.5" /> Copy
                   </button>
-                  <button onClick={() => setToDelete(inv)} className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-red-600 hover:bg-red-50">
+                  <button onClick={() => setToDelete(inv)} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-red-600 hover:bg-red-50">
                     <Trash2 className="h-3.5 w-3.5" /> Delete
                   </button>
                 </div>

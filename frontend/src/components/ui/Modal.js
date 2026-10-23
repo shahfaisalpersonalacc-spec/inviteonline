@@ -1,17 +1,43 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { X } from "lucide-react";
+
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export default function Modal({ open, onClose, title, children, size = "max-w-md" }) {
+  const panel = useRef(null);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e) => e.key === "Escape" && onClose?.();
-    document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
+    const previous = document.activeElement; // restore focus here when the dialog closes
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    // move focus into the dialog (first control, else the panel itself)
+    const first = panel.current?.querySelector(FOCUSABLE);
+    (first || panel.current)?.focus();
+
+    const onKey = (e) => {
+      if (e.key === "Escape") return onClose?.();
+      if (e.key !== "Tab" || !panel.current) return;
+      // keep Tab / Shift+Tab inside the dialog
+      const items = [...panel.current.querySelectorAll(FOCUSABLE)];
+      if (!items.length) return;
+      const [firstEl, lastEl] = [items[0], items[items.length - 1]];
+      if (e.shiftKey && document.activeElement === firstEl) {
+        e.preventDefault();
+        lastEl.focus();
+      } else if (!e.shiftKey && document.activeElement === lastEl) {
+        e.preventDefault();
+        firstEl.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      document.body.style.overflow = prevOverflow;
+      previous?.focus?.();
     };
   }, [open, onClose]);
 
@@ -19,18 +45,20 @@ export default function Modal({ open, onClose, title, children, size = "max-w-md
   return (
     <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
       <div
+        ref={panel}
         role="dialog"
         aria-modal="true"
-        className={`animate-float-up max-h-[92vh] w-full ${size} overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6`}
+        aria-label={title}
+        tabIndex={-1}
+        className={`animate-float-up max-h-[92vh] w-full ${size} overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl outline-none sm:rounded-3xl sm:p-6`}
+        style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }}
         onClick={(e) => e.stopPropagation()}
       >
         {title && (
           <div className="mb-4 flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
-            <button onClick={onClose} className="rounded-full p-1.5 text-zinc-500 hover:bg-zinc-100" aria-label="Close">
-              <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
+            <h2 className="text-lg font-semibold text-ink">{title}</h2>
+            <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full text-ink-500 hover:bg-ink/5 hover:text-ink" aria-label="Close">
+              <X className="h-5 w-5" />
             </button>
           </div>
         )}

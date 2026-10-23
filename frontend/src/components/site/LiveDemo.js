@@ -71,14 +71,14 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
       </PhoneFrame>
 
       {showPicker && (
-        <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-2">
+        <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-1.5 sm:gap-2">
           {ENTRY_STYLES.map((s) => (
             <button
               key={s.id}
               onClick={() => replay(s.id)}
               title={s.label}
               aria-label={`Show the ${s.label} entrance`}
-              className={`h-8 w-8 rounded-full border-2 shadow-sm transition hover:scale-110 ${style === s.id ? "border-ink ring-4 ring-gold/40" : "border-white"}`}
+              className={`h-7 w-7 rounded-full border-2 shadow-sm transition hover:scale-110 sm:h-8 sm:w-8 ${style === s.id ? "border-ink ring-4 ring-gold/40" : "border-white"}`}
               style={{ background: `linear-gradient(135deg, ${s.swatch} 55%, ${THEMES[PRESET_FOR[s.id]]?.secondary || "#c9a24a"} 55%)` }}
             />
           ))}

@@ -69,7 +69,7 @@ export default function PublicInvitation({ slug, initial }) {
     if (error === "loading") return <FullPageSpinner />;
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 p-6 text-center">
-        <CircleAlert className="h-12 w-12 text-brand-500" strokeWidth={1.5} />
+        <CircleAlert className="h-12 w-12 text-brand-600" strokeWidth={1.5} />
         <p className="text-lg font-semibold">We couldn&apos;t load this invitation</p>
         <p className="text-sm text-zinc-500">{error}</p>
         <button className="btn-primary mt-2" onClick={() => load(unlockToken)}>

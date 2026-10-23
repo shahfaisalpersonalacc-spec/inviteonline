@@ -7,14 +7,14 @@ export default function AuthShell({ title, subtitle, children, footer }) {
       <div className="relative flex flex-col px-4 py-8 sm:px-10">
         <div className="pointer-events-none absolute -left-24 -top-24 -z-10 h-80 w-80 rounded-full bg-brand-200/40 blur-3xl" />
         <Logo />
-        <div className="flex flex-1 items-center justify-center py-10">
+        <main id="main" className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-sm">
             <h1 className="text-3xl font-extrabold tracking-tight text-ink sm:text-4xl">{title}</h1>
             {subtitle && <p className="mt-2 font-display text-lg text-ink/65">{subtitle}</p>}
             <div className="mt-8">{children}</div>
             {footer && <div className="mt-7 text-center text-sm text-ink-500">{footer}</div>}
           </div>
-        </div>
+        </main>
       </div>
 
       {/* Envelope art */}

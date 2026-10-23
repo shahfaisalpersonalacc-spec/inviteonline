@@ -25,7 +25,7 @@ export function Wordmark({ light = false, className = "" }) {
   return (
     <span className={`font-extrabold tracking-[-0.04em] leading-none ${className}`}>
       <span className={light ? "text-cream" : "text-ink"}>Invite</span>
-      <span className="text-brand-500">Online</span>
+      <span className="text-brand-600">Online</span>
     </span>
   );
 }

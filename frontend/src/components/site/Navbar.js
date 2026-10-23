@@ -19,6 +19,13 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -52,12 +59,12 @@ export default function Navbar() {
             </>
           )}
         </div>
-        <button className="grid h-10 w-10 place-items-center rounded-full text-ink hover:bg-ink/5 md:hidden" onClick={() => setOpen((o) => !o)} aria-label="Menu" aria-expanded={open}>
+        <button className="grid h-10 w-10 place-items-center rounded-full text-ink hover:bg-ink/5 md:hidden" onClick={() => setOpen((o) => !o)} aria-label={open ? "Close menu" : "Open menu"} aria-expanded={open} aria-controls="mobile-menu">
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </nav>
       {open && (
-        <div className="animate-float-up border-t border-ink/[0.06] bg-cream px-4 pb-6 pt-2 md:hidden">
+        <div id="mobile-menu" className="animate-float-up border-t border-ink/[0.06] bg-cream px-4 pb-6 pt-2 md:hidden">
           {LINKS.map((l) => (
             <a key={l.href} href={l.href} onClick={() => setOpen(false)} className="block rounded-xl px-3 py-3 text-base font-semibold text-ink hover:bg-white">
               {l.label}

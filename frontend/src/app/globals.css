@@ -11,7 +11,7 @@
   --color-brand-300: #f6aaa2;
   --color-brand-400: #ef7d71;
   --color-brand-500: #e8544a;
-  --color-brand-600: #d13f35;
+  --color-brand-600: #c93a31; /* 4.5:1+ on cream for small text (WCAG AA) */
   --color-brand-700: #af3129;
   --color-brand-800: #912c26;
   --color-brand-900: #782a25;
@@ -151,4 +151,37 @@ body {
 @keyframes burst {
   0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.6); opacity: 0; }
+}
+
+/* ---------- Accessibility ---------- */
+/* Visible keyboard focus everywhere (mouse clicks don't show it). */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2.5px solid #e8544a;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #1c1a3d;
+  color: #fff8f1;
+  font-weight: 600;
+  font-size: 14px;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 12px;
+}
+/* Respect reduced-motion: no shimmer, floating, sway or long transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

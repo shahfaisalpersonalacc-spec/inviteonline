@@ -66,8 +66,8 @@ export default function DashboardLayout({ children }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">{children}</main>
-      {pathname !== "/dashboard/new" && (
+      <main id="main" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+      {pathname === "/dashboard" && (
         <Link href="/dashboard/new" className="btn-coral fixed bottom-5 right-5 z-30 !h-14 !w-14 !p-0 sm:hidden" aria-label="New invitation">
           <Plus className="h-6 w-6" />
         </Link>
