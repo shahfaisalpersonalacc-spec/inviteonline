@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { BookHeart, CalendarDays, Check, Home, Image as ImageIcon, MapPin } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import { SECTION_META } from "@/data/sections";
+import { useInvite } from "./InviteContext";
 
 // Which sections the nav / tab bar can jump to (first matching section wins).
 const TARGETS = [
@@ -26,40 +27,114 @@ function useTargets(sections) {
 
 const go = (id) => document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
+// Desktop header: a floating glass capsule over the page with a tapered blur behind it
+// (strongest at the very top, fading to nothing), so there is never a hard bar edge.
 export function TopNav({ sections, title }) {
-  const targets = useTargets(sections).filter((t) => t.key !== "rsvp");
+  const { theme } = useInvite();
+  const targets = useTargets(sections).filter((t) => t.key !== "rsvp" && t.key !== "home");
   const rsvp = sections.find((s) => s.type === "rsvp");
+  const ids = useMemo(() => sections.map((s) => s.id), [sections]);
+  const active = useActiveSection(ids);
+  // a link is current from its own section until the next linked section begins
+  const order = (id) => ids.indexOf(id);
+  const current = targets.filter((t) => order(t.id) <= order(active)).pop()?.key;
+  const monogram = theme?.monogram || initials(title);
+
   return (
-    <header
-      className="sticky top-0 z-40 hidden border-b @3xl:block"
-      style={{ background: "color-mix(in srgb, var(--inv-bg) 88%, transparent)", borderColor: "color-mix(in srgb, var(--inv-secondary) 45%, transparent)", backdropFilter: "blur(10px)" }}
-    >
-      <nav className="mx-auto flex max-w-[1120px] items-center justify-between gap-6 px-6 py-4" aria-label="Invitation sections">
-        <button onClick={() => go(sections[0]?.id)} className="truncate text-2xl" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
-          {title}
-        </button>
-        <div className="flex flex-wrap items-center gap-7 text-xs font-semibold uppercase tracking-[0.2em]">
-          {targets
-            .filter((t) => t.key !== "home")
-            .map((t) => (
-              <button key={t.key} onClick={() => go(t.id)} className="opacity-75 transition hover:opacity-100">
-                {t.label}
-              </button>
-            ))}
-        </div>
-        {rsvp && (
-          <button
-            onClick={() => go(rsvp.id)}
-            className="shrink-0 rounded-full px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.2em]"
-            style={{ boxShadow: "inset 0 0 0 1.5px var(--inv-primary)", color: "var(--inv-primary)" }}
-          >
-            RSVP
+    // zero-height sticky wrapper: the header floats over the cover instead of pushing it down
+    <div className="sticky top-0 z-40 hidden h-0 @3xl:block">
+      {/* tapered blur + soft tint */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-32"
+        style={{
+          backdropFilter: "blur(14px)",
+          WebkitBackdropFilter: "blur(14px)",
+          background: "linear-gradient(to bottom, color-mix(in srgb, var(--inv-bg) 55%, transparent), transparent)",
+          maskImage: "linear-gradient(to bottom, #000 35%, transparent)",
+          WebkitMaskImage: "linear-gradient(to bottom, #000 35%, transparent)",
+        }}
+        aria-hidden
+      />
+      <header className="relative px-6 pt-4">
+        <nav
+          className="mx-auto flex max-w-[1040px] items-center gap-6 rounded-full py-2 pl-2 pr-2"
+          style={{
+            background: "color-mix(in srgb, var(--inv-bg) 58%, transparent)",
+            backdropFilter: "blur(22px) saturate(1.3)",
+            WebkitBackdropFilter: "blur(22px) saturate(1.3)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,.22), 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 45%, transparent), 0 18px 40px -22px rgba(0,0,0,.45)",
+          }}
+          aria-label="Invitation sections"
+        >
+          <button onClick={() => go(sections[0]?.id)} className="flex min-w-0 items-center gap-3 rounded-full pr-2" aria-label={`${title} — back to top`}>
+            <span
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[0.95rem]"
+              style={{
+                background: "linear-gradient(140deg, var(--inv-primary), color-mix(in srgb, var(--inv-primary) 60%, var(--inv-secondary)))",
+                color: "var(--inv-on-primary)",
+                fontFamily: "var(--inv-font-heading)",
+                boxShadow: "inset 0 0 0 2px color-mix(in srgb, var(--inv-on-primary) 25%, transparent)",
+              }}
+              aria-hidden
+            >
+              {monogram}
+            </span>
+            {/* truncate clips; padding keeps script swashes (e.g. a Great Vibes "I") inside the clip box */}
+            <span className="-my-2 truncate px-1.5 py-2 text-[1.6rem] leading-[1.15]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+              {title}
+            </span>
           </button>
-        )}
-      </nav>
-    </header>
+
+          <div className="ml-auto flex items-center gap-1">
+            {targets.map((t) => {
+              const on = current === t.key;
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => go(t.id)}
+                  aria-current={on ? "true" : undefined}
+                  className="group relative rounded-full px-4 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.18em] transition-opacity"
+                  style={{ opacity: on ? 1 : 0.72 }}
+                >
+                  {t.label}
+                  {/* hairline that grows from the centre on hover and stays under the current section */}
+                  <span
+                    className={`absolute bottom-1 left-1/2 h-px -translate-x-1/2 transition-all duration-300 ${on ? "w-6" : "w-0 group-hover:w-6"}`}
+                    style={{ background: "var(--inv-primary)" }}
+                    aria-hidden
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {rsvp && (
+            <button
+              onClick={() => go(rsvp.id)}
+              className="shrink-0 rounded-full px-6 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.22em] transition hover:brightness-110"
+              style={{
+                background: "linear-gradient(140deg, var(--inv-primary), color-mix(in srgb, var(--inv-primary) 65%, var(--inv-secondary)))",
+                color: "var(--inv-on-primary)",
+                boxShadow: "0 8px 22px -10px var(--inv-primary)",
+              }}
+            >
+              RSVP
+            </button>
+          )}
+        </nav>
+      </header>
+    </div>
   );
 }
+
+const initials = (title = "") =>
+  title
+    .split(/\s*(?:&|and|weds|\+)\s*|\s+/i)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("&") || "♥";
 
 // Short labels for the mobile carousel (one tab per visible section).
 const TAB_LABELS = {

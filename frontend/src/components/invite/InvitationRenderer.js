@@ -135,7 +135,7 @@ export default function InvitationRenderer({
             const Comp = COMPONENTS[s.type];
             const band = bandStyle(s.type, i, theme);
             return (
-              <section key={s.id} id={`sec-${s.id}`} data-section-id={s.id} className="relative scroll-mt-16" style={band}>
+              <section key={s.id} id={`sec-${s.id}`} data-section-id={s.id} className="relative scroll-mt-16 @3xl:scroll-mt-24" style={band}>
                 {s.type === "hero" ? (
                   <Comp data={s.data || {}} />
                 ) : (
@@ -143,8 +143,10 @@ export default function InvitationRenderer({
                     <Comp data={s.data || {}} />
                   </div>
                 )}
-                {/* Stickers live in a centred column so they keep their place on every screen size. */}
-                <div className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[720px] -translate-x-1/2" style={{ containerType: "inline-size" }}>
+                {/* Stickers live in a centred column so they keep their place on every screen size.
+                    z-10 keeps them above section content (the hero uses z-[1]) so they can be
+                    dragged in the editor; the column ignores taps, only stickers take them. */}
+                <div className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-full max-w-[720px] -translate-x-1/2" style={{ containerType: "inline-size" }}>
                   <StickerLayer
                     stickers={stickersBySection[s.id]}
                     editable={editable}

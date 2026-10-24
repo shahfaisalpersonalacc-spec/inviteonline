@@ -3,6 +3,7 @@
 import { ChevronDown } from "lucide-react";
 import { Card, FramedCard, Img, Ornament, Placeholder, Reveal, SectionHeading, Shell } from "../primitives";
 import { useInvite } from "../InviteContext";
+import Effects from "../Effects";
 import { formatDate, videoEmbed } from "@/lib/format";
 
 function HeroDate({ date, light }) {
@@ -34,25 +35,68 @@ function Title({ data, light }) {
   );
 }
 
+// Over a background photo the words sit on a frosted paper card with a double stationery border,
+// like a printed invitation laid on a photograph, so any photo stays readable without dulling it.
+const PHOTO_CARD = {
+  containerType: "inline-size", // the title and date scale to the card, not the whole page
+  // frosted glass: see-through enough for the blur to read, tinted enough for the text
+  background:
+    "linear-gradient(160deg, color-mix(in srgb, var(--inv-bg) 72%, transparent), color-mix(in srgb, var(--inv-bg) 58%, transparent))",
+  backdropFilter: "blur(26px) saturate(1.35)",
+  WebkitBackdropFilter: "blur(26px) saturate(1.35)",
+  boxShadow: [
+    "inset 0 1px 0 rgba(255,255,255,.28)", // light catching the top edge
+    "inset 0 0 0 1px rgba(255,255,255,.10)",
+    "0 0 0 1px color-mix(in srgb, var(--inv-secondary) 55%, transparent)", // fine theme-coloured rule
+    "0 30px 70px -28px rgba(0,0,0,.55)",
+  ].join(", "),
+};
+
 export function Hero({ data }) {
   const { mode, theme } = useInvite();
   const minH = mode === "public" ? "min-h-[100svh]" : "min-h-[640px]";
   const layout = data.layout === "portrait" ? "circle" : data.layout === "center" ? "full" : data.layout || "arch";
-  const full = layout === "full" && data.image;
+  // One cover photo; the layout decides where it goes: inside the arch / round frame, or filling
+  // the cover (Full: white text on a dark wash; Classic: a paper card over the photo).
+  // bgImage is from an earlier two-photo version and is only a fallback for older invitations.
+  const photo = data.image || data.bgImage;
+  const full = layout === "full" && photo;
+  const bg = layout === "classic" && photo;
+  const overlay = (data.overlay ?? 60) / 100;
 
   return (
-    <div className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 pb-28 pt-16 text-center @3xl:py-16`}>
+    <div className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-28 pt-16 text-center @3xl:py-16`}>
       {full && (
         <>
-          <Img src={data.image} className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/35 to-black/65" />
+          <Img src={photo} className="absolute inset-0 h-full w-full object-cover" />
+          {/* dark wash for the white text; the default 60% strength gives 35% → 65% */}
+          <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, rgba(0,0,0,${overlay * 0.58}), rgba(0,0,0,${overlay * 0.58}) 50%, rgba(0,0,0,${Math.min(0.9, overlay * 1.08)}))` }} />
         </>
       )}
-      {layout === "classic" && (
+      {bg && (
+        <>
+          <Img src={photo} className="absolute inset-0 h-full w-full object-cover" />
+          {/* light tint in the page colour (the slider), so the photo stays rich; the text sits on its own card */}
+          <div className="absolute inset-0" style={{ background: "var(--inv-bg)", opacity: overlay * 0.5 }} />
+          {/* fade into the next section */}
+          <div className="absolute inset-x-0 bottom-0 h-40" style={{ background: "linear-gradient(to bottom, transparent, var(--inv-bg))" }} />
+        </>
+      )}
+      {(bg || full) && (
+        // the theme petals / leaves drift over the photo and pass behind the card
+        <div className="pointer-events-none absolute inset-0 z-0">
+          <Effects kind={theme.animation} theme={theme} fixed={false} />
+        </div>
+      )}
+      {layout === "classic" && !bg && (
         <div className="pointer-events-none absolute inset-4 rounded-[2rem] @md:inset-8" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary), inset 0 0 0 6px transparent, inset 0 0 0 7px color-mix(in srgb, var(--inv-secondary) 60%, transparent)" }} />
       )}
 
-      <div className={`relative z-[1] flex w-full max-w-xl flex-col items-center ${full ? "text-white" : ""}`}>
+      <div
+        className={`relative z-[1] flex w-full flex-col items-center ${full ? "text-white" : ""} ${bg ? "max-w-2xl rounded-[1.75rem] px-5 py-10 @md:px-12 @md:py-14 [&_h1]:drop-shadow-[0_1px_1px_rgba(60,40,10,.28)]" : "max-w-xl"}`}
+        style={bg ? PHOTO_CARD : undefined}
+      >
+        {bg && <span className="pointer-events-none absolute inset-2.5 rounded-[1.3rem]" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 40%, transparent)" }} aria-hidden />}
         {data.tagline && (
           <p className="animate-float-up mb-5 max-w-sm text-[0.95rem] italic opacity-85 @md:text-lg" style={{ fontFamily: "var(--inv-font-body)" }}>
             {data.tagline}
@@ -63,8 +107,8 @@ export function Hero({ data }) {
           <div className="animate-float-up relative mb-7 w-[52%] max-w-[210px] @md:max-w-[280px] @5xl:max-w-[340px]">
             <div className="absolute -inset-2.5 rounded-t-full" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary)" }} />
             <div className="overflow-hidden rounded-t-full p-1.5" style={{ background: "linear-gradient(160deg, var(--inv-secondary), color-mix(in srgb, var(--inv-secondary) 40%, white), var(--inv-secondary))" }}>
-              {data.image ? (
-                <Img src={data.image} className="aspect-[3/4] w-full rounded-t-full object-cover" />
+              {photo ? (
+                <Img src={photo} className="aspect-[3/4] w-full rounded-t-full object-cover" />
               ) : (
                 <Placeholder className="aspect-[3/4] w-full rounded-t-full" label="Add a couple photo" monogram={theme.monogram} />
               )}
@@ -73,8 +117,8 @@ export function Hero({ data }) {
         )}
         {layout === "circle" && (
           <div className="animate-float-up mb-8 rounded-full p-1.5" style={{ background: "linear-gradient(135deg, var(--inv-primary), var(--inv-secondary))" }}>
-            {data.image ? (
-              <Img src={data.image} className="h-48 w-48 rounded-full border-4 border-white object-cover @md:h-60 @md:w-60" />
+            {photo ? (
+              <Img src={photo} className="h-48 w-48 rounded-full border-4 border-white object-cover @md:h-60 @md:w-60" />
             ) : (
               <Placeholder className="h-48 w-48 rounded-full border-4 border-white @md:h-60 @md:w-60" monogram={theme.monogram} />
             )}

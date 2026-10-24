@@ -1,10 +1,32 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
-import { ColorInput, DateTime, GalleryInput, ImageInput, ListEditor, Select, Text, TextArea, Toggle } from "./fields";
+import { ColorInput, DateTime, Field, GalleryInput, ImageInput, ListEditor, Select, Text, TextArea, Toggle } from "./fields";
 
 // Each form receives the section `data` and `set(patch)` which merges into it.
 const Heading = ({ d, set }) => <Text label="Section heading" value={d.heading} onChange={(v) => set({ heading: v })} />;
+
+// One cover photo; where it appears depends on the layout chosen above it.
+const PHOTO_HINT = {
+  arch: "Shown inside the arched frame.",
+  circle: "Shown inside the round frame.",
+  classic: "Fills the cover behind a paper card with your names.",
+  full: "Fills the cover behind white text.",
+};
+function HeroPhoto({ d, set }) {
+  const layout = { center: "full", portrait: "circle" }[d.layout] || d.layout || "arch";
+  const photo = d.image || d.bgImage; // bgImage: older invitations from the two-photo version
+  return (
+    <>
+      <ImageInput label="Cover photo" hint={PHOTO_HINT[layout]} value={photo} onChange={(v) => set({ image: v, bgImage: undefined })} />
+      {photo && (layout === "classic" || layout === "full") && (
+        <Field label={`Overlay strength · ${d.overlay ?? 60}%`} hint={layout === "full" ? "Darkens the photo so the white text stays readable." : "Softens the photo around the card. Lower shows it more vividly."}>
+          <input type="range" min={0} max={90} step={5} value={d.overlay ?? 60} onChange={(e) => set({ overlay: Number(e.target.value) })} className="w-full accent-ink" aria-label="Overlay strength" />
+        </Field>
+      )}
+    </>
+  );
+}
 
 const FORMS = {
   hero: ({ d, set }) => (
@@ -13,7 +35,6 @@ const FORMS = {
       <Text label="Subtitle" value={d.subtitle} onChange={(v) => set({ subtitle: v })} placeholder="are getting married" />
       <Text label="Small text above title" value={d.tagline} onChange={(v) => set({ tagline: v })} placeholder="Together with their families…" />
       <DateTime label="Event date" value={d.date} onChange={(v) => set({ date: v })} />
-      <ImageInput label="Cover photo" value={d.image} onChange={(v) => set({ image: v })} />
       <Select
         label="Layout"
         value={{ center: "full", portrait: "circle" }[d.layout] || d.layout || "arch"}
@@ -21,10 +42,11 @@ const FORMS = {
         options={[
           { value: "arch", label: "Arched photo frame" },
           { value: "circle", label: "Round framed photo" },
-          { value: "full", label: "Full background photo" },
-          { value: "classic", label: "Classic text with ornaments" },
+          { value: "classic", label: "Photo background with card" },
+          { value: "full", label: "Full photo with white text" },
         ]}
       />
+      <HeroPhoto d={d} set={set} />
       <Toggle label="Gold foil names" hint="Shimmering gold lettering for the title." checked={!!d.foil} onChange={(v) => set({ foil: v })} />
     </>
   ),

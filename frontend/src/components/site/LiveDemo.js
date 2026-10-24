@@ -4,8 +4,9 @@ import { useMemo, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
-import { ENTRY_STYLES, THEMES } from "@/data/themes";
+import { ENTRY_STYLES, THEMES, resolveTheme } from "@/data/themes";
 import { demoInvitation } from "@/data/demoInvite";
+import { cursorVars } from "@/lib/cursor";
 
 // Which theme preset best matches each entrance (for the demo only).
 const PRESET_FOR = {
@@ -45,6 +46,8 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
 
   return (
     <div className="flex flex-col items-center">
+      {/* event-themed cursor, as on real invitations */}
+      <div className="inv-cursor" style={cursorVars(inv.eventType || "wedding", resolveTheme(inv.theme || {}))}>
       <PhoneFrame className={className}>
         <div className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden">
           <InvitationRenderer invitation={inv} mode="demo" showFooter={false} />
@@ -69,6 +72,7 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
           </button>
         )}
       </PhoneFrame>
+      </div>
 
       {showPicker && (
         <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-1.5 sm:gap-2">

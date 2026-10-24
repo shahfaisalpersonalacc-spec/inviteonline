@@ -156,7 +156,8 @@ body {
 }
 
 .foil-text {
-  background: linear-gradient(100deg, #8a6420 0%, #d9b25f 22%, #fff1c1 38%, #c99a3b 52%, #f3d68a 68%, #8a6420 100%);
+  /* highlights stay a mid gold: near-white stops made thin script strokes vanish on cream paper */
+  background: linear-gradient(100deg, #8a6420 0%, #c89d45 22%, #e6c46f 38%, #b8892f 52%, #ddb862 68%, #8a6420 100%);
   background-size: 200% 100%;
   -webkit-background-clip: text;
   background-clip: text;
@@ -165,8 +166,9 @@ body {
   /* background-clip:text only paints inside the element box, so script swashes and italic
      overhangs that reach past it were cut off. Extra padding gives the foil room to paint;
      the matching negative margin keeps the layout unchanged. */
-  padding: 0.3em 0.25em;
-  margin: -0.3em -0.25em;
+  /* script capitals (Great Vibes "I", "J", "S"...) swing far past their letter box */
+  padding: 0.5em 0.7em;
+  margin: -0.5em -0.7em;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -192,6 +194,12 @@ body {
   mix-blend-mode: screen;
   opacity: 0.35;
 }
+
+/* Event-themed cursor on invitation pages (values from src/lib/cursor.js). Touch screens ignore it. */
+.inv-cursor { cursor: var(--inv-cursor); }
+.inv-cursor :is(a, button, summary, label, select, [role="button"]) { cursor: var(--inv-cursor-hover); }
+.inv-cursor :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea) { cursor: text; }
+.inv-cursor :is(button, input, select, textarea):disabled { cursor: not-allowed; }
 
 /* Endless ticker; the track holds two copies of its content. */
 @keyframes marquee {

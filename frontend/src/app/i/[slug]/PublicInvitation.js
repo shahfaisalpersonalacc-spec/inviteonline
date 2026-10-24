@@ -9,6 +9,7 @@ import ShareSheet from "@/components/invite/ShareSheet";
 import PasswordGate from "@/components/invite/PasswordGate";
 import { FullPageSpinner } from "@/components/ui/Spinner";
 import { api } from "@/lib/api";
+import { cursorVars } from "@/lib/cursor";
 import { backgroundCss, resolveTheme } from "@/data/themes";
 
 const tokenKey = (slug) => `unlock:${slug}`;
@@ -96,7 +97,7 @@ export default function PublicInvitation({ slug, initial }) {
   const showEnvelope = theme.envelope !== false && !opened;
 
   return (
-    <div style={themeVars(theme)}>
+    <div className="inv-cursor" style={{ ...themeVars(theme), ...cursorVars(inv.eventType, theme) }}>
       <InvitationRenderer invitation={inv} mode="public" unlockToken={unlockToken} />
 
       {showEnvelope && (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { CalendarDays, CalendarPlus, Clock, MapPin, Navigation, Phone, PartyPopper } from "lucide-react";
 import { Card, FramedCard, IconBadge, Img, Reveal, SectionHeading, Shell, ThemeButton } from "../primitives";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
@@ -22,9 +22,76 @@ const GRID = {
   4: "@3xl:grid-cols-2 @5xl:grid-cols-4",
 };
 
+// A single event gets a wide two-part card: a tinted panel with the name and a large
+// calendar-style date, and the details beside it (stacked on phones).
+function SingleEvent({ e }) {
+  const where = [e.venue, e.address].filter(Boolean).join(", ");
+  const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
+  return (
+    <Reveal className="mx-auto max-w-4xl">
+      <Card className="!p-0 overflow-hidden">
+        <div className="grid @3xl:grid-cols-[0.95fr_1.05fr]">
+          <div
+            className="relative flex flex-col items-center justify-center px-6 py-10 text-center @3xl:py-14"
+            style={{ background: "linear-gradient(150deg, color-mix(in srgb, var(--inv-primary) 16%, transparent), color-mix(in srgb, var(--inv-secondary) 22%, transparent))" }}
+          >
+            <div className="pointer-events-none absolute inset-2.5 rounded-[1.35rem] @3xl:rounded-r-none" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 80%, transparent)" }} />
+            <h3 className="relative break-words text-[2.4rem] leading-tight @3xl:text-[3rem]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+              {e.name}
+            </h3>
+            {e.date && (
+              <div className="relative mt-6 flex items-center gap-5">
+                <span className="text-right text-[11px] font-semibold uppercase tracking-[0.3em] opacity-75">{formatDate(e.date, { weekday: "long" })}</span>
+                <span className="px-5 text-[4.5rem] leading-none tabular-nums @3xl:text-[5.5rem]" style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
+                  {formatDate(e.date, { day: "numeric" })}
+                </span>
+                <span className="text-left text-[11px] font-semibold uppercase tracking-[0.3em] opacity-75">
+                  {formatDate(e.date, { month: "long" })}
+                  <br />
+                  {formatDate(e.date, { year: "numeric" })}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col justify-center gap-4 px-6 py-8 @3xl:px-10 @3xl:py-12">
+            {e.date && <Row Icon={CalendarDays}>{formatDate(e.date)}</Row>}
+            {e.time && <Row Icon={Clock}>{e.time}</Row>}
+            {e.venue && (
+              <Row Icon={MapPin}>
+                <span className="font-semibold">{e.venue}</span>
+                {e.address && <span className="block text-sm opacity-75">{e.address}</span>}
+              </Row>
+            )}
+            {e.note && <p className="italic opacity-75">{e.note}</p>}
+            <div className="mt-2 flex flex-wrap justify-center gap-2 @3xl:justify-start">
+              {where && (
+                <ThemeButton href={mapLink(where)} className="!px-5 !py-2.5 !text-xs">
+                  <Navigation className="h-3.5 w-3.5" /> Directions
+                </ThemeButton>
+              )}
+              {cal && (
+                <ThemeButton href={cal} variant="outline" className="!px-5 !py-2.5 !text-xs">
+                  <CalendarPlus className="h-3.5 w-3.5" /> Add to calendar
+                </ThemeButton>
+              )}
+            </div>
+          </div>
+        </div>
+      </Card>
+    </Reveal>
+  );
+}
+
 export function EventDetails({ data }) {
   const items = (data.items || []).filter((e) => e.name || e.venue || e.date);
   if (!items.length) return null;
+  if (items.length === 1)
+    return (
+      <Shell>
+        <SectionHeading>{data.heading}</SectionHeading>
+        <SingleEvent e={items[0]} />
+      </Shell>
+    );
   return (
     <Shell>
       <SectionHeading>{data.heading}</SectionHeading>
@@ -104,23 +171,36 @@ export function Countdown({ data }) {
             <PartyPopper className="h-7 w-7" strokeWidth={1.5} /> The celebration has begun!
           </p>
         ) : (
-          <div className="mx-auto grid max-w-lg grid-cols-4 gap-2.5 @md:gap-4">
-            {["Days", "Hours", "Minutes", "Seconds"].map((k) => (
+          <div className="mx-auto flex max-w-lg items-center justify-center gap-2.5 @md:gap-4 @3xl:max-w-3xl @3xl:gap-3">
+            {["Days", "Hours", "Minutes", "Seconds"].map((k, i) => (
+              <Fragment key={k}>
+              {i > 0 && (
+                <span className="hidden text-5xl opacity-50 @3xl:block" style={{ color: "var(--inv-primary)", fontFamily: "var(--inv-font-body)" }} aria-hidden>
+                  :
+                </span>
+              )}
               <div
-                key={k}
-                className="relative overflow-hidden rounded-2xl py-4 text-center"
+                className="relative flex-1 overflow-hidden rounded-2xl py-4 text-center @3xl:rounded-[1.6rem] @3xl:py-8"
                 style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)", boxShadow: "0 14px 30px -16px var(--inv-primary)" }}
               >
                 <div className="pointer-events-none absolute inset-1 rounded-xl" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 60%, transparent)" }} />
-                <div className="text-3xl font-semibold tabular-nums @md:text-5xl" style={{ fontFamily: "var(--inv-font-body)" }}>
+                <div className="text-3xl font-semibold tabular-nums @md:text-5xl @3xl:text-7xl" style={{ fontFamily: "var(--inv-font-body)" }}>
                   {left ? String(left[k]).padStart(2, "0") : "--"}
                 </div>
-                <div className="mt-1 text-[9px] font-semibold uppercase tracking-[0.25em] opacity-80 @md:text-[11px]">{k}</div>
+                <div className="mt-1 text-[9px] font-semibold uppercase tracking-[0.25em] opacity-80 @md:text-[11px] @3xl:mt-2 @3xl:text-xs">{k}</div>
               </div>
+              </Fragment>
             ))}
           </div>
         )}
-        <p className="mt-5 text-center italic opacity-75">{formatDate(data.target)}</p>
+        <p className="mt-5 text-center italic opacity-75 @3xl:mt-8 @3xl:text-lg">{formatDate(data.target)}</p>
+        {!left?.done && googleCalendarLink({ title: data.heading || "Celebration", date: data.target }) && (
+          <div className="mt-5 flex justify-center">
+            <ThemeButton href={googleCalendarLink({ title: data.heading || "Celebration", date: data.target })} variant="outline" className="!px-5 !py-2.5 !text-xs">
+              <CalendarPlus className="h-3.5 w-3.5" /> Add to calendar
+            </ThemeButton>
+          </div>
+        )}
       </Reveal>
     </Shell>
   );
