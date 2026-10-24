@@ -11,7 +11,8 @@ import Gallery from "./sections/Gallery";
 import { Rsvp, Wishes } from "./sections/interactive";
 import { backgroundCss, googleFontsHref, resolveTheme } from "@/data/themes";
 import { luminance, readableOn, shade } from "@/lib/color";
-import { InviteFooter, TabBar, TopNav } from "./PageChrome";
+import { formatTime, videoEmbed } from "@/lib/format";
+import { InviteFooter, SideNav, TabBar } from "./PageChrome";
 import { Divider, SectionDecor, designFor } from "./decor/Decor";
 
 const COMPONENTS = {
@@ -65,6 +66,42 @@ export function ThemeFonts({ theme, extra = [] }) {
 // Sections drawn on a dark full-width band (like the countdown in the design).
 const DARK_BANDS = new Set(["countdown"]);
 
+// The cover's event date is the one date of the page: the countdown, the scratch card and a
+// single event all show it, so they can never disagree. (Several events keep their own dates.)
+function withEventDate(section, date) {
+  const d = section.data || {};
+  if (!date) return d;
+  if (section.type === "countdown") return { ...d, target: date };
+  if (section.type === "scratch") return { ...d, date };
+  if (section.type === "event" && (d.items || []).length === 1) return { ...d, items: [{ ...d.items[0], date, time: formatTime(date) }] };
+  return d;
+}
+
+// Sections that would render nothing (mirrors each component's own empty check), e.g. a gallery
+// with no photos yet. They are left out up front so band colours and dividers follow only what
+// guests see; otherwise an empty section kept a band colour and drew its divider as dark shards.
+const some = (list, test) => (list || []).some(test);
+function isEmptySection(type, d, mode) {
+  switch (type) {
+    case "quote": return !d.text && !d.arabic;
+    case "hosts": return !some(d.people, (p) => p.name || p.photo);
+    case "families": return !some(d.groups, (g) => g.title || g.names);
+    case "story": return !d.text && !d.image;
+    case "note": return !d.text && !d.heading;
+    case "closing": return !d.text && !d.signature;
+    case "video": return !videoEmbed(d.url);
+    case "event": return !some(d.items, (e) => e.name || e.venue || e.date);
+    case "countdown": return !d.target;
+    case "schedule": return !some(d.items, (x) => x.title || x.time);
+    case "venue": return !(d.mapQuery || d.name || d.address || d.image);
+    case "contact": return !some(d.people, (p) => p.name || p.phone);
+    case "timeline": return !some(d.items, (x) => x.title || x.text || x.date);
+    case "faq": return !some(d.items, (x) => x.q);
+    case "gallery": return mode !== "editor" && !some(d.images, Boolean); // the editor shows an upload hint
+    default: return false;
+  }
+}
+
 function darkBand(theme) {
   const vars = themeVars(theme);
   const dark = vars["--inv-band-dark"];
@@ -86,7 +123,10 @@ function darkBand(theme) {
 function templateBand(design, type, index, theme) {
   if (type === "hero" || design.bands === "plain") return undefined;
   if (design.bands === "alternate") return index % 2 === 0 ? darkBand(theme) : undefined;
-  return index % 2 ? { background: "color-mix(in srgb, var(--inv-surface), var(--inv-primary) 5%)" } : undefined;
+  // On dark pages the surface is close to the page colour, so the alternate band needs a stronger
+  // tint; otherwise two near-identical colours meet at the divider and it looks like a glitch.
+  const tint = luminance(theme.background || "#ffffff") < 0.3 ? 14 : 5;
+  return index % 2 ? { background: `color-mix(in srgb, var(--inv-surface), var(--inv-primary) ${tint}%)` } : undefined;
 }
 
 function bandStyle(type, index, theme, design) {
@@ -128,7 +168,10 @@ export default function InvitationRenderer({
 }) {
   const theme = useMemo(() => resolveTheme(invitation.theme || {}), [invitation.theme]);
   const editable = mode === "editor" && !!onStickerChange;
-  const sections = useMemo(() => (invitation.sections || []).filter((s) => s.enabled !== false && COMPONENTS[s.type]), [invitation.sections]);
+  const sections = useMemo(() => {
+    const date = (invitation.sections || []).find((s) => s.type === "hero")?.data?.date || "";
+    return (invitation.sections || []).filter((s) => s.enabled !== false && COMPONENTS[s.type] && !isEmptySection(s.type, withEventDate(s, date), mode));
+  }, [invitation.sections, mode]);
 
   const stickersBySection = useMemo(() => {
     const ids = new Set(sections.map((s) => s.id));
@@ -142,12 +185,32 @@ export default function InvitationRenderer({
   }, [invitation.stickers, sections]);
 
   const hero = sections.find((s) => s.type === "hero")?.data || {};
+  const eventDate = (invitation.sections || []).find((s) => s.type === "hero")?.data?.date || "";
   // the closing section already signs off with the names; don't repeat them in the footer
   const hasSignature = sections.some((s) => s.type === "closing" && s.data?.signature);
   const design = useMemo(() => designFor(theme), [theme]);
   const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme, design }), [mode, invitation.slug, unlockToken, theme, design]);
   const heroLayout = sections[0]?.type === "hero" ? sections[0].data?.layout : null;
   const photoCover = (heroLayout === "photo-top" || heroLayout === "full") && !!(hero.image || hero.bgImage || heroLayout === "photo-top");
+
+  // a template divider where the band colour changes (and under a photo cover)
+  const dividerAt = (i) => {
+    if (!design || i <= 0 || i >= sections.length) return false;
+    const band = bandStyle(sections[i].type, i, theme, design);
+    const prev = bandStyle(sections[i - 1].type, i - 1, theme, design);
+    const changes = (band?.background || "page") !== (prev?.background || "page");
+    const afterPhoto = i === 1 && photoCover;
+    if (design.divider === "line") return sections[i - 1].type !== "hero";
+    if (design.divider === "floral") return (changes && i % 2 === 0) || afterPhoto;
+    return changes || afterPhoto;
+  };
+  // A divider rises into the section above it, so that section gets matching extra bottom space;
+  // otherwise its last line (e.g. the closing names) sits on the edge instead of centred.
+  const EDGE = { floral: "clamp(40px, 13cqw, 90px)", line: "0px" };
+  const edgeBelow = (i) => {
+    const next = i < sections.length - 1 ? dividerAt(i + 1) : showFooter && design && design.divider !== "none";
+    return next ? EDGE[design.divider] || "clamp(18px, 5cqw, 44px)" : undefined;
+  };
 
   return (
     <InviteContext.Provider value={ctx}>
@@ -159,25 +222,26 @@ export default function InvitationRenderer({
       >
         <Effects kind={theme.animation} theme={theme} fixed={mode === "public"} />
         <div className="@container relative z-[3] w-full overflow-x-clip" style={{ containerType: "inline-size" }}>
-          {showChrome && <TopNav sections={sections} title={hero.title || invitation.title} />}
+          {showChrome && <SideNav sections={sections} />}
           {sections.map((s, i) => {
             const Comp = COMPONENTS[s.type];
             const band = bandStyle(s.type, i, theme, design);
-            // a template divider where the band colour changes (and under a photo cover)
-            const prev = i > 0 ? bandStyle(sections[i - 1].type, i - 1, theme, design) : null;
-            const changes = i > 0 && (band?.background || "page") !== (prev?.background || "page");
-            const afterPhoto = i === 1 && photoCover;
-            const divider =
-              design && i > 0 && (design.divider === "line" ? sections[i - 1].type !== "hero" : design.divider === "floral" ? (changes && i % 2 === 0) || afterPhoto : changes || afterPhoto);
+            const divider = dividerAt(i);
             return (
-              <section key={s.id} id={`sec-${s.id}`} data-section-id={s.id} className="relative scroll-mt-16 @3xl:scroll-mt-24" style={band}>
+              <section
+                key={s.id}
+                id={`sec-${s.id}`}
+                data-section-id={s.id}
+                className="relative scroll-mt-16 @3xl:scroll-mt-0"
+                style={{ ...band, "--inv-section-bg": band?.background || "var(--inv-bg)", paddingBottom: s.type === "hero" ? undefined : edgeBelow(i) }}
+              >
                 {divider && <Divider design={design} theme={theme} fill={band?.background || "var(--inv-bg)"} seed={i} />}
                 {s.type !== "hero" && <SectionDecor design={design} theme={theme} index={i} count={sections.length} />}
                 {s.type === "hero" ? (
                   <Comp data={s.data || {}} />
                 ) : (
-                  <div className="relative z-[1] mx-auto w-full max-w-[1120px]">
-                    <Comp data={s.data || {}} />
+                  <div className="relative z-[1] mx-auto w-full max-w-[1120px] @3xl:px-16 @[86rem]:px-0" /* equal side padding keeps centred content centred while leaving room for the side rail */>
+                    <Comp data={withEventDate(s, eventDate)} />
                   </div>
                 )}
                 {/* Stickers live in a centred column so they keep their place on every screen size.
@@ -195,7 +259,7 @@ export default function InvitationRenderer({
               </section>
             );
           })}
-          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} light={!!design && design.bands !== "alternate"} /> : showChrome && <div className="h-24 @3xl:hidden" />}
+          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} /> : showChrome && <div className="h-24 @3xl:hidden" />}
           {showChrome && <TabBar sections={sections} />}
         </div>
       </div>

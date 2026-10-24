@@ -206,7 +206,9 @@ export function Timeline({ data }) {
           return (
             <Reveal as="li" key={i} delay={i * 90} className={`relative mb-10 pl-16 last:mb-0 @md:w-1/2 @md:pl-0 ${right ? "@md:ml-auto @md:pl-12" : "@md:pr-12 @md:text-right"}`}>
               <span
-                className={`absolute left-6 top-1 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full @md:left-auto ${right ? "@md:-left-[18px] @md:translate-x-0" : "@md:-right-[18px] @md:translate-x-0"}`}
+                // phones: on the line at left-6; wider: on the centre line, which is the left edge of right-hand items
+                // and the right edge of left-hand ones (the item is half the width)
+                className={`absolute left-6 top-1 grid h-9 w-9 -translate-x-1/2 place-items-center rounded-full ${right ? "@md:left-0" : "@md:left-full"}`}
                 style={{ background: "var(--inv-surface)", boxShadow: "0 0 0 1.5px var(--inv-secondary), 0 0 0 6px var(--inv-bg)", color: "var(--inv-primary)" }}
                 aria-hidden
               >

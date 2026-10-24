@@ -371,9 +371,11 @@ export function Note({ data }) {
 }
 
 export function Closing({ data }) {
+  const { design } = useInvite();
   if (!data.text && !data.signature) return null;
   return (
-    <Shell className="!pb-6">
+    // classic look: a short gap into the dark footer; templates: balanced above and below
+    <Shell className={design ? "" : "!pb-6"}>
       <Reveal className="mx-auto max-w-lg text-center">
         <Ornament className="mx-auto mb-6 w-40" />
         {data.text && <p className="whitespace-pre-line text-xl italic leading-relaxed">{data.text}</p>}

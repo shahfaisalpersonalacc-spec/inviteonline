@@ -6,6 +6,8 @@ import { BookHeart, CalendarDays, Check, Home, Image as ImageIcon, MapPin } from
 import { formatDate } from "@/lib/format";
 import { SECTION_META } from "@/data/sections";
 import { useInvite } from "./InviteContext";
+import { Divider } from "./decor/Decor";
+import { luminance } from "@/lib/color";
 
 // Which sections the nav / tab bar can jump to (first matching section wins).
 const TARGETS = [
@@ -27,114 +29,80 @@ function useTargets(sections) {
 
 const go = (id) => document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-// Desktop header: a floating glass capsule over the page with a tapered blur behind it
-// (strongest at the very top, fading to nothing), so there is never a hard bar edge.
-export function TopNav({ sections, title }) {
-  const { theme } = useInvite();
-  const targets = useTargets(sections).filter((t) => t.key !== "rsvp" && t.key !== "home");
-  const rsvp = sections.find((s) => s.type === "rsvp");
+// Desktop navigation: a vertical glass rail on the right edge (the mobile tab bar's sibling).
+// One round icon per key section; the current one fills with the theme colour and its name shows beside it (always on wide screens, on hover otherwise).
+export function SideNav({ sections }) {
+  const layer = useRef(null);
+  const [viewH, setViewH] = useState(0); // height of the scrolling preview; 0 = the browser window
+
+  useEffect(() => {
+    const sp = scrollParent(layer.current);
+    if (!sp) return;
+    const ro = new ResizeObserver(() => setViewH(sp.clientHeight));
+    ro.observe(sp);
+    return () => ro.disconnect();
+  }, []);
+
+  const targets = useTargets(sections); // starts with Home (the cover), which takes guests back to the top
   const ids = useMemo(() => sections.map((s) => s.id), [sections]);
   const active = useActiveSection(ids);
-  // a link is current from its own section until the next linked section begins
   const order = (id) => ids.indexOf(id);
   const current = targets.filter((t) => order(t.id) <= order(active)).pop()?.key;
-  const monogram = theme?.monogram || initials(title);
 
-  return (
-    // zero-height sticky wrapper: the header floats over the cover instead of pushing it down
-    <div className="sticky top-0 z-40 hidden h-0 @3xl:block">
-      {/* tapered blur + soft tint */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-32"
-        style={{
-          backdropFilter: "blur(14px)",
-          WebkitBackdropFilter: "blur(14px)",
-          background: "linear-gradient(to bottom, color-mix(in srgb, var(--inv-bg) 55%, transparent), transparent)",
-          maskImage: "linear-gradient(to bottom, #000 35%, transparent)",
-          WebkitMaskImage: "linear-gradient(to bottom, #000 35%, transparent)",
-        }}
-        aria-hidden
-      />
-      <header className="relative px-6 pt-4">
-        <nav
-          className="mx-auto flex max-w-[1040px] items-center gap-6 rounded-full py-2 pl-2 pr-2"
-          style={{
-            background: "color-mix(in srgb, var(--inv-bg) 58%, transparent)",
-            backdropFilter: "blur(22px) saturate(1.3)",
-            WebkitBackdropFilter: "blur(22px) saturate(1.3)",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,.22), 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 45%, transparent), 0 18px 40px -22px rgba(0,0,0,.45)",
-          }}
-          aria-label="Invitation sections"
-        >
-          <button onClick={() => go(sections[0]?.id)} className="flex min-w-0 items-center gap-3 rounded-full pr-2" aria-label={`${title} — back to top`}>
+  const rail = (
+    <nav
+      aria-label="Invitation sections"
+      className="pointer-events-auto flex flex-col items-center gap-1.5 rounded-full p-2"
+      style={{
+        background: "color-mix(in srgb, var(--inv-bg) 62%, transparent)",
+        backdropFilter: "blur(18px) saturate(1.3)",
+        WebkitBackdropFilter: "blur(18px) saturate(1.3)",
+        boxShadow: "inset 0 1px 0 rgba(255,255,255,.2), 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 45%, transparent), 0 18px 40px -22px rgba(0,0,0,.45)",
+      }}
+    >
+      {targets.map(({ key, id, label, Icon }) => {
+        const on = current === key;
+        return (
+          <button
+            key={key}
+            onClick={() => go(id)}
+            aria-label={label}
+            aria-current={on ? "true" : undefined}
+            className="group relative grid h-11 w-11 place-items-center rounded-full transition duration-300"
+            style={
+              on
+                ? { background: "linear-gradient(135deg, var(--inv-primary), color-mix(in srgb, var(--inv-primary) 55%, var(--inv-secondary)))", color: "var(--inv-on-primary)", boxShadow: "0 8px 20px -8px var(--inv-primary)" }
+                : { color: "color-mix(in srgb, var(--inv-text) 70%, transparent)" }
+            }
+          >
+            <Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
             <span
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-[0.95rem]"
-              style={{
-                background: "linear-gradient(140deg, var(--inv-primary), color-mix(in srgb, var(--inv-primary) 60%, var(--inv-secondary)))",
-                color: "var(--inv-on-primary)",
-                fontFamily: "var(--inv-font-heading)",
-                boxShadow: "inset 0 0 0 2px color-mix(in srgb, var(--inv-on-primary) 25%, transparent)",
-              }}
-              aria-hidden
+              className={`pointer-events-none absolute right-full mr-3 whitespace-nowrap rounded-full px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] transition duration-300 ${
+                on ? "opacity-0 group-hover:opacity-100 @7xl:opacity-100" : "translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"
+              }`}
+              style={{ background: "color-mix(in srgb, var(--inv-bg) 80%, transparent)", color: "var(--inv-primary)", boxShadow: "0 0 0 1px color-mix(in srgb, var(--inv-secondary) 45%, transparent)" }}
             >
-              {monogram}
-            </span>
-            {/* truncate clips; padding keeps script swashes (e.g. a Great Vibes "I") inside the clip box */}
-            <span className="-my-2 truncate px-1.5 py-2 text-[1.6rem] leading-[1.15]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
-              {title}
+              {label}
             </span>
           </button>
+        );
+      })}
+    </nav>
+  );
 
-          <div className="ml-auto flex items-center gap-1">
-            {targets.map((t) => {
-              const on = current === t.key;
-              return (
-                <button
-                  key={t.key}
-                  onClick={() => go(t.id)}
-                  aria-current={on ? "true" : undefined}
-                  className="group relative rounded-full px-4 py-2 text-[0.78rem] font-semibold uppercase tracking-[0.18em] transition-opacity"
-                  style={{ opacity: on ? 1 : 0.72 }}
-                >
-                  {t.label}
-                  {/* hairline that grows from the centre on hover and stays under the current section */}
-                  <span
-                    className={`absolute bottom-1 left-1/2 h-px -translate-x-1/2 transition-all duration-300 ${on ? "w-6" : "w-0 group-hover:w-6"}`}
-                    style={{ background: "var(--inv-primary)" }}
-                    aria-hidden
-                  />
-                </button>
-              );
-            })}
-          </div>
-
-          {rsvp && (
-            <button
-              onClick={() => go(rsvp.id)}
-              className="shrink-0 rounded-full px-6 py-3 text-[0.75rem] font-semibold uppercase tracking-[0.22em] transition hover:brightness-110"
-              style={{
-                background: "linear-gradient(140deg, var(--inv-primary), color-mix(in srgb, var(--inv-primary) 65%, var(--inv-secondary)))",
-                color: "var(--inv-on-primary)",
-                boxShadow: "0 8px 22px -10px var(--inv-primary)",
-              }}
-            >
-              RSVP
-            </button>
-          )}
-        </nav>
-      </header>
+  // A sticky layer exactly as tall as the visible area (the window, or the editor / demo preview
+  // that scrolls the invitation), with the rail centred inside it. The equal negative bottom margin
+  // means the layer takes no room in the page, so the rail sits mid-screen from the first moment.
+  return (
+    <div
+      ref={layer}
+      className="pointer-events-none sticky top-0 z-40 hidden items-center justify-end pr-5 @3xl:flex"
+      style={{ height: viewH ? `${viewH}px` : "100svh", marginBottom: viewH ? `-${viewH}px` : "-100svh" }}
+    >
+      {rail}
     </div>
   );
 }
-
-const initials = (title = "") =>
-  title
-    .split(/\s*(?:&|and|weds|\+)\s*|\s+/i)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("&") || "♥";
 
 // Short labels for the mobile carousel (one tab per visible section).
 const TAB_LABELS = {
@@ -300,17 +268,41 @@ export function TabBar({ sections }) {
   );
 }
 
-// light: a soft tinted footer for light-banded templates (a dark block looks heavy under them)
-export function InviteFooter({ title, date, light = false }) {
+// Template footer: the same compact footer, opening with the template's own section edge
+// (torn, wave, cloud, scallop, floral, line) on a tinted band of the theme colour.
+function TemplateFooter({ title, date, design, theme }) {
+  const dark = design.bands === "alternate";
+  const darkPage = luminance(theme.background || "#ffffff") < 0.3;
+  const bg = dark ? "var(--inv-band-dark)" : `color-mix(in srgb, var(--inv-bg), var(--inv-primary) ${darkPage ? 20 : 9}%)`;
   return (
-    <footer
-      className="px-6 pb-32 pt-16 text-center @3xl:py-20"
-      style={
-        light
-          ? { background: "color-mix(in srgb, var(--inv-surface), var(--inv-primary) 7%)", color: "var(--inv-primary)", boxShadow: "inset 0 1px 0 color-mix(in srgb, var(--inv-secondary) 50%, transparent)" }
-          : { background: "var(--inv-band-dark)", color: "var(--inv-on-band-dark)" }
-      }
-    >
+    <footer className="relative px-6 pb-32 pt-16 text-center @3xl:py-20" style={{ background: bg, color: dark ? "var(--inv-on-band-dark)" : "var(--inv-primary)" }}>
+      <Divider design={design} theme={theme} fill={bg} seed={97} />
+      {title && (
+        <p className="text-5xl leading-tight @3xl:text-6xl" style={{ fontFamily: "var(--inv-font-heading)" }}>
+          {title}
+        </p>
+      )}
+      {date && (
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.4em]" style={{ color: "var(--inv-secondary)" }}>
+          {formatDate(date, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, " · ")}
+        </p>
+      )}
+      <span className="mx-auto mt-6 block h-px w-16" style={{ background: "var(--inv-secondary)" }} />
+      <p className="mt-6 text-xs opacity-70">
+        Made with{" "}
+        <Link href="/" className="font-semibold underline-offset-2 hover:underline">
+          InviteOnline
+        </Link>
+      </p>
+    </footer>
+  );
+}
+
+export function InviteFooter({ title, date }) {
+  const { design, theme } = useInvite();
+  if (design) return <TemplateFooter title={title} date={date} design={design} theme={theme} />;
+  return (
+    <footer className="px-6 pb-32 pt-16 text-center @3xl:py-20" style={{ background: "var(--inv-band-dark)", color: "var(--inv-on-band-dark)" }}>
       {title && (
         <p className="text-5xl leading-tight @3xl:text-6xl" style={{ fontFamily: "var(--inv-font-heading)" }}>
           {title}

@@ -30,6 +30,13 @@ function HeroPhoto({ d, set }) {
   );
 }
 
+// Shown where a section takes its date from the cover instead of its own field.
+const FromCover = ({ what = "date" }) => (
+  <p className="rounded-xl bg-cream px-3 py-2.5 text-xs leading-relaxed text-ink-500">
+    Uses the <span className="font-semibold text-ink">event {what}</span> from <span className="font-semibold text-ink">Cover / Hero</span>, so every date on the page matches.
+  </p>
+);
+
 const FORMS = {
   hero: ({ d, set }) => (
     <>
@@ -93,8 +100,14 @@ const FORMS = {
         renderItem={(e, up) => (
           <>
             <Text label="Event name" value={e.name} onChange={(v) => up({ name: v })} placeholder="Mehndi / Barat / Walima" />
-            <DateTime label="Date" value={e.date} onChange={(v) => up({ date: v })} />
-            <Text label="Time (as shown)" value={e.time} onChange={(v) => up({ time: v })} placeholder="7:30 PM onwards" />
+            {(d.items || []).length === 1 ? (
+              <FromCover what="date and time" />
+            ) : (
+              <>
+                <DateTime label="Date" value={e.date} onChange={(v) => up({ date: v })} />
+                <Text label="Time (as shown)" value={e.time} onChange={(v) => up({ time: v })} placeholder="7:30 PM onwards" />
+              </>
+            )}
             <Text label="Venue" value={e.venue} onChange={(v) => up({ venue: v })} />
             <Text label="Address" value={e.address} onChange={(v) => up({ address: v })} />
             <Text label="Note" value={e.note} onChange={(v) => up({ note: v })} placeholder="Dinner will be served" />
@@ -106,7 +119,7 @@ const FORMS = {
   countdown: ({ d, set }) => (
     <>
       <Heading d={d} set={set} />
-      <DateTime label="Count down to" value={d.target} onChange={(v) => set({ target: v })} />
+      <FromCover what="date and time" />
     </>
   ),
   schedule: ({ d, set }) => (
@@ -246,7 +259,7 @@ const FORMS = {
     <>
       <Heading d={d} set={set} />
       <Text label="Instruction" value={d.text} onChange={(v) => set({ text: v })} />
-      <DateTime label="Date revealed under the gold foil" value={d.date} onChange={(v) => set({ date: v })} />
+      <FromCover />
     </>
   ),
   timeline: ({ d, set }) => (

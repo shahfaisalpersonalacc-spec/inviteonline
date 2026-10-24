@@ -3,6 +3,7 @@
 import { FLORA, FloralCorner, FloralGarland } from "./flora";
 import { BalloonCorner, DecoCorner, GeometricCorner, SkyCorner, Toran } from "./ornaments";
 import { getTemplate } from "@/data/templates";
+import { luminance } from "@/lib/color";
 
 // Design rules of the invitation's template, or null for the classic (template-less) look.
 export const designFor = (theme) => getTemplate(theme?.template)?.design || null;
@@ -77,6 +78,7 @@ const scallopPath = (() => {
 
 // Drawn at the top of a section, rising into the one above, filled with this section's colour.
 export function Divider({ design, theme, fill, seed = 1 }) {
+  const dark = luminance(theme?.background || "#ffffff") < 0.3;
   const kind = design?.divider;
   if (!kind || kind === "none") return null;
   if (kind === "floral") {
@@ -103,7 +105,8 @@ export function Divider({ design, theme, fill, seed = 1 }) {
       viewBox="0 0 1200 60"
       preserveAspectRatio="none"
       className="pointer-events-none absolute inset-x-0 top-0 block h-[clamp(18px,5cqw,44px)] w-full -translate-y-[calc(100%-1px)]"
-      style={{ filter: kind === "torn" ? "drop-shadow(0 -2px 2px rgba(0,0,0,.08))" : undefined }}
+      // the soft shadow lifts the tear on light pages; on dark pages it showed as black streaks
+      style={{ filter: kind === "torn" && !dark ? "drop-shadow(0 -2px 2px rgba(0,0,0,.08))" : undefined }}
       aria-hidden
     >
       <path d={d} style={{ fill }} />

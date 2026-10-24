@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { CalendarDays, CalendarPlus, Clock, MapPin, Navigation, Phone, PartyPopper } from "lucide-react";
-import { Card, FramedCard, IconBadge, Img, Reveal, SectionHeading, Shell, ThemeButton } from "../primitives";
+import { Card, IconBadge, Img, Reveal, SectionHeading, Shell, ThemeButton } from "../primitives";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
 import { formatDate, googleCalendarLink, mapEmbedUrl, mapLink, phoneDigits, whatsappLink } from "@/lib/format";
 
@@ -12,6 +12,75 @@ function Row({ Icon, children, muted }) {
       <IconBadge Icon={Icon} />
       <span className="pt-1">{children}</span>
     </p>
+  );
+}
+
+// Weekday | big day | month and year, like a page of a desk calendar.
+function DateBlock({ date, size = "md" }) {
+  if (!date) return null;
+  const big = size === "lg" ? "text-[3.6rem] @sm:text-[4.5rem] @3xl:text-[5.5rem]" : "text-[3.2rem]";
+  return (
+    <div className="relative mt-5 flex items-center justify-center gap-2.5 @sm:gap-4">
+      <span className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.26em]">{formatDate(date, { weekday: "long" })}</span>
+      <span className={`px-3 leading-none tabular-nums @sm:px-4 ${big}`} style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
+        {formatDate(date, { day: "numeric" })}
+      </span>
+      <span className="text-left text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.26em]">
+        {formatDate(date, { month: "long" })}
+        <br />
+        {formatDate(date, { year: "numeric" })}
+      </span>
+    </div>
+  );
+}
+
+const PANEL = { background: "linear-gradient(150deg, color-mix(in srgb, var(--inv-primary) 16%, transparent), color-mix(in srgb, var(--inv-secondary) 22%, transparent))" };
+
+// One event of several, as a ticket: name and date on a tinted stub, a perforated tear line with
+// notches, then time, venue and the two actions pinned to the bottom so cards in a row line up.
+function EventTicket({ e }) {
+  const where = [e.venue, e.address].filter(Boolean).join(", ");
+  const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
+  return (
+    <Card className="flex h-full flex-col !p-0">
+      <div className="relative overflow-hidden rounded-t-[1.75rem] px-5 pb-7 pt-8 text-center" style={PANEL}>
+        <div className="pointer-events-none absolute inset-2.5 bottom-0 rounded-t-[1.35rem]" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 80%, transparent)", clipPath: "inset(0 0 1px 0)" }} />
+        <h3 className="relative break-words text-[2.3rem] leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+          {e.name}
+        </h3>
+        <DateBlock date={e.date} />
+      </div>
+      {/* perforation */}
+      <div className="relative h-0" aria-hidden>
+        <span className="absolute inset-x-6 top-0 border-t-2 border-dashed" style={{ borderColor: "color-mix(in srgb, var(--inv-secondary) 70%, transparent)" }} />
+        <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset -1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
+        <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset 1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
+      </div>
+      <div className="flex flex-1 flex-col gap-3.5 px-5 pb-5 pt-6 @md:px-6">
+        {e.time && <Row Icon={Clock}>{e.time}</Row>}
+        {e.venue && (
+          <Row Icon={MapPin}>
+            <span className="font-semibold">{e.venue}</span>
+            {e.address && <span className="block text-sm opacity-75">{e.address}</span>}
+          </Row>
+        )}
+        {e.note && <p className="italic opacity-75">{e.note}</p>}
+        {(where || cal) && (
+          <div className={`mt-auto grid gap-2 pt-3 ${where && cal ? "grid-cols-2" : "grid-cols-1"}`}>
+            {where && (
+              <ThemeButton href={mapLink(where)} className="!px-2 !py-2.5 !text-xs">
+                <Navigation className="h-3.5 w-3.5 shrink-0" /> Directions
+              </ThemeButton>
+            )}
+            {cal && (
+              <ThemeButton href={cal} variant="outline" className="!px-2 !py-2.5 !text-xs">
+                <CalendarPlus className="h-3.5 w-3.5 shrink-0" /> Calendar
+              </ThemeButton>
+            )}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -97,39 +166,10 @@ export function EventDetails({ data }) {
       <SectionHeading>{data.heading}</SectionHeading>
       <div className={`grid gap-5 ${GRID[Math.min(items.length, 4)]}`}>
         {items.map((e, i) => {
-          const where = [e.venue, e.address].filter(Boolean).join(", ");
-          const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
           const lastOdd = items.length === 3 && i === 2; // centre the odd card on the 2-column tablet grid
           return (
             <Reveal key={i} delay={i * 100} className={lastOdd ? "@3xl:col-span-2 @3xl:mx-auto @3xl:w-1/2 @5xl:col-span-1 @5xl:w-full" : ""}>
-              <FramedCard className="h-full">
-                <h3 className="text-center text-[2.4rem] leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
-                  {e.name}
-                </h3>
-                <div className="mt-5 space-y-3">
-                  {e.date && <Row Icon={CalendarDays}>{formatDate(e.date)}</Row>}
-                  {e.time && <Row Icon={Clock}>{e.time}</Row>}
-                  {e.venue && (
-                    <Row Icon={MapPin}>
-                      <span className="font-semibold">{e.venue}</span>
-                      {e.address && <span className="block text-sm opacity-75">{e.address}</span>}
-                    </Row>
-                  )}
-                  {e.note && <p className="pt-1 text-center italic opacity-75">{e.note}</p>}
-                </div>
-                <div className="mt-6 flex flex-wrap justify-center gap-2">
-                  {where && (
-                    <ThemeButton href={mapLink(where)} className="!px-4 !py-2 !text-xs">
-                      <Navigation className="h-3.5 w-3.5" /> Directions
-                    </ThemeButton>
-                  )}
-                  {cal && (
-                    <ThemeButton href={cal} variant="outline" className="!px-4 !py-2 !text-xs">
-                      <CalendarPlus className="h-3.5 w-3.5" /> Add to calendar
-                    </ThemeButton>
-                  )}
-                </div>
-              </FramedCard>
+              <EventTicket e={e} />
             </Reveal>
           );
         })}
