@@ -7,6 +7,7 @@ import Navbar from "@/components/site/Navbar";
 import Footer from "@/components/site/Footer";
 import LiveDemo from "@/components/site/LiveDemo";
 import { EntranceGallery, ScratchDemo } from "@/components/site/Showcases";
+import TemplateGallery from "@/components/site/TemplateGallery";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { EVENT_TYPES } from "@/data/eventTypes";
 
@@ -173,7 +174,22 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ================= II. The reveal ================= */}
+        {/* ================= II. Templates ================= */}
+        <section id="templates" className="grain relative scroll-mt-16 bg-paper py-24 sm:py-32">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
+            <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_.8fr]">
+              <Chapter n="II" label="Design templates" title={<>Ten designs, ready to make <em className="text-brand-600">yours.</em></>} />
+              <p className="max-w-md text-[1.05rem] leading-relaxed text-ink/65 lg:pb-3">
+                Watercolour gardens, burgundy bands with torn-paper edges, emerald and gold for a nikah, balloons for a birthday. Pick one, then change anything.
+              </p>
+            </div>
+            <div className="mt-12 sm:mt-14">
+              <TemplateGallery />
+            </div>
+          </div>
+        </section>
+
+        {/* ================= III. The reveal ================= */}
         <section className="grain relative bg-cream py-24 sm:py-32">
           <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-2 lg:gap-20">
             <div className="relative order-2 lg:order-1">
@@ -189,7 +205,7 @@ export default function Home() {
               </p>
             </div>
             <div className="order-1 lg:order-2">
-              <Chapter n="II" label="Little moments of magic" title={<>Let them scratch the gold to find <em className="text-brand-600">the date.</em></>}>
+              <Chapter n="III" label="Little moments of magic" title={<>Let them scratch the gold to find <em className="text-brand-600">the date.</em></>}>
                 A tactile surprise on every phone. Then a live countdown, the music you chose, your story as a timeline and a guestbook full of love.
               </Chapter>
               <ul className="mt-10 border-t border-ink/10">
@@ -212,11 +228,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ================= III. Everything inside ================= */}
+        {/* ================= IV. Everything inside ================= */}
         <section id="features" className="grain relative scroll-mt-16 bg-paper py-24 sm:py-32">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <Chapter n="III" label="Everything included" title={<>All that goes <em className="text-brand-600">inside</em> the envelope.</>}>
+              <Chapter n="IV" label="Everything included" title={<>All that goes <em className="text-brand-600">inside</em> the envelope.</>}>
                 Twelve pieces of a complete invitation suite, ready the moment you create your page. Use the ones you need and hide the rest.
               </Chapter>
               <Link href="/register" className="btn-primary mt-9 !px-6 !py-3.5">
@@ -240,11 +256,11 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ================= IV. How it works ================= */}
+        {/* ================= V. How it works ================= */}
         <section id="how" className="grain grain-dark relative scroll-mt-16 overflow-hidden bg-night py-24 text-cream sm:py-32">
           <div className="pointer-events-none absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-brand-500/20 blur-[110px]" />
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
-            <Chapter n="IV" label="How it works" title={<>Ready in three <em className="text-gold">graceful</em> steps.</>} light />
+            <Chapter n="V" label="How it works" title={<>Ready in three <em className="text-gold">graceful</em> steps.</>} light />
             <ol className="mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
               {STEPS.map(({ title, text }, i) => (
                 <li key={title} className="relative border-t border-white/15 pt-8">
@@ -258,10 +274,10 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ================= V. Occasions ================= */}
+        {/* ================= VI. Occasions ================= */}
         <section id="events" className="grain relative scroll-mt-16 bg-cream py-24 sm:py-32">
           <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <Chapter n="V" label="For every celebration" title={<>From Nikah to <em className="text-brand-600">first birthdays.</em></>}>
+            <Chapter n="VI" label="For every celebration" title={<>From Nikah to <em className="text-brand-600">first birthdays.</em></>}>
               Each occasion starts with its own theme, entrance and sample sections, so you begin from something beautiful rather than a blank page.
             </Chapter>
             <ul className="mt-12 flex flex-wrap gap-2.5 sm:gap-3">
@@ -286,7 +302,7 @@ export default function Home() {
         <section id="faq" className="grain relative scroll-mt-16 bg-paper py-24 sm:py-32">
           <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[.8fr_1.2fr] lg:gap-16">
             <div>
-              <Chapter n="VI" label="Questions" title={<>Good to <em className="text-brand-600">know.</em></>}>
+              <Chapter n="VII" label="Questions" title={<>Good to <em className="text-brand-600">know.</em></>}>
                 The things people ask before they send their first invitation.
               </Chapter>
             </div>

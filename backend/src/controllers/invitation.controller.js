@@ -13,6 +13,7 @@ const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a hex colour');
 const themeSchema = z
   .object({
     preset: z.string().max(40),
+    template: z.string().max(40),
     mode: z.enum(['light', 'dark']),
     primary: color,
     secondary: color,
@@ -59,6 +60,10 @@ const schemas = {
     eventType: z.enum(EVENT_TYPES).default('wedding'),
     themePreset: z.string().max(40).optional(),
     mode: z.enum(['light', 'dark']).default('light'),
+    // a chosen design template: its theme settings and cover layout, laid over the preset
+    theme: themeSchema.optional(),
+    heroFoil: z.boolean().optional(),
+    heroLayout: z.enum(['arch', 'circle', 'full', 'classic', 'photo-top', 'floral']).optional(),
   }),
   update: z.object({
     title: z.string().trim().min(1).max(120).optional(),
@@ -111,14 +116,17 @@ async function list(req, res) {
 }
 
 async function create(req, res) {
-  const { title, eventType, themePreset, mode } = req.body;
+  const { title, eventType, themePreset, mode, theme, heroLayout, heroFoil } = req.body;
   const { sections, themePreset: defaultPreset, monogram } = buildDefaultSections(eventType, title);
+  const hero = sections.find((s) => s.type === 'hero');
+  if (hero && heroLayout) hero.data.layout = heroLayout;
+  if (hero && heroFoil !== undefined) hero.data.foil = heroFoil;
   const inv = await Invitation.create({
     owner: req.user._id,
     title,
     eventType,
     slug: await uniqueSlug(Invitation, title),
-    theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(title) || monogram), mode },
+    theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(title) || monogram), ...theme, mode },
     sections,
   });
   res.status(201).json({ invitation: serialize(inv) });

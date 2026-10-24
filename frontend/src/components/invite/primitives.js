@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ImagePlus } from "lucide-react";
 import { useInvite } from "./InviteContext";
+import { FONTS } from "@/data/themes";
 
 // Fades children in when scrolled into view.
 export function Reveal({ children, className = "", as: Tag = "div", delay = 0 }) {
@@ -46,18 +47,42 @@ export function Ornament({ className = "w-40", color = "var(--inv-secondary)" })
 }
 
 // align="split": centred on phones, left-aligned beside content on wide screens.
+// Templates choose the style: "script" (theme heading font + scroll ornament, the default),
+// (a script heading font falls back to the body font for "serif"),
+// "caps" (spaced capitals with a fine rule) or "serif" (heading font, no flourish, short rule).
 export function SectionHeading({ children, sub, eyebrow, align = "center" }) {
+  const { design, theme } = useInvite();
   if (!children && !sub) return null;
   const split = align === "split";
+  const style = design?.heading || "script";
+  const rule = (
+    <span className={`mx-auto mt-4 block h-px w-14 ${split ? "@5xl:mx-0" : ""}`} style={{ background: "var(--inv-secondary)" }} aria-hidden />
+  );
   return (
     <div className={`mb-9 text-center @3xl:mb-12 ${split ? "@5xl:mb-0 @5xl:text-left" : ""}`}>
       {eyebrow && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.32em] opacity-60">{eyebrow}</p>}
-      {children && (
-        <h2 className="break-words leading-tight" style={{ fontSize: "clamp(1.9rem, 10.5cqw, 3.9rem)", fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
-          {children}
-        </h2>
-      )}
-      <Ornament className={`mx-auto mt-3 w-36 @md:w-44 ${split ? "@5xl:mx-0" : ""}`} />
+      {children &&
+        (style === "caps" ? (
+          <h2
+            className="break-words uppercase leading-snug"
+            style={{ fontSize: "clamp(1.15rem, 5.4cqw, 2.3rem)", letterSpacing: "clamp(0.12em, 0.6cqw, 0.24em)", fontFamily: "var(--inv-font-body)", fontWeight: 500, color: "var(--inv-primary)", textWrap: "balance" }}
+          >
+            {children}
+          </h2>
+        ) : (
+          <h2
+            className="break-words leading-tight"
+            style={{
+              fontSize: style === "serif" ? "clamp(1.8rem, 8.6cqw, 3.2rem)" : "clamp(1.9rem, 10.5cqw, 3.9rem)",
+              fontFamily: style === "serif" && FONTS.find((x) => x.name === theme?.fontHeading)?.kind === "script" ? "var(--inv-font-body)" : "var(--inv-font-heading)",
+              fontWeight: style === "serif" ? 500 : undefined,
+              color: "var(--inv-primary)",
+            }}
+          >
+            {children}
+          </h2>
+        ))}
+      {style === "script" ? <Ornament className={`mx-auto mt-3 w-36 @md:w-44 ${split ? "@5xl:mx-0" : ""}`} /> : rule}
       {sub && <p className={`mx-auto mt-4 max-w-md text-[1.05rem] italic opacity-80 @md:text-lg ${split ? "@5xl:mx-0" : ""}`}>{sub}</p>}
     </div>
   );

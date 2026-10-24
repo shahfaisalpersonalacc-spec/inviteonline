@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 
 const LINKS = [
   { href: "/#entrances", label: "Entrances" },
+  { href: "/#templates", label: "Templates" },
   { href: "/#features", label: "Features" },
   { href: "/#how", label: "How it works" },
   { href: "/#faq", label: "FAQ" },
@@ -51,7 +52,7 @@ export default function Navbar() {
         <Logo size={32} />
         <div className="hidden items-center gap-1 md:flex">
           {LINKS.map((l) => (
-            <a key={l.href} href={l.href} className="rounded-full px-3.5 py-2 text-[0.9rem] font-medium text-ink/70 transition hover:bg-ink/[0.05] hover:text-ink">
+            <a key={l.href} href={l.href} className="rounded-full px-2.5 py-2 text-[0.9rem] font-medium text-ink/70 transition hover:bg-ink/[0.05] hover:text-ink lg:px-3.5">
               {l.label}
             </a>
           ))}

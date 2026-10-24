@@ -4,6 +4,8 @@ import { ChevronDown } from "lucide-react";
 import { Card, FramedCard, Img, Ornament, Placeholder, Reveal, SectionHeading, Shell } from "../primitives";
 import { useInvite } from "../InviteContext";
 import Effects from "../Effects";
+import { HeroDecor } from "../decor/Decor";
+import { FLORA, FloralCorner, FloralGarland } from "../decor/flora";
 import { formatDate, videoEmbed } from "@/lib/format";
 
 function HeroDate({ date, light }) {
@@ -52,8 +54,119 @@ const PHOTO_CARD = {
   ].join(", "),
 };
 
+// Splits "Ayesha & Ahmed" / "Ayesha and Ahmed" / "Ayesha weds Ahmed" into two names.
+const twoNames = (title = "") => {
+  const parts = title.split(/\s+(?:&|and|weds|\+)\s+|\s*&\s*/i).map((x) => x.trim()).filter(Boolean);
+  return parts.length === 2 ? parts : null;
+};
+
+function EditorHint({ children }) {
+  return (
+    <p className="absolute left-1/2 top-4 z-[2] -translate-x-1/2 whitespace-nowrap rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
+      {children}
+    </p>
+  );
+}
+
+// Photo filling the top of the page, names over it in white (the photo-led templates).
+function PhotoTopHero({ data, photo, minH, overlay, theme, mode }) {
+  const date = data.date && formatDate(data.date, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, " · ");
+  return (
+    <div className={`relative flex ${minH} flex-col items-center justify-end overflow-hidden px-6 text-center text-white`} style={{ paddingBottom: "clamp(64px, 16cqw, 120px)" }}>
+      {photo ? (
+        <Img src={photo} className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div
+          className="absolute inset-0 grid place-items-center"
+          style={{ background: "radial-gradient(120% 80% at 50% 18%, color-mix(in srgb, var(--inv-primary) 78%, white), var(--inv-primary) 55%, color-mix(in srgb, var(--inv-primary) 70%, black))" }}
+        >
+          <span className="-mt-[30%] select-none opacity-15" style={{ fontFamily: "var(--inv-font-heading)", fontSize: "clamp(6rem, 40cqw, 16rem)" }} aria-hidden>
+            {theme.monogram}
+          </span>
+        </div>
+      )}
+      {mode === "editor" && !photo && <EditorHint>Add a cover photo in Content → Cover</EditorHint>}
+      <div
+        className="absolute inset-0"
+        style={{ background: `linear-gradient(to bottom, rgba(0,0,0,${overlay * 0.3}) 0%, transparent 28%, rgba(0,0,0,${overlay * 0.45}) 60%, rgba(0,0,0,${Math.min(0.92, overlay * 1.2)}) 100%)` }}
+      />
+      <div className="pointer-events-none absolute inset-0 z-0">
+        <Effects kind={theme.animation} theme={theme} fixed={false} />
+      </div>
+      <div className="relative z-[1] flex max-w-2xl flex-col items-center [text-shadow:0_2px_18px_rgba(0,0,0,.35)]">
+        {data.tagline && <p className="animate-float-up max-w-sm text-[11px] font-semibold uppercase tracking-[0.34em] opacity-90 @md:text-xs">{data.tagline}</p>}
+        <h1 className="animate-float-up mt-4 break-words leading-[1.02]" style={{ fontSize: "clamp(2.7rem, 15cqw, 7rem)", fontFamily: "var(--inv-font-heading)", animationDelay: "120ms" }}>
+          {data.title}
+        </h1>
+        {data.subtitle && <p className="animate-float-up mt-3 max-w-md text-base opacity-90 @md:text-lg" style={{ animationDelay: "240ms" }}>{data.subtitle}</p>}
+        {date && <p className="animate-float-up mt-5 text-sm font-semibold tracking-[0.4em] @md:text-base" style={{ animationDelay: "320ms" }}>{date}</p>}
+      </div>
+    </div>
+  );
+}
+
+// The date written large between the two names: 16 / Levan / 10 / Diana / 25.
+function MonumentDate({ names, date }) {
+  const num = (opts) => formatDate(date, opts);
+  const big = { fontFamily: "var(--inv-font-body)", fontSize: "clamp(3rem, 17cqw, 6.5rem)", fontWeight: 300, lineHeight: 0.95 };
+  const name = { fontFamily: "var(--inv-font-heading)", fontSize: "clamp(2.4rem, 13cqw, 5rem)", lineHeight: 1.05, color: "var(--inv-primary)" };
+  return (
+    <div className="animate-float-up flex flex-col items-center" style={{ color: "var(--inv-primary)", animationDelay: "120ms" }}>
+      <span style={big}>{num({ day: "2-digit" })}</span>
+      <span className="-my-[0.1em] px-[0.2em]" style={name}>{names[0]}</span>
+      <span style={big}>{num({ month: "2-digit" })}</span>
+      <span className="-my-[0.1em] px-[0.2em]" style={name}>{names[1]}</span>
+      <span style={big}>{num({ year: "2-digit" })}</span>
+    </div>
+  );
+}
+
+// Watercolour flowers across the top corners and along the bottom, names in script between.
+function FloralHero({ data, photo, minH, theme, design }) {
+  const palette = FLORA[design?.decor] ? design.decor : "blush";
+  const names = twoNames(data.title);
+  const stack = design?.heroDate === "stack" && names && data.date;
+  return (
+    <div
+      className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 text-center`}
+      style={{ paddingTop: "clamp(150px, 40cqw, 290px)", paddingBottom: "clamp(140px, 34cqw, 260px)" }}
+    >
+      <div className="pointer-events-none absolute -left-[5%] -top-[3%]" style={{ width: "min(54cqw, 400px)" }} aria-hidden>
+        <FloralCorner name={palette} className="block w-full" seed={4} />
+      </div>
+      <div className="pointer-events-none absolute -right-[5%] -top-[3%]" style={{ width: "min(54cqw, 400px)", transform: "scaleX(-1)" }} aria-hidden>
+        <FloralCorner name={palette} className="block w-full" seed={9} />
+      </div>
+      <div className="pointer-events-none absolute -bottom-[2%] left-1/2 -translate-x-1/2" style={{ width: "min(118cqw, 860px)" }} aria-hidden>
+        <FloralGarland name={palette} className="block w-full" seed={6} />
+      </div>
+
+      <div className="relative z-[1] flex w-full max-w-xl flex-col items-center">
+        {data.tagline && (
+          <p className="animate-float-up mb-5 max-w-sm text-[0.95rem] italic opacity-85 @md:text-lg" style={{ fontFamily: "var(--inv-font-body)" }}>
+            {data.tagline}
+          </p>
+        )}
+        {stack ? <MonumentDate names={names} date={data.date} /> : <Title data={data} />}
+        {data.subtitle && (
+          <p className="animate-float-up mt-4 max-w-md text-lg @md:text-xl" style={{ animationDelay: "240ms", fontFamily: "var(--inv-font-body)" }}>
+            {data.subtitle}
+          </p>
+        )}
+        {photo && (
+          <div className="animate-float-up relative mt-8 w-[46%] max-w-[230px]">
+            <div className="absolute -inset-2 rounded-t-full" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary)" }} />
+            <Img src={photo} className="aspect-[3/4] w-full rounded-t-full object-cover" />
+          </div>
+        )}
+        {!stack && <HeroDate date={data.date} />}
+      </div>
+    </div>
+  );
+}
+
 export function Hero({ data }) {
-  const { mode, theme } = useInvite();
+  const { mode, theme, design } = useInvite();
   const minH = mode === "public" ? "min-h-[100svh]" : "min-h-[640px]";
   const layout = data.layout === "portrait" ? "circle" : data.layout === "center" ? "full" : data.layout || "arch";
   // One cover photo; the layout decides where it goes: inside the arch / round frame, or filling
@@ -64,8 +177,15 @@ export function Hero({ data }) {
   const bg = layout === "classic" && photo;
   const overlay = (data.overlay ?? 60) / 100;
 
+  if (layout === "photo-top") return <PhotoTopHero data={data} photo={photo} minH={mode === "public" ? "min-h-[92svh]" : "min-h-[620px]"} overlay={overlay} theme={theme} mode={mode} />;
+  if (layout === "floral") return <FloralHero data={data} photo={photo} minH={minH} theme={theme} design={design} />;
+
   return (
-    <div className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-28 pt-16 text-center @3xl:py-16`}>
+    <div
+      className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-28 pt-16 text-center @3xl:py-16`}
+      style={design?.toran ? { paddingTop: "clamp(120px, 30cqw, 220px)" } : undefined}
+    >
+      {!bg && !full && <HeroDecor design={design} theme={theme} layout={layout} />}
       {full && (
         <>
           <Img src={photo} className="absolute inset-0 h-full w-full object-cover" />

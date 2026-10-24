@@ -40,12 +40,12 @@ function SingleEvent({ e }) {
               {e.name}
             </h3>
             {e.date && (
-              <div className="relative mt-6 flex items-center gap-5">
-                <span className="text-right text-[11px] font-semibold uppercase tracking-[0.3em] opacity-75">{formatDate(e.date, { weekday: "long" })}</span>
-                <span className="px-5 text-[4.5rem] leading-none tabular-nums @3xl:text-[5.5rem]" style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
+              <div className="relative mt-6 flex items-center gap-2.5 @sm:gap-5">
+                <span className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.3em]">{formatDate(e.date, { weekday: "long" })}</span>
+                <span className="px-3 text-[3.6rem] leading-none tabular-nums @sm:px-5 @sm:text-[4.5rem] @3xl:text-[5.5rem]" style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
                   {formatDate(e.date, { day: "numeric" })}
                 </span>
-                <span className="text-left text-[11px] font-semibold uppercase tracking-[0.3em] opacity-75">
+                <span className="text-left text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.3em]">
                   {formatDate(e.date, { month: "long" })}
                   <br />
                   {formatDate(e.date, { year: "numeric" })}

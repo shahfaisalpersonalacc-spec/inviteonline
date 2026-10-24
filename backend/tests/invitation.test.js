@@ -24,6 +24,27 @@ describe('invitations', () => {
     expect(inv.passwordHash).toBeUndefined();
   });
 
+  test('create from a design template keeps its theme and cover layout', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, {
+      title: 'Lucia & Juan',
+      eventType: 'wedding',
+      mode: 'light',
+      theme: { template: 'sage-linen', primary: '#5f6f52', fontHeading: 'Pinyon Script' },
+      heroLayout: 'photo-top',
+      heroFoil: false,
+    });
+    expect(inv.theme.template).toBe('sage-linen');
+    expect(inv.theme.primary).toBe('#5f6f52');
+    expect(inv.theme.fontHeading).toBe('Pinyon Script');
+    expect(inv.theme.mode).toBe('light');
+    expect(inv.sections.find((s) => s.type === 'hero').data.layout).toBe('photo-top');
+    expect(inv.sections.find((s) => s.type === 'hero').data.foil).toBe(false);
+
+    const bad = await request(app).post('/api/invitations').set(auth(token)).send({ title: 'X', heroLayout: 'nope' });
+    expect(bad.status).toBe(400);
+  });
+
   test('only the owner can read, edit and delete', async () => {
     const owner = await register(request, app);
     const other = await register(request, app);

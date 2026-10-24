@@ -12,6 +12,8 @@ const PHOTO_HINT = {
   circle: "Shown inside the round frame.",
   classic: "Fills the cover behind a paper card with your names.",
   full: "Fills the cover behind white text.",
+  "photo-top": "Fills the top of the page, with your names over it in white.",
+  floral: "Shown in a small arch under your names, between the flowers.",
 };
 function HeroPhoto({ d, set }) {
   const layout = { center: "full", portrait: "circle" }[d.layout] || d.layout || "arch";
@@ -19,8 +21,8 @@ function HeroPhoto({ d, set }) {
   return (
     <>
       <ImageInput label="Cover photo" hint={PHOTO_HINT[layout]} value={photo} onChange={(v) => set({ image: v, bgImage: undefined })} />
-      {photo && (layout === "classic" || layout === "full") && (
-        <Field label={`Overlay strength · ${d.overlay ?? 60}%`} hint={layout === "full" ? "Darkens the photo so the white text stays readable." : "Softens the photo around the card. Lower shows it more vividly."}>
+      {photo && ["classic", "full", "photo-top"].includes(layout) && (
+        <Field label={`Overlay strength · ${d.overlay ?? 60}%`} hint={layout !== "classic" ? "Darkens the photo so the white text stays readable." : "Softens the photo around the card. Lower shows it more vividly."}>
           <input type="range" min={0} max={90} step={5} value={d.overlay ?? 60} onChange={(e) => set({ overlay: Number(e.target.value) })} className="w-full accent-ink" aria-label="Overlay strength" />
         </Field>
       )}
@@ -44,6 +46,8 @@ const FORMS = {
           { value: "circle", label: "Round framed photo" },
           { value: "classic", label: "Photo background with card" },
           { value: "full", label: "Full photo with white text" },
+          { value: "photo-top", label: "Photo on top, names over it" },
+          { value: "floral", label: "Flowers around the names" },
         ]}
       />
       <HeroPhoto d={d} set={set} />

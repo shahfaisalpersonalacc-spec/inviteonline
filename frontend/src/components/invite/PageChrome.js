@@ -300,9 +300,17 @@ export function TabBar({ sections }) {
   );
 }
 
-export function InviteFooter({ title, date }) {
+// light: a soft tinted footer for light-banded templates (a dark block looks heavy under them)
+export function InviteFooter({ title, date, light = false }) {
   return (
-    <footer className="px-6 pb-32 pt-16 text-center @3xl:py-20" style={{ background: "var(--inv-band-dark)", color: "var(--inv-on-band-dark)" }}>
+    <footer
+      className="px-6 pb-32 pt-16 text-center @3xl:py-20"
+      style={
+        light
+          ? { background: "color-mix(in srgb, var(--inv-surface), var(--inv-primary) 7%)", color: "var(--inv-primary)", boxShadow: "inset 0 1px 0 color-mix(in srgb, var(--inv-secondary) 50%, transparent)" }
+          : { background: "var(--inv-band-dark)", color: "var(--inv-on-band-dark)" }
+      }
+    >
       {title && (
         <p className="text-5xl leading-tight @3xl:text-6xl" style={{ fontFamily: "var(--inv-font-heading)" }}>
           {title}

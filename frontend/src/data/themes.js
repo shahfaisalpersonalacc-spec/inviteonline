@@ -47,6 +47,7 @@ export const FONTS = [
   { name: "Parisienne", kind: "script", weights: null },
   { name: "Alex Brush", kind: "script", weights: null },
   { name: "Sacramento", kind: "script", weights: null },
+  { name: "Pinyon Script", kind: "script", weights: null },
   { name: "Playfair Display", kind: "serif", weights: "400;600;700" },
   { name: "Cinzel", kind: "serif", weights: "400;600;700" },
   { name: "Cormorant Garamond", kind: "serif", weights: "ital,wght@0,400;0,600;0,700;1,400" },

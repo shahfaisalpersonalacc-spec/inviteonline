@@ -15,6 +15,7 @@ import StickersPanel from "@/components/editor/StickersPanel";
 import SettingsPanel from "@/components/editor/SettingsPanel";
 import StickerToolbar from "@/components/editor/StickerToolbar";
 import { newId } from "@/data/sections";
+import { templateTheme } from "@/data/templates";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
 import { ArrowLeft, ExternalLink, FileText, Monitor, Palette, Pencil, Settings2, Share2, Smartphone, Sticker, Users } from "lucide-react";
 
@@ -283,6 +284,14 @@ export default function EditorPage() {
               <DesignPanel
                 theme={inv.theme}
                 onChange={(theme) => set({ theme })}
+                eventType={inv.eventType}
+                // a template restyles the page and moves the cover to its layout; content is untouched
+                onApplyTemplate={(t) =>
+                  set((cur) => ({
+                    theme: { ...cur.theme, ...(t ? templateTheme(t) : { template: "" }) },
+                    sections: t ? cur.sections.map((s) => (s.type === "hero" ? { ...s, data: { ...s.data, layout: t.heroLayout, foil: !!t.design.foil } } : s)) : cur.sections,
+                  }))
+                }
                 onPreviewEntry={() => {
                   setMobileView("preview");
                   setPreviewEntry((n) => n + 1);

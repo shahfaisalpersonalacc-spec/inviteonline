@@ -12,6 +12,7 @@ import { Rsvp, Wishes } from "./sections/interactive";
 import { backgroundCss, googleFontsHref, resolveTheme } from "@/data/themes";
 import { luminance, readableOn, shade } from "@/lib/color";
 import { InviteFooter, TabBar, TopNav } from "./PageChrome";
+import { Divider, SectionDecor, designFor } from "./decor/Decor";
 
 const COMPONENTS = {
   hero: Hero,
@@ -64,7 +65,32 @@ export function ThemeFonts({ theme, extra = [] }) {
 // Sections drawn on a dark full-width band (like the countdown in the design).
 const DARK_BANDS = new Set(["countdown"]);
 
-function bandStyle(type, index, theme) {
+function darkBand(theme) {
+  const vars = themeVars(theme);
+  const dark = vars["--inv-band-dark"];
+  const on = vars["--inv-on-band-dark"];
+  const accent = (luminance(theme.background || "#ffffff") < 0.35 ? theme.primary : theme.secondary) || "#c9a24a";
+  return {
+    background: dark,
+    color: on,
+    "--inv-text": on,
+    "--inv-primary": accent,
+    "--inv-on-primary": readableOn(accent),
+    "--inv-bg": dark,
+    "--inv-surface": shade(dark, 0.06),
+  };
+}
+
+// Section background for a design template: plain page, soft alternating tint, or light/dark bands.
+// Soft tints are opaque so dividers drawn in the same colour blend seamlessly.
+function templateBand(design, type, index, theme) {
+  if (type === "hero" || design.bands === "plain") return undefined;
+  if (design.bands === "alternate") return index % 2 === 0 ? darkBand(theme) : undefined;
+  return index % 2 ? { background: "color-mix(in srgb, var(--inv-surface), var(--inv-primary) 5%)" } : undefined;
+}
+
+function bandStyle(type, index, theme, design) {
+  if (design) return templateBand(design, type, index, theme);
   if (type === "hero") return undefined;
   if (DARK_BANDS.has(type)) {
     const vars = themeVars(theme);
@@ -118,7 +144,10 @@ export default function InvitationRenderer({
   const hero = sections.find((s) => s.type === "hero")?.data || {};
   // the closing section already signs off with the names; don't repeat them in the footer
   const hasSignature = sections.some((s) => s.type === "closing" && s.data?.signature);
-  const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme }), [mode, invitation.slug, unlockToken, theme]);
+  const design = useMemo(() => designFor(theme), [theme]);
+  const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme, design }), [mode, invitation.slug, unlockToken, theme, design]);
+  const heroLayout = sections[0]?.type === "hero" ? sections[0].data?.layout : null;
+  const photoCover = (heroLayout === "photo-top" || heroLayout === "full") && !!(hero.image || hero.bgImage || heroLayout === "photo-top");
 
   return (
     <InviteContext.Provider value={ctx}>
@@ -133,13 +162,21 @@ export default function InvitationRenderer({
           {showChrome && <TopNav sections={sections} title={hero.title || invitation.title} />}
           {sections.map((s, i) => {
             const Comp = COMPONENTS[s.type];
-            const band = bandStyle(s.type, i, theme);
+            const band = bandStyle(s.type, i, theme, design);
+            // a template divider where the band colour changes (and under a photo cover)
+            const prev = i > 0 ? bandStyle(sections[i - 1].type, i - 1, theme, design) : null;
+            const changes = i > 0 && (band?.background || "page") !== (prev?.background || "page");
+            const afterPhoto = i === 1 && photoCover;
+            const divider =
+              design && i > 0 && (design.divider === "line" ? sections[i - 1].type !== "hero" : design.divider === "floral" ? (changes && i % 2 === 0) || afterPhoto : changes || afterPhoto);
             return (
               <section key={s.id} id={`sec-${s.id}`} data-section-id={s.id} className="relative scroll-mt-16 @3xl:scroll-mt-24" style={band}>
+                {divider && <Divider design={design} theme={theme} fill={band?.background || "var(--inv-bg)"} seed={i} />}
+                {s.type !== "hero" && <SectionDecor design={design} theme={theme} index={i} count={sections.length} />}
                 {s.type === "hero" ? (
                   <Comp data={s.data || {}} />
                 ) : (
-                  <div className="mx-auto w-full max-w-[1120px]">
+                  <div className="relative z-[1] mx-auto w-full max-w-[1120px]">
                     <Comp data={s.data || {}} />
                   </div>
                 )}
@@ -158,7 +195,7 @@ export default function InvitationRenderer({
               </section>
             );
           })}
-          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} /> : showChrome && <div className="h-24 @3xl:hidden" />}
+          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} light={!!design && design.bands !== "alternate"} /> : showChrome && <div className="h-24 @3xl:hidden" />}
           {showChrome && <TabBar sections={sections} />}
         </div>
       </div>

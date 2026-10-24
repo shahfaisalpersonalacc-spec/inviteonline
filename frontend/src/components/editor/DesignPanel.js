@@ -1,9 +1,11 @@
 "use client";
 
-import { Moon, Play, Sun } from "lucide-react";
+import { Check, Moon, Play, Sun } from "lucide-react";
 import { ANIMATIONS, ENTRY_STYLES, FONTS, GRADIENTS, PATTERNS, SEAL_COLORS, SEAL_ICONS, THEMES, backgroundCss, googleFontsHref } from "@/data/themes";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { ColorInput, ImageInput, Select, Text, Toggle } from "./fields";
+import { templatesFor } from "@/data/templates";
+import TemplatePreview from "@/components/site/TemplatePreview";
 
 function Group({ title, children, action }) {
   return (
@@ -17,7 +19,7 @@ function Group({ title, children, action }) {
   );
 }
 
-export default function DesignPanel({ theme, onChange, onPreviewEntry }) {
+export default function DesignPanel({ theme, onChange, onPreviewEntry, eventType, onApplyTemplate }) {
   const set = (patch) => onChange({ ...theme, ...patch });
   const entry = ENTRY_STYLES.find((e) => e.id === theme.entryStyle) || ENTRY_STYLES[3];
   const isDoor = entry.kind === "door";
@@ -26,6 +28,38 @@ export default function DesignPanel({ theme, onChange, onPreviewEntry }) {
     <div className="space-y-8">
       {/* Load every font so presets and dropdown previews render correctly. */}
       <link rel="stylesheet" href={googleFontsHref(FONTS.map((f) => f.name))} precedence="default" />
+
+      {onApplyTemplate && (
+        <Group title="Template">
+          <div className="grid grid-cols-3 gap-2.5">
+            {templatesFor(eventType).map((t) => {
+              const on = theme.template === t.id;
+              return (
+                <div key={t.id} className="group relative text-left" title={t.tagline}>
+                  <span className={`relative block overflow-hidden rounded-xl border transition ${on ? "border-ink ring-2 ring-gold/60" : "border-ink/10 group-hover:border-ink/30"}`}>
+                    <TemplatePreview template={t} eventType={eventType} />
+                    {on && (
+                      <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-cream">
+                        <Check className="h-3 w-3" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="mt-1 block truncate text-[11px] font-semibold text-ink">{t.label}</span>
+                  <button type="button" onClick={() => onApplyTemplate(t)} aria-pressed={on} aria-label={`Use the ${t.label} template`} className="absolute inset-0 z-10 rounded-xl" />
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-[11px] text-ink-500">A template sets the layout, decorations, fonts and colours. Your content stays.</p>
+            {theme.template && (
+              <button type="button" onClick={() => onApplyTemplate(null)} className="shrink-0 text-[11px] font-semibold text-ink underline underline-offset-2">
+                Use classic look
+              </button>
+            )}
+          </div>
+        </Group>
+      )}
 
       <Group title="Appearance">
         <div className="grid grid-cols-2 gap-1 rounded-2xl bg-ink/[0.06] p-1" role="radiogroup" aria-label="Light or dark invitation">

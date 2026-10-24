@@ -47,6 +47,7 @@ const invitationSchema = new mongoose.Schema(
     coverImage: { type: String, default: '' },
     theme: {
       preset: { type: String, default: 'blush' },
+      template: { type: String, default: '' }, // page design template (frontend data/templates.js); '' = classic look
       mode: { type: String, enum: ['light', 'dark'], default: 'light' }, // guest-facing colour scheme
       primary: { type: String, default: '#be185d' },
       secondary: { type: String, default: '#f9a8d4' },

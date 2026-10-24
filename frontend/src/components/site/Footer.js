@@ -6,6 +6,7 @@ const COLUMNS = [
     title: "Product",
     links: [
       ["/#entrances", "Entrances"],
+      ["/#templates", "Templates"],
       ["/#features", "Features"],
       ["/#how", "How it works"],
       ["/#faq", "FAQ"],
