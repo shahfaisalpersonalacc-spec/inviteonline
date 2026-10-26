@@ -18,13 +18,27 @@ async function stop() {
   await mongo.stop();
 }
 
+// The real code only exists in the email; tests plant a known one to simulate reading it.
+const CODE = '123456';
+async function plantCode(email, purpose, extra = {}) {
+  const User = require('../src/models/User');
+  const { sha256 } = require('../src/utils/tokens');
+  await User.updateOne(
+    { email: email.toLowerCase() },
+    { otpHash: sha256(CODE), otpPurpose: purpose, otpExpires: new Date(Date.now() + 60000), otpAttempts: 0, ...extra }
+  );
+}
+
+// Registers and verifies the email, returning a logged-in session.
 async function register(request, app, overrides = {}) {
   const body = { name: 'Test User', email: `u${Date.now()}${Math.random()}@test.com`, password: 'password123', ...overrides };
-  const res = await request(app).post('/api/auth/register').send(body);
+  await request(app).post('/api/auth/register').send(body).expect(201);
+  await plantCode(body.email, 'verify');
+  const res = await request(app).post('/api/auth/verify-email').send({ email: body.email, code: CODE });
   return { ...res.body, credentials: body };
 }
 
-module.exports = { start, stop, register };
+module.exports = { start, stop, register, plantCode, CODE };
 
 // Minimal jest-style `expect` on top of node:assert so tests read naturally.
 const assert = require('node:assert/strict');

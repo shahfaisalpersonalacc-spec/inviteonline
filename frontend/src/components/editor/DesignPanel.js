@@ -104,8 +104,9 @@ export default function DesignPanel({ theme, onChange, onPreviewEntry, eventType
                 className={`overflow-hidden rounded-2xl border text-left transition ${theme.entryStyle === s.id ? "border-ink ring-2 ring-gold/50" : "border-ink/10 hover:border-ink/30"}`}
               >
                 <div className="relative h-14" style={{ background: s.swatch }}>
-                  {s.kind === "door" ? (
-                    <div className="absolute bottom-0 left-1/2 h-11 w-8 -translate-x-1/2 rounded-t-full" style={{ background: s.id === "door-royal" ? "#4a2f22" : "#7fa08f", boxShadow: "0 0 0 3px rgba(255,255,255,.55)" }} />
+                  {s.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.photo} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover object-center" />
                   ) : (
                     <div className="absolute inset-0" style={{ background: "rgba(0,0,0,.14)", clipPath: "polygon(0 0, 100% 0, 50% 62%)" }} />
                   )}
@@ -142,24 +143,6 @@ export default function DesignPanel({ theme, onChange, onPreviewEntry, eventType
               <Text label="Monogram (up to 6 letters)" value={theme.monogram} maxLength={6} onChange={(v) => set({ monogram: v })} placeholder="A&A" />
             </div>
           )}
-        </Group>
-      )}
-
-      {theme.envelope !== false && isDoor && (
-        <Group title="Door colour">
-          <div className="flex flex-wrap gap-2">
-            {["#8fae9f", "#4f7f7c", "#8fa9c2", "#c98b93", "#e8dcc6", "#b4471a", "#5a3a2a", "#263a5a", "#2b2b2b"].map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => set({ doorColor: c })}
-                className={`h-9 w-9 rounded-xl border-2 ${(theme.doorColor || "#8fae9f") === c ? "border-ink ring-2 ring-gold/50" : "border-white shadow"}`}
-                style={{ background: c }}
-                aria-label={`Door colour ${c}`}
-              />
-            ))}
-          </div>
-          <p className="mt-2 text-[11px] text-ink-500">Flowers in the garden scene are tinted with your theme&apos;s primary colour.</p>
         </Group>
       )}
 

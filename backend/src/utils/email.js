@@ -35,13 +35,12 @@ const layout = (inner) => `
   </div>
 </div>`;
 
-const resetPasswordEmail = (name, url) =>
+// purpose: 'verify' | 'reset'
+const otpEmail = (name, code, purpose) =>
   layout(`
     <p>Hi ${escapeHtml(name)},</p>
-    <p>We received a request to reset your password. This link is valid for 30 minutes.</p>
-    <p style="text-align:center;margin:28px 0">
-      <a href="${url}" style="background:#db2777;color:#fff;padding:12px 24px;border-radius:999px;text-decoration:none;font-weight:bold">Reset password</a>
-    </p>
+    <p>${purpose === 'reset' ? 'Use this code to reset your password.' : 'Use this code to confirm your email and finish creating your account.'} It is valid for 10 minutes.</p>
+    <p style="text-align:center;margin:28px 0;font-size:32px;font-weight:bold;letter-spacing:8px;color:#be185d">${code}</p>
     <p style="font-size:13px;color:#6b7280">If you didn't request this, you can safely ignore this email.</p>`);
 
 const welcomeEmail = (name, url) =>
@@ -56,4 +55,4 @@ function escapeHtml(s = '') {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
-module.exports = { sendEmail, resetPasswordEmail, welcomeEmail };
+module.exports = { sendEmail, otpEmail, welcomeEmail };

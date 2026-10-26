@@ -24,8 +24,15 @@ export const ENTRY_STYLES = [
   { id: "linen-monogram", label: "Classic Linen", kind: "envelope", swatch: "#ebe6dc" },
   { id: "sage-botanical", label: "Olive Botanical", kind: "envelope", swatch: "#7f8b6b" },
   { id: "midnight-gold", label: "Midnight & Gold", kind: "envelope", swatch: "#141a33" },
-  { id: "door-garden", label: "Garden Door", kind: "door", swatch: "#7fa08f" },
-  { id: "door-royal", label: "Royal Door", kind: "door", swatch: "#3d2a22" },
+  // photographic doors (components/invite/entry/PhotoDoorEntry.js); older ids kept so saved invitations still work
+  { id: "door-garden", label: "Lilac & Oak Door", kind: "door", swatch: "#8a4f2a", photo: "/entrances/door-oak-lilac.webp" },
+  { id: "door-castle", label: "Rose Arch Door", kind: "door", swatch: "#9fb5a8", photo: "/entrances/door-rose-arch.webp" },
+  { id: "door-emerald", label: "Emerald Parisian Door", kind: "door", swatch: "#3f6b2e", photo: "/entrances/door-emerald.webp" },
+  { id: "door-mural", label: "Painted Garden Door", kind: "door", swatch: "#3f7a52", photo: "/entrances/door-painted-garden.webp" },
+  { id: "door-pastel", label: "Rose Cottage Door", kind: "door", swatch: "#e8a39a", photo: "/entrances/door-rose-cottage.webp" },
+  { id: "door-golden", label: "Champagne Door", kind: "door", swatch: "#ead5bd", photo: "/entrances/door-champagne.webp" },
+  { id: "door-royal", label: "Blush Palace Door", kind: "door", swatch: "#d9a08f", photo: "/entrances/door-blush-palace.webp" },
+  { id: "door-lattice", label: "Ivory Arch Door", kind: "door", swatch: "#e8d3bb", photo: "/entrances/door-ivory-arch.webp" },
 ];
 
 export const SEAL_ICONS = [

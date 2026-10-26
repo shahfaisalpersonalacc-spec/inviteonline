@@ -29,15 +29,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback((email, password) => api("/auth/login", { method: "POST", body: { email, password }, auth: false }).then(handleSession), [handleSession]);
-  const register = useCallback((name, email, password) => api("/auth/register", { method: "POST", body: { name, email, password }, auth: false }).then(handleSession), [handleSession]);
+  // Doesn't log in: resolves to { needsVerification, email } and the code is entered via verifyEmail.
+  const register = useCallback((name, email, password) => api("/auth/register", { method: "POST", body: { name, email, password }, auth: false }), []);
+  const verifyEmail = useCallback((email, code) => api("/auth/verify-email", { method: "POST", body: { email, code }, auth: false }).then(handleSession), [handleSession]);
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
   }, []);
 
   const value = useMemo(
-    () => ({ user, setUser, loading, login, register, logout, handleSession }),
-    [user, loading, login, register, logout, handleSession]
+    () => ({ user, setUser, loading, login, register, verifyEmail, logout, handleSession }),
+    [user, loading, login, register, verifyEmail, logout, handleSession]
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

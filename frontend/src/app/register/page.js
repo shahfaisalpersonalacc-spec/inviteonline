@@ -6,30 +6,42 @@ import { useEffect, useState } from "react";
 import AuthShell from "@/components/site/AuthShell";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Spinner from "@/components/ui/Spinner";
+import VerifyEmailStep from "@/components/site/VerifyEmailStep";
 import { useAuth } from "@/lib/auth-context";
 
 export default function RegisterPage() {
   const { register, user, loading } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [pendingEmail, setPendingEmail] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) router.replace("/dashboard");
-  }, [loading, user, router]);
+    // Skip while verifying: a successful code sets `user`, and that step routes to /dashboard/new itself.
+    if (!loading && user && !pendingEmail) router.replace("/dashboard");
+  }, [loading, user, router, pendingEmail]);
 
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError("");
     try {
-      await register(form.name, form.email, form.password);
-      router.replace("/dashboard/new");
+      const d = await register(form.name, form.email, form.password);
+      setPendingEmail(d.email);
     } catch (err) {
       setError(err.message);
+    } finally {
       setBusy(false);
     }
+  }
+
+  if (pendingEmail) {
+    return (
+      <AuthShell title="Check your email" subtitle="One last step to activate your account.">
+        <VerifyEmailStep email={pendingEmail} onVerified={() => router.replace("/dashboard/new")} onBack={() => setPendingEmail("")} />
+      </AuthShell>
+    );
   }
 
   return (

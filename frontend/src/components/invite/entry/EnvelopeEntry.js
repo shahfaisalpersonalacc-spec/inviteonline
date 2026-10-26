@@ -57,16 +57,26 @@ function CornerFlourish({ style, gold }) {
 
 // The invitation card revealed inside the envelope / gatefold. A fixed 3:4 portrait card that fits
 // both the width and the height of any screen; every size inside is relative to the card (cqw).
-function InnerCard({ title = "", subtitle, date, monogram, ink, phase }) {
+// `reveal`: leave undefined for text that is always shown; false → true fades each line in from a blur.
+function InnerCard({ title = "", subtitle, date, monogram, ink, zoom, reveal, width = "min(84cqw, 63cqh)" }) {
   const gold = "#b8923a";
   const nameSize = title.length > 24 ? "7.4cqw" : title.length > 15 ? "9cqw" : "11cqw";
+  const line = (i) =>
+    reveal === undefined
+      ? {}
+      : {
+          filter: reveal ? "blur(0)" : "blur(9px)",
+          opacity: reveal ? 1 : 0,
+          transform: reveal ? "none" : "translateY(0.8cqw)",
+          transition: ["filter", "opacity", "transform"].map((p) => `${p} .9s ease ${i * 0.2}s`).join(", "),
+        };
   return (
     <div
       className="absolute left-1/2 top-1/2"
       style={{
-        width: "min(84cqw, 63cqh)",
+        width,
         aspectRatio: "3 / 4",
-        transform: `translate(-50%, -50%)${phase >= 4 ? " scale(1.04)" : ""}`,
+        transform: `translate(-50%, -50%)${zoom ? " scale(1.04)" : ""}`,
         transition: "transform 1s cubic-bezier(.2,.8,.2,1)",
         zIndex: 1,
       }}
@@ -85,29 +95,29 @@ function InnerCard({ title = "", subtitle, date, monogram, ink, phase }) {
 
         <div className="absolute flex flex-col items-center justify-center text-center" style={{ inset: "10cqw 9cqw" }}>
           {monogram && (
-            <div className="grid shrink-0 place-items-center rounded-full" style={{ width: "22cqw", height: "22cqw", boxShadow: `inset 0 0 0 1px ${gold}aa, inset 0 0 0 4px #fffdf8, inset 0 0 0 5px ${gold}55` }}>
+            <div className="grid shrink-0 place-items-center rounded-full" style={{ width: "22cqw", height: "22cqw", boxShadow: `inset 0 0 0 1px ${gold}aa, inset 0 0 0 4px #fffdf8, inset 0 0 0 5px ${gold}55`, ...line(0) }}>
               <span className="foil-text leading-none" style={{ fontSize: monogram.length > 3 ? "6.5cqw" : "8.5cqw", fontFamily: "var(--font-great-vibes), cursive" }}>
                 {monogram}
               </span>
             </div>
           )}
-          <span className="font-semibold uppercase" style={{ marginTop: "5cqw", fontSize: "2.9cqw", letterSpacing: "0.38em", opacity: 0.7, fontFamily: "var(--font-display), serif" }}>
+          <span className="font-semibold uppercase" style={{ marginTop: "5cqw", fontSize: "2.9cqw", letterSpacing: "0.38em", fontFamily: "var(--font-display), serif", ...line(1), opacity: reveal === false ? 0 : 0.7 }}>
             You are invited
           </span>
-          <h2 className="w-full break-words" style={{ marginTop: "2.5cqw", fontSize: nameSize, lineHeight: 1.12, color: ink, fontFamily: "var(--font-great-vibes), cursive", textWrap: "balance" }}>
+          <h2 className="w-full break-words" style={{ marginTop: "2.5cqw", fontSize: nameSize, lineHeight: 1.12, color: ink, fontFamily: "var(--font-great-vibes), cursive", textWrap: "balance", ...line(2) }}>
             {title}
           </h2>
-          <svg viewBox="0 0 200 24" style={{ width: "38cqw", marginTop: "2.5cqw" }} fill="none" stroke={gold} strokeWidth="1.2" aria-hidden="true">
+          <svg viewBox="0 0 200 24" style={{ width: "38cqw", marginTop: "2.5cqw", ...line(3) }} fill="none" stroke={gold} strokeWidth="1.2" aria-hidden="true">
             <path d="M100 12 C92 2 80 2 76 9 C73 15 80 19 84 14 M100 12 C108 2 120 2 124 9 C127 15 120 19 116 14 M76 12 L12 12 M124 12 L188 12" />
             <path d="M100 6 L104 12 L100 18 L96 12Z" fill={gold} />
           </svg>
           {subtitle && (
-            <span className="italic" style={{ marginTop: "2.5cqw", fontSize: "4.2cqw", lineHeight: 1.35, opacity: 0.85, fontFamily: "var(--font-display), serif", textWrap: "balance" }}>
+            <span className="italic" style={{ marginTop: "2.5cqw", fontSize: "4.2cqw", lineHeight: 1.35, fontFamily: "var(--font-display), serif", textWrap: "balance", ...line(4), opacity: reveal === false ? 0 : 0.85 }}>
               {subtitle}
             </span>
           )}
           {date && (
-            <span className="flex w-full items-center justify-center gap-[3cqw]" style={{ marginTop: "4cqw" }}>
+            <span className="flex w-full items-center justify-center gap-[3cqw]" style={{ marginTop: "4cqw", ...line(5) }}>
               <span className="h-px flex-1" style={{ background: `${gold}99` }} />
               <span className="whitespace-nowrap font-semibold uppercase" style={{ fontSize: "3.5cqw", letterSpacing: "0.3em", color: ink, fontFamily: "var(--font-display), serif" }}>
                 {formatDate(date, { day: "numeric", month: "long", year: "numeric" })}
@@ -140,13 +150,70 @@ function Hint({ phase, color }) {
   );
 }
 
+// Seal size (as a radius) and the rounded flap tip under it, in container units so they keep
+// their shape on any screen.
+const SEAL_R = "min(14cqw, 8.5cqh)";
+const TONGUE_R = "min(17.5cqw, 10.6cqh)";
+
+// The envelope back is four flaps meeting in the middle, as % of the screen (slightly rounded tips).
+// Each covers the corners it touches, so together they hide the card completely when closed.
+const FLAPS = {
+  top: [[0, 0], [100, 0], [53.5, 42.5], [50, 44], [46.5, 42.5]],
+  bottom: [[0, 100], [46.5, 57.5], [50, 56], [53.5, 57.5], [100, 100]],
+  right: [[100, 0], [100, 100], [46, 55], [43, 51.5], [43, 48.5], [46, 45]],
+  // the left flap is the one sealed: its tip is a rounded tongue around the centre, wide enough
+  // that the seal (radius SEAL_R) sits wholly on it
+  left: [
+    [0, 0],
+    ...Array.from({ length: 13 }, (_, i) => {
+      const a = (Math.PI * (i - 6)) / 12; // -90°..90°: the right half of a circle round the centre
+      return [`50% + ${Math.cos(a).toFixed(3)} * ${TONGUE_R}`, `50% + ${Math.sin(a).toFixed(3)} * ${TONGUE_R}`];
+    }),
+    [0, 100],
+  ],
+};
+// Points are numbers (%) or calc() expressions; flipping mirrors them for a flap's back face.
+const coord = (v, flip) => (typeof v === "number" ? `${flip ? 100 - v : v}%` : flip ? `calc(100% - (${v}))` : `calc(${v})`);
+const poly = (pts, flipX, flipY) => `polygon(${pts.map(([x, y]) => `${coord(x, flipX)} ${coord(y, flipY)}`).join(", ")})`;
+
+// How a flap turns on its hinge (shared by the flaps and the seal riding on one).
+// A flap is only on screen for the first 90° of its turn, so the easing is symmetric and slow
+// enough that this visible half takes about a second.
+const SWING = {
+  top: { origin: "50% 0", rotate: "rotateX(180deg)", delay: 0 },
+  right: { origin: "100% 50%", rotate: "rotateY(180deg)", delay: 0.3 },
+  bottom: { origin: "50% 100%", rotate: "rotateX(-180deg)", delay: 0.55 },
+  left: { origin: "0 50%", rotate: "rotateY(-180deg)", delay: 0.8 },
+};
+const swing = ({ origin, rotate, delay }, open) => ({ transformOrigin: origin, transform: open ? rotate : "none", transition: `transform 2s cubic-bezier(.42,0,.58,1) ${delay}s` });
+
+// One flap hinged on its outer edge. Opening, it peels toward the viewer and off the screen,
+// showing its lined back on the way. Stacking (z) matches the closed envelope so nothing jumps.
+function Flap({ pts, side, open, z, front, back, children }) {
+  const sideways = side === "left" || side === "right";
+  return (
+    <div className="absolute inset-0" style={{ zIndex: z, transformStyle: "preserve-3d", ...swing(SWING[side], open) }}>
+      <div className="absolute inset-0" style={{ backfaceVisibility: "hidden", filter: "drop-shadow(0 4px 10px rgba(0,0,0,.38))" }}>
+        <div className="absolute inset-0" style={{ background: front, clipPath: poly(pts) }} />
+      </div>
+      <div className="absolute inset-0" style={{ backfaceVisibility: "hidden", transform: sideways ? "rotateY(180deg)" : "rotateX(180deg)" }}>
+        <div className="absolute inset-0" style={{ background: back, clipPath: poly(pts, sideways, !sideways) }} />
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// Four-flap envelope: tap and the top flap lifts away, then the right, the bottom and finally the
+// left flap carrying the wax seal; the card inside fills the screen and its lines fade in from a blur.
 export function EnvelopeEntry({ styleId, seal, title, subtitle, date, onStart, onDone }) {
   const s = ENVELOPES[styleId] || ENVELOPES["linen-monogram"];
-  const { phase, open } = useOpenSequence(STEPS, 2700, { onStart, onDone });
+  const { phase, open } = useOpenSequence(STEPS, 3600, { onStart, onDone });
   const color = seal.color || s.seal[0];
   const icon = seal.icon || s.seal[1];
-  const flapShadow = "drop-shadow(0 6px 10px rgba(0,0,0,.28))";
-  const crease = "linear-gradient(to bottom, rgba(255,255,255,.06), rgba(0,0,0,.08))";
+  const opening = phase >= 2;
+  const crease = (deg) => `linear-gradient(${deg}deg, rgba(255,255,255,.07), rgba(0,0,0,.09))`;
+  const lining = `${noise(0.25)}, ${s.liner}`;
 
   return (
     <button
@@ -154,41 +221,36 @@ export function EnvelopeEntry({ styleId, seal, title, subtitle, date, onStart, o
       onClick={open}
       aria-label="Open the invitation"
       className="absolute inset-0 block h-full w-full cursor-pointer overflow-hidden text-left"
-      style={{ containerType: "size", perspective: "1600px", background: shade(s.liner, -0.1) }}
+      style={{ containerType: "size", perspective: "1400px", background: shade(s.liner, -0.1) }}
     >
       {/* envelope inside + card */}
-      <div className="absolute inset-0" style={{ background: `${noise(0.25)}, ${s.liner}` }} />
-      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} phase={phase} />
+      <div className="absolute inset-0" style={{ background: lining }} />
+      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} zoom={phase >= 3} reveal={phase >= 3} width="min(92cqw, 69cqh)" />
 
-      {/* pocket: side + bottom flaps */}
-      <div
-        className="absolute inset-0"
-        style={{ zIndex: 3, transition: "transform 1s cubic-bezier(.6,0,.3,1)", transform: phase >= 3 ? "translateY(108%)" : "none", filter: "drop-shadow(0 -3px 8px rgba(0,0,0,.25))" }}
-      >
-        <div className="absolute inset-0" style={{ background: bg(s, -0.07), clipPath: "polygon(0 0, 0 100%, 51% 56%)" }} />
-        <div className="absolute inset-0" style={{ background: bg(s, -0.07), clipPath: "polygon(100% 0, 100% 100%, 49% 56%)" }} />
-        <div className="absolute inset-0" style={{ background: `${crease}, ${bg(s, -0.02)}`, clipPath: "polygon(0 100%, 100% 100%, 100% 98%, 52% 52%, 48% 52%, 0 98%)" }} />
-        {s.trim && <div className="absolute inset-[3%] rounded-sm border" style={{ borderColor: `${s.trim}66` }} />}
-      </div>
+      <Flap pts={FLAPS.top} side="top" open={opening} z={1} front={`${crease(180)}, ${bg(s, 0.07)}`} back={lining} />
+      <Flap pts={FLAPS.bottom} side="bottom" open={opening} z={2} front={`${crease(0)}, ${bg(s, -0.07)}`} back={lining} />
+      <Flap pts={FLAPS.right} side="right" open={opening} z={3} front={`${crease(270)}, ${bg(s, -0.11)}`} back={lining} />
+      <Flap pts={FLAPS.left} side="left" open={opening} z={4} front={`${crease(90)}, ${bg(s, 0.02)}`} back={lining}>
+        {/* the seal sits in the centre, wholly on this flap's rounded tip, so it never hangs over the
+            other flaps as they open; it swings away with this flap, last */}
+        <div
+          className="pointer-events-none absolute"
+          style={{ left: "50%", top: "50%", width: `calc(2 * ${SEAL_R})`, aspectRatio: "1", transform: "translate(-50%, -50%)", backfaceVisibility: "hidden", animation: phase === 0 ? "seal-breathe 3s ease-in-out infinite" : undefined }}
+        >
+          <WaxSeal color={color} icon={icon} monogram={seal.monogram} className="h-full w-full" />
+        </div>
+      </Flap>
 
-      {/* top flap */}
-      <div
-        className="absolute inset-0"
-        style={{ zIndex: 4, transformOrigin: "50% 0", transition: "transform .95s cubic-bezier(.45,0,.2,1)", transform: phase >= 2 ? "rotateX(178deg)" : "none", filter: flapShadow, backfaceVisibility: "hidden" }}
-      >
-        <div className="absolute inset-0" style={{ background: `${crease}, ${bg(s, 0.03)}`, clipPath: "polygon(0 0, 100% 0, 100% 2%, 53.5% 55%, 50% 57%, 46.5% 55%, 0 2%)" }} />
-      </div>
-
-      <BreakingSeal phase={phase} color={color} icon={icon} monogram={seal.monogram} />
+      {s.trim && <div className="pointer-events-none absolute inset-[3%] rounded-sm border transition-opacity duration-300" style={{ zIndex: 5, borderColor: `${s.trim}66`, opacity: phase ? 0 : 1 }} />}
       <Hint phase={phase} color={s.ink} />
     </button>
   );
 }
 
+// 1 tapped · 2 flaps open (each on its own delay) · 3 card zooms and its lines blur in
 const STEPS = [
-  [2, 450],
-  [3, 1350],
-  [4, 2000],
+  [2, 150],
+  [3, 1600],
 ];
 
 // Ivory gatefold: two scalloped panels tied with a satin ribbon, opening like doors.
@@ -220,7 +282,7 @@ export function GatefoldEntry({ styleId, seal, title, subtitle, date, onStart, o
       className="absolute inset-0 block h-full w-full cursor-pointer overflow-hidden text-left"
       style={{ containerType: "size", perspective: "1800px", background: `${noise(0.2)}, #efe6d8` }}
     >
-      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} phase={phase} />
+      <InnerCard title={title} subtitle={subtitle} date={date} monogram={seal.monogram} ink={s.cardInk} zoom={phase >= 4} />
 
       <div style={panel("left")}>
         {/* scalloped edge */}

@@ -2,7 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { EnvelopeEntry, GatefoldEntry, ENVELOPES } from "./EnvelopeEntry";
-import { DoorEntry } from "./DoorEntry";
+import { PHOTO_DOORS, PhotoDoorEntry } from "./PhotoDoorEntry";
 import { ENTRY_STYLES } from "@/data/themes";
 
 const noop = () => () => {};
@@ -28,14 +28,14 @@ export default function EntryScreen({ theme = {}, title, subtitle, date, onStart
   const pos = contained ? "absolute" : "fixed";
   // Server render + first paint: a plain cover so the page never flashes before the entry appears.
   if (!mounted) {
-    const cover = ENVELOPES[styleId]?.paper || (styleId === "door-royal" ? "#4a1517" : "#f3e4c9");
+    const cover = ENVELOPES[styleId]?.paper || PHOTO_DOORS[styleId]?.cover || "#f3e4c9";
     return <div className={`${pos} inset-0 z-[60]`} style={{ background: cover }} />;
   }
 
   const props = { styleId, seal, theme, title, subtitle, date, onStart, onDone: done };
   return (
     <div className={`${pos} inset-0 z-[60] transition-opacity duration-700`} style={{ opacity: leaving ? 0 : 1 }}>
-      {kind === "door" ? <DoorEntry {...props} /> : kind === "gatefold" ? <GatefoldEntry {...props} /> : <EnvelopeEntry {...props} />}
+      {kind === "door" ? <PhotoDoorEntry {...props} /> : kind === "gatefold" ? <GatefoldEntry {...props} /> : <EnvelopeEntry {...props} />}
     </div>
   );
 }

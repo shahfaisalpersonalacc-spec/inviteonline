@@ -6,8 +6,14 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 80 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
-    resetPasswordToken: { type: String, select: false },
-    resetPasswordExpires: { type: Date, select: false },
+    // No default on purpose: accounts created before email verification existed have no
+    // value and must keep working. Only an explicit `false` means "not verified yet".
+    emailVerified: { type: Boolean },
+    otpHash: { type: String, select: false },
+    otpPurpose: { type: String, enum: ['verify', 'reset'], select: false },
+    otpExpires: { type: Date, select: false },
+    otpAttempts: { type: Number, select: false },
+    otpSentAt: { type: Date, select: false },
   },
   { timestamps: true }
 );

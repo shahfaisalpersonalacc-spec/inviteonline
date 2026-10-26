@@ -12,7 +12,7 @@ import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { EVENT_TYPES } from "@/data/eventTypes";
 
 const FEATURES = [
-  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and two garden doors. Guests tap the seal and your invitation unfolds." },
+  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and eight real photographed doors that open onto a decorated wedding venue." },
   { Icon: Ticket, title: "Scratch to reveal", text: "A gold-foil card hides the date until guests scratch it away." },
   { Icon: Palette, title: "Couture themes", text: "Twelve palettes with paired fonts, in light or evening dark." },
   { Icon: Feather, title: "Your story", text: "The couple, the families, a verse and a timeline of moments." },
@@ -104,7 +104,7 @@ export default function Home() {
                   Create your invitation <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a href="#entrances" className="link-quiet inline-flex items-center gap-1.5 px-2 py-2 text-[0.95rem] font-semibold text-ink">
-                  See all eight entrances <ArrowUpRight className="h-4 w-4" />
+                  See all twelve entrances <ArrowUpRight className="h-4 w-4" />
                 </a>
               </div>
               <dl className="mx-auto mt-12 grid max-w-md grid-cols-3 divide-x divide-ink/10 border-y border-ink/10 lg:mx-0">
@@ -163,9 +163,9 @@ export default function Home() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-[480px] opacity-60" style={{ background: "radial-gradient(ellipse 60% 70% at 50% 0%, rgba(245,196,81,.16), transparent 70%)" }} />
           <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
             <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_.8fr]">
-              <Chapter n="I" label="The first impression" title={<>Eight ways to be <em className="text-gold">opened.</em></>} light />
+              <Chapter n="I" label="The first impression" title={<>Twelve ways to be <em className="text-gold">opened.</em></>} light />
               <p className="max-w-md text-[1.05rem] leading-relaxed text-cream/65 lg:pb-3">
-                Every guest begins with something to open: a wax-sealed envelope, a gatefold card or a pair of garden doors. Tap any of them to try it.
+                Every guest begins with something to open: a wax-sealed envelope, a gatefold card or a pair of real palace doors. Tap any of them to try it.
               </p>
             </div>
             <div className="mt-14 sm:mt-16">

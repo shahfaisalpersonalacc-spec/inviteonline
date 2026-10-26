@@ -87,7 +87,7 @@ cd backend && npm test    # uses an in-memory MongoDB; no Atlas needed
 - Auth uses a bearer token, not cookies, so the frontend and backend can live on different domains.
 
 ## API overview
-- `POST /api/auth/register | login | forgot-password | reset-password/:token`
+- `POST /api/auth/register | verify-email | resend-code | login | forgot-password | reset-password` (email codes sent via Brevo)
 - `GET /api/auth/me`
 - `PUT /api/auth/profile`
 - `GET|POST /api/invitations`

@@ -129,7 +129,7 @@ function FloralHero({ data, photo, minH, theme, design }) {
   return (
     <div
       className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 text-center`}
-      style={{ paddingTop: "clamp(150px, 40cqw, 290px)", paddingBottom: "clamp(140px, 34cqw, 260px)" }}
+      style={{ paddingTop: "clamp(120px, 34cqw, 290px)", paddingBottom: "clamp(108px, 28cqw, 260px)" }}
     >
       <div className="pointer-events-none absolute -left-[5%] -top-[3%]" style={{ width: "min(54cqw, 400px)" }} aria-hidden>
         <FloralCorner name={palette} className="block w-full" seed={4} />
@@ -167,7 +167,8 @@ function FloralHero({ data, photo, minH, theme, design }) {
 
 export function Hero({ data }) {
   const { mode, theme, design } = useInvite();
-  const minH = mode === "public" ? "min-h-[100svh]" : "min-h-[640px]";
+  // phones: about three-quarters of the screen so the next section peeks in; full screen from tablets
+  const minH = mode === "public" ? "min-h-[76svh] @3xl:min-h-[100svh]" : "min-h-[560px] @3xl:min-h-[640px]";
   const layout = data.layout === "portrait" ? "circle" : data.layout === "center" ? "full" : data.layout || "arch";
   // One cover photo; the layout decides where it goes: inside the arch / round frame, or filling
   // the cover (Full: white text on a dark wash; Classic: a paper card over the photo).
@@ -177,12 +178,12 @@ export function Hero({ data }) {
   const bg = layout === "classic" && photo;
   const overlay = (data.overlay ?? 60) / 100;
 
-  if (layout === "photo-top") return <PhotoTopHero data={data} photo={photo} minH={mode === "public" ? "min-h-[92svh]" : "min-h-[620px]"} overlay={overlay} theme={theme} mode={mode} />;
+  if (layout === "photo-top") return <PhotoTopHero data={data} photo={photo} minH={mode === "public" ? "min-h-[72svh] @3xl:min-h-[92svh]" : "min-h-[540px] @3xl:min-h-[620px]"} overlay={overlay} theme={theme} mode={mode} />;
   if (layout === "floral") return <FloralHero data={data} photo={photo} minH={minH} theme={theme} design={design} />;
 
   return (
     <div
-      className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-28 pt-16 text-center @3xl:py-16`}
+      className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-14 pt-12 text-center @3xl:py-16`}
       style={design?.toran ? { paddingTop: "clamp(120px, 30cqw, 220px)" } : undefined}
     >
       {!bg && !full && <HeroDecor design={design} theme={theme} layout={layout} />}
@@ -286,7 +287,7 @@ export function Hosts({ data }) {
   return (
     <Shell>
       <SectionHeading>{data.heading}</SectionHeading>
-      <div className={`mx-auto grid max-w-4xl items-center gap-10 ${pair ? "@md:grid-cols-[1fr_auto_1fr]" : "@md:grid-cols-2"}`}>
+      <div className={`mx-auto grid max-w-4xl items-start ${pair ? "grid-cols-[1fr_auto_1fr] gap-2 @md:items-center @md:gap-10" : "gap-10 @md:grid-cols-2"}`}>
         {people.map((p, i) => (
           <PersonBlock key={i} p={p} i={i} pair={pair} />
         ))}
@@ -296,28 +297,32 @@ export function Hosts({ data }) {
 }
 
 function PersonBlock({ p, i, pair }) {
+  // side-by-side couple: arches sized to the column on phones; a single host keeps the larger arch
+  const size = pair
+    ? "aspect-[3/4] w-full max-w-[9.5rem] @md:h-64 @md:w-52 @md:max-w-none @5xl:h-80 @5xl:w-64"
+    : "h-56 w-44 @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64";
   const block = (
     <Reveal className="flex flex-col items-center text-center" delay={i * 120}>
       <div className="relative">
         <div className="absolute -inset-3 rounded-t-full" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary)" }} />
         {p.photo ? (
-          <Img src={p.photo} alt={p.name} className="h-56 w-44 rounded-t-full object-cover shadow-lg @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64" />
+          <Img src={p.photo} alt={p.name} className={`${size} rounded-t-full object-cover shadow-lg`} />
         ) : (
-          <Placeholder className="h-56 w-44 rounded-t-full @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64" monogram={(p.name || "").trim().charAt(0)} />
+          <Placeholder className={`${size} rounded-t-full`} monogram={(p.name || "").trim().charAt(0)} />
         )}
       </div>
-      {p.role && <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.3em] opacity-60">{p.role}</p>}
-      <h3 className="mt-1 text-[2.6rem] leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+      {p.role && <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.24em] opacity-60 @md:mt-6 @md:text-[11px] @md:tracking-[0.3em]">{p.role}</p>}
+      <h3 className="mt-1 break-words text-[2rem] leading-tight @md:text-[2.6rem]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
         {p.name}
       </h3>
-      {p.bio && <p className="mt-1 max-w-xs italic opacity-80">{p.bio}</p>}
+      {p.bio && <p className="mt-1 max-w-xs text-sm italic opacity-80 @md:text-base">{p.bio}</p>}
     </Reveal>
   );
   if (pair && i === 0)
     return (
       <>
         {block}
-        <div className="text-center text-6xl" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-secondary)" }}>
+        <div className="self-center text-center text-4xl @md:text-6xl" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-secondary)" }}>
           &amp;
         </div>
       </>

@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import AuthShell from "@/components/site/AuthShell";
 import PasswordInput from "@/components/ui/PasswordInput";
 import Spinner from "@/components/ui/Spinner";
+import VerifyEmailStep from "@/components/site/VerifyEmailStep";
 import { useAuth } from "@/lib/auth-context";
 
 export default function LoginPage() {
   const { login, user, loading } = useAuth();
   const router = useRouter();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [pendingEmail, setPendingEmail] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -27,9 +29,18 @@ export default function LoginPage() {
       await login(form.email, form.password);
       router.replace("/dashboard");
     } catch (err) {
-      setError(err.message);
+      if (err.data?.needsVerification) setPendingEmail(err.data.email);
+      else setError(err.message);
       setBusy(false);
     }
+  }
+
+  if (pendingEmail) {
+    return (
+      <AuthShell title="Verify your email" subtitle="Your account isn't activated yet.">
+        <VerifyEmailStep email={pendingEmail} onVerified={() => router.replace("/dashboard")} onBack={() => setPendingEmail("")} />
+      </AuthShell>
+    );
   }
 
   return (

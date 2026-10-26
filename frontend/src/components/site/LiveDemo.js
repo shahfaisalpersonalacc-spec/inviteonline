@@ -18,6 +18,12 @@ const PRESET_FOR = {
   "midnight-gold": "midnight",
   "door-garden": "marigold",
   "door-royal": "ruby",
+  "door-castle": "sage",
+  "door-pastel": "blush",
+  "door-golden": "champagne",
+  "door-lattice": "champagne",
+  "door-emerald": "emerald",
+  "door-mural": "sage",
 };
 
 export function PhoneFrame({ children, className = "" }) {

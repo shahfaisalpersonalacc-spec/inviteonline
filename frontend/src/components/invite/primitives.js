@@ -59,7 +59,7 @@ export function SectionHeading({ children, sub, eyebrow, align = "center" }) {
     <span className={`mx-auto mt-4 block h-px w-14 ${split ? "@5xl:mx-0" : ""}`} style={{ background: "var(--inv-secondary)" }} aria-hidden />
   );
   return (
-    <div className={`mb-9 text-center @3xl:mb-12 ${split ? "@5xl:mb-0 @5xl:text-left" : ""}`}>
+    <div className={`mb-6 text-center @3xl:mb-10 ${split ? "@5xl:mb-0 @5xl:text-left" : ""}`}>
       {eyebrow && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.32em] opacity-60">{eyebrow}</p>}
       {children &&
         (style === "caps" ? (
@@ -89,7 +89,8 @@ export function SectionHeading({ children, sub, eyebrow, align = "center" }) {
 }
 
 export function Shell({ children, className = "" }) {
-  return <div className={`px-5 py-14 @md:px-10 @md:py-20 @5xl:px-12 @5xl:py-24 ${className}`}>{children}</div>;
+  // compact on phones (sections sit close together, like a printed card), roomier on wide screens
+  return <div className={`px-5 py-9 @md:px-10 @md:py-14 @5xl:px-12 @5xl:py-20 ${className}`}>{children}</div>;
 }
 
 export function Card({ children, className = "", style }) {

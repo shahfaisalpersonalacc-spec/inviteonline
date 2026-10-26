@@ -14,7 +14,7 @@ const make = (windowMinutes, limit, message) =>
 
 module.exports = {
   authLimiter: make(15, 30, 'Too many attempts, please try again in a few minutes'),
-  emailLimiter: make(60, 5, 'Too many reset requests, please try again later'),
+  emailLimiter: make(60, 5, 'Too many email requests, please try again later'),
   guestLimiter: make(10, 20, 'Too many submissions, please slow down'),
   uploadLimiter: make(10, 60, 'Too many uploads, please slow down'),
 };

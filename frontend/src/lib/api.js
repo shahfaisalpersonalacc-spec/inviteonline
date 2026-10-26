@@ -21,7 +21,7 @@ export const setToken = (token) => {
   }
 };
 
-// JSON fetch wrapper. Throws Error(message) with `.status` on non-2xx.
+// JSON fetch wrapper. Throws Error(message) with `.status` and `.data` (response body) on non-2xx.
 export async function api(path, { method = "GET", body, headers = {}, auth = true, signal } = {}) {
   const token = auth ? getToken() : null;
   let res;
@@ -46,6 +46,7 @@ export async function api(path, { method = "GET", body, headers = {}, auth = tru
   if (!res.ok) {
     const err = new Error(data?.message || `Request failed (${res.status})`);
     err.status = res.status;
+    err.data = data;
     throw err;
   }
   return data;

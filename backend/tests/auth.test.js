@@ -1,15 +1,16 @@
 const { describe, test, before: beforeAll, after: afterAll } = require('node:test');
 const request = require('supertest');
-const { start, stop, register, expect } = require('./setup');
+const { start, stop, register, plantCode, CODE, expect } = require('./setup');
 const app = require('../src/app');
 const User = require('../src/models/User');
-const { sha256 } = require('../src/utils/tokens');
 
 beforeAll(start);
 afterAll(stop);
 
+const newCredentials = () => ({ name: 'Test User', email: `u${Date.now()}${Math.random()}@test.com`, password: 'password123' });
+
 describe('auth', () => {
-  test('register, login and me', async () => {
+  test('register, verify, login and me', async () => {
     const { token, user, credentials } = await register(request, app);
     expect(token).toBeTruthy();
     expect(user.email).toBe(credentials.email.toLowerCase());
@@ -22,10 +23,66 @@ describe('auth', () => {
     expect(me.body.user.password).toBeUndefined();
   });
 
-  test('duplicate email is rejected', async () => {
+  test('register does not log in until the email is verified', async () => {
+    const creds = newCredentials();
+    const reg = await request(app).post('/api/auth/register').send(creds);
+    expect(reg.status).toBe(201);
+    expect(reg.body.needsVerification).toBe(true);
+    expect(reg.body.token).toBeUndefined();
+
+    const login = await request(app).post('/api/auth/login').send({ email: creds.email, password: creds.password });
+    expect(login.status).toBe(403);
+    expect(login.body.needsVerification).toBe(true);
+    expect(login.body.token).toBeUndefined();
+  });
+
+  test('wrong and expired codes are rejected', async () => {
+    const creds = newCredentials();
+    await request(app).post('/api/auth/register').send(creds).expect(201);
+    await plantCode(creds.email, 'verify');
+
+    const wrong = await request(app).post('/api/auth/verify-email').send({ email: creds.email, code: '000000' });
+    expect(wrong.status).toBe(400);
+
+    await plantCode(creds.email, 'verify', { otpExpires: new Date(Date.now() - 1000) });
+    const expired = await request(app).post('/api/auth/verify-email').send({ email: creds.email, code: CODE });
+    expect(expired.status).toBe(400);
+  });
+
+  test('5 wrong attempts invalidate the code', async () => {
+    const creds = newCredentials();
+    await request(app).post('/api/auth/register').send(creds).expect(201);
+    await plantCode(creds.email, 'verify');
+
+    for (let i = 0; i < 5; i++) {
+      await request(app).post('/api/auth/verify-email').send({ email: creds.email, code: '000000' }).expect(400);
+    }
+    const right = await request(app).post('/api/auth/verify-email').send({ email: creds.email, code: CODE });
+    expect(right.status).toBe(400);
+  });
+
+  test('re-registering an unverified email takes over the pending signup', async () => {
+    const creds = newCredentials();
+    await request(app).post('/api/auth/register').send(creds).expect(201);
+    await request(app).post('/api/auth/register').send({ ...creds, name: 'New Name', password: 'different123' }).expect(201);
+
+    await plantCode(creds.email, 'verify');
+    const verify = await request(app).post('/api/auth/verify-email').send({ email: creds.email, code: CODE });
+    expect(verify.status).toBe(200);
+    expect(verify.body.user.name).toBe('New Name');
+    await request(app).post('/api/auth/login').send({ email: creds.email, password: 'different123' }).expect(200);
+  });
+
+  test('duplicate verified email is rejected', async () => {
     const { credentials } = await register(request, app);
     const res = await request(app).post('/api/auth/register').send(credentials);
     expect(res.status).toBe(409);
+  });
+
+  test('accounts created before verification existed can still log in', async () => {
+    const { credentials } = await register(request, app);
+    await User.collection.updateOne({ email: credentials.email.toLowerCase() }, { $unset: { emailVerified: '' } });
+    await request(app).post('/api/auth/login').send({ email: credentials.email, password: credentials.password }).expect(200);
   });
 
   test('wrong password and missing token are 401', async () => {
@@ -35,27 +92,35 @@ describe('auth', () => {
     expect((await request(app).get('/api/auth/me')).status).toBe(401);
   });
 
-  test('forgot password gives the same answer for unknown emails', async () => {
+  test('forgot password and resend give the same answer for unknown emails', async () => {
     const res = await request(app).post('/api/auth/forgot-password').send({ email: 'nobody@test.com' });
     expect(res.status).toBe(200);
     expect(res.body.message).toMatch(/If an account exists/);
+
+    const resend = await request(app).post('/api/auth/resend-code').send({ email: 'nobody@test.com', purpose: 'reset' });
+    expect(resend.status).toBe(200);
   });
 
-  test('reset password with a valid token, then token is single-use', async () => {
+  test('reset password with a valid code, then the code is single-use', async () => {
     const { credentials } = await register(request, app);
     await request(app).post('/api/auth/forgot-password').send({ email: credentials.email }).expect(200);
+    await plantCode(credentials.email, 'reset');
 
-    // The raw token only exists in the email; plant a known one to simulate clicking the link.
-    const raw = 'a'.repeat(64);
-    await User.updateOne({ email: credentials.email }, { resetPasswordToken: sha256(raw), resetPasswordExpires: new Date(Date.now() + 60000) });
-
-    const reset = await request(app).post(`/api/auth/reset-password/${raw}`).send({ password: 'newpassword1' });
+    const reset = await request(app).post('/api/auth/reset-password').send({ email: credentials.email, code: CODE, password: 'newpassword1' });
     expect(reset.status).toBe(200);
+    expect(reset.body.token).toBeTruthy();
 
-    const login = await request(app).post('/api/auth/login').send({ email: credentials.email, password: 'newpassword1' });
-    expect(login.status).toBe(200);
+    await request(app).post('/api/auth/login').send({ email: credentials.email, password: 'newpassword1' }).expect(200);
 
-    const again = await request(app).post(`/api/auth/reset-password/${raw}`).send({ password: 'another1234' });
+    const again = await request(app).post('/api/auth/reset-password').send({ email: credentials.email, code: CODE, password: 'another1234' });
     expect(again.status).toBe(400);
+  });
+
+  test('a verify code cannot be used to reset the password', async () => {
+    const creds = newCredentials();
+    await request(app).post('/api/auth/register').send(creds).expect(201);
+    await plantCode(creds.email, 'verify');
+    const res = await request(app).post('/api/auth/reset-password').send({ email: creds.email, code: CODE, password: 'newpassword1' });
+    expect(res.status).toBe(400);
   });
 });

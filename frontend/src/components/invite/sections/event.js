@@ -43,8 +43,9 @@ function EventTicket({ e }) {
   const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
   return (
     <Card className="flex h-full flex-col !p-0">
-      <div className="relative overflow-hidden rounded-t-[1.75rem] px-5 pb-7 pt-8 text-center" style={PANEL}>
-        <div className="pointer-events-none absolute inset-2.5 bottom-0 rounded-t-[1.35rem]" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 80%, transparent)", clipPath: "inset(0 0 1px 0)" }} />
+      <div className="relative overflow-hidden rounded-t-[1.75rem] px-6 pb-8 pt-8 text-center" style={PANEL}>
+        {/* a closed inner frame with the same inset on every side, ending above the tear line */}
+        <div className="pointer-events-none absolute inset-3 rounded-[1.25rem]" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 80%, transparent)" }} />
         <h3 className="relative break-words text-[2.3rem] leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
           {e.name}
         </h3>
@@ -52,11 +53,11 @@ function EventTicket({ e }) {
       </div>
       {/* perforation */}
       <div className="relative h-0" aria-hidden>
-        <span className="absolute inset-x-6 top-0 border-t-2 border-dashed" style={{ borderColor: "color-mix(in srgb, var(--inv-secondary) 70%, transparent)" }} />
-        <span className="absolute -left-3 -top-3 h-6 w-6 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset -1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
-        <span className="absolute -right-3 -top-3 h-6 w-6 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset 1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
+        <span className="absolute inset-x-5 top-0 border-t-2 border-dashed" style={{ borderColor: "color-mix(in srgb, var(--inv-secondary) 70%, transparent)" }} />
+        <span className="absolute -left-2.5 -top-2.5 h-5 w-5 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset -1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
+        <span className="absolute -right-2.5 -top-2.5 h-5 w-5 rounded-full" style={{ background: "var(--inv-section-bg, var(--inv-bg))", boxShadow: "inset 1px 0 0 color-mix(in srgb, var(--inv-secondary) 55%, transparent)" }} />
       </div>
-      <div className="flex flex-1 flex-col gap-3.5 px-5 pb-5 pt-6 @md:px-6">
+      <div className="flex flex-1 flex-col gap-3.5 px-6 pb-6 pt-6">
         {e.time && <Row Icon={Clock}>{e.time}</Row>}
         {e.venue && (
           <Row Icon={MapPin}>
