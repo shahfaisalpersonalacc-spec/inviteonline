@@ -89,20 +89,21 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
             onOpened={() => setOpened(true)}
           />
         )}
-        {opened && (
-          <button
-            onClick={() => replay()}
-            className="absolute right-3 top-12 z-[70] inline-flex items-center gap-1.5 rounded-full bg-ink/85 px-3 py-1.5 text-xs font-semibold text-cream shadow-lg backdrop-blur"
-          >
-            <RotateCcw className="h-3.5 w-3.5" /> Replay
-          </button>
-        )}
       </PhoneFrame>
       </div>
       </div>
 
+      {/* below the phone, not on its screen, so it never covers the invitation's header */}
+      <button
+        onClick={() => replay()}
+        disabled={!opened}
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-cream shadow-lg transition hover:bg-ink/85 disabled:pointer-events-none disabled:opacity-0"
+      >
+        <RotateCcw className="h-3.5 w-3.5" /> Replay the opening
+      </button>
+
       {showPicker && (
-        <div className="mt-6 flex max-w-sm flex-wrap justify-center gap-1.5 sm:gap-2">
+        <div className="mt-3 flex max-w-sm flex-wrap justify-center gap-1.5 sm:gap-2">
           {ENTRY_STYLES.map((s) => (
             <button
               key={s.id}
