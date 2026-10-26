@@ -59,7 +59,7 @@ function Chapter({ n, label, title, children, light = false, className = "" }) {
 
 function SeeBadge() {
   return (
-    <div className="absolute -right-1 top-6 z-10 grid h-[5.5rem] w-[5.5rem] place-items-center rounded-full bg-gold shadow-[0_14px_30px_-14px_rgba(28,26,61,.6)] sm:-right-6 sm:h-28 sm:w-28" aria-hidden="true">
+    <div className="absolute -top-3 right-0 z-10 grid h-[4.5rem] w-[4.5rem] place-items-center rounded-full bg-gold shadow-[0_14px_30px_-14px_rgba(28,26,61,.6)] sm:-right-6 sm:top-6 sm:h-28 sm:w-28" aria-hidden="true">
       <svg viewBox="0 0 120 120" className="animate-rotate-badge absolute inset-0 h-full w-full">
         <defs>
           <path id="badge-ring" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" />
@@ -135,8 +135,9 @@ export default function Home() {
                 </div>
               </div>
               <SeeBadge />
-              <div className="relative">
-                <LiveDemo className="h-[560px] w-[272px] min-[380px]:h-[600px] min-[380px]:w-[292px] sm:h-[660px] sm:w-[320px]" />
+              {/* on phones the badge sits above the demo instead of over its screen */}
+              <div className="relative pt-10 sm:pt-0">
+                <LiveDemo />
               </div>
             </div>
           </div>

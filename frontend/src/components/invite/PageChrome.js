@@ -27,7 +27,17 @@ function useTargets(sections) {
   );
 }
 
-const go = (id) => document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+// Jump to a section by scrolling only the invitation's own scroller. scrollIntoView would also
+// scroll every ancestor, so in the editor / landing-page demo it jolted the whole page.
+const go = (id) => {
+  const el = document.getElementById(`sec-${id}`);
+  const box = scrollParent(el);
+  if (!box) return el?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // rects are in screen pixels; divide by the box's on-screen scale (the demo phone may be scaled down)
+  const scale = box.getBoundingClientRect().height / box.offsetHeight || 1;
+  const top = (el.getBoundingClientRect().top - box.getBoundingClientRect().top) / scale + box.scrollTop;
+  box.scrollTo({ top, behavior: "smooth" });
+};
 
 // Desktop navigation: a vertical glass rail on the right edge (the mobile tab bar's sibling).
 // One round icon per key section; the current one fills with the theme colour and its name shows beside it (always on wide screens, on hover otherwise).

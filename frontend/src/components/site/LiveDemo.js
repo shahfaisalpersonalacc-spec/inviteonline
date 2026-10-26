@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
@@ -37,8 +37,26 @@ export function PhoneFrame({ children, className = "" }) {
   );
 }
 
+// The demo phone is always laid out at this size, then scaled down as a whole when the screen is
+// narrower, so the invitation inside lines up exactly the same on every device.
+const PHONE = { w: 320, h: 660 };
+
+function useFitScale(ref, width) {
+  const [scale, setScale] = useState(1);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setScale(Math.min(1, e.contentRect.width / width)));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref, width]);
+  return scale;
+}
+
 // Interactive phone: tap the envelope/door, then scroll the invitation inside.
-export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = true, className = "h-[620px] w-[300px] sm:h-[660px] sm:w-[320px]" }) {
+export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = true }) {
+  const fit = useRef(null);
+  const scale = useFitScale(fit, PHONE.w);
   const [style, setStyle] = useState(initialStyle);
   const [run, setRun] = useState(0);
   const [opened, setOpened] = useState(false);
@@ -52,9 +70,11 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
 
   return (
     <div className="flex flex-col items-center">
+      {/* takes the available width (up to the phone's), and the scaled phone's height */}
+      <div ref={fit} className="w-full" style={{ maxWidth: PHONE.w, height: PHONE.h * scale }}>
       {/* event-themed cursor, as on real invitations */}
-      <div className="inv-cursor" style={cursorVars(inv.eventType || "wedding", resolveTheme(inv.theme || {}))}>
-      <PhoneFrame className={className}>
+      <div className="inv-cursor" style={{ ...cursorVars(inv.eventType || "wedding", resolveTheme(inv.theme || {})), width: PHONE.w, height: PHONE.h, transform: `scale(${scale})`, transformOrigin: "top left" }}>
+      <PhoneFrame className="h-full w-full">
         <div className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden">
           <InvitationRenderer invitation={inv} mode="demo" showFooter={false} />
         </div>
@@ -78,6 +98,7 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
           </button>
         )}
       </PhoneFrame>
+      </div>
       </div>
 
       {showPicker && (
