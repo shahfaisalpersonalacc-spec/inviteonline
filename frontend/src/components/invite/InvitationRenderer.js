@@ -15,6 +15,9 @@ import { formatTime, videoEmbed } from "@/lib/format";
 import { InviteFooter, SideNav, TabBar } from "./PageChrome";
 import { Divider, SectionDecor, designFor } from "./decor/Decor";
 
+// The mobile section tab bar (PageChrome TabBar) is switched off for now; set true to bring it back.
+const SHOW_TAB_BAR = false;
+
 const COMPONENTS = {
   hero: Hero,
   hosts: Hosts,
@@ -259,8 +262,8 @@ export default function InvitationRenderer({
               </section>
             );
           })}
-          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} /> : showChrome && <div className="h-24 @3xl:hidden" />}
-          {showChrome && <TabBar sections={sections} />}
+          {showFooter ? <InviteFooter title={hasSignature ? "" : hero.title || invitation.title} date={hero.date} /> : showChrome && SHOW_TAB_BAR && <div className="h-24 @3xl:hidden" />}
+          {showChrome && SHOW_TAB_BAR && <TabBar sections={sections} />}
         </div>
       </div>
     </InviteContext.Provider>
