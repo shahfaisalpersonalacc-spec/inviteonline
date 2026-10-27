@@ -11,18 +11,21 @@ import { FullPageSpinner } from "@/components/ui/Spinner";
 import Modal from "@/components/ui/Modal";
 import ShareSheet from "@/components/invite/ShareSheet";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
+import { PHOTO_DOORS } from "@/components/invite/entry/PhotoDoorEntry";
 import { eventTypeLabel } from "@/data/eventTypes";
 import { THEMES } from "@/data/themes";
 import { timeAgo } from "@/lib/format";
 import { shade } from "@/lib/color";
 
-// Mini envelope cover for an invitation card.
+// The card shows the invitation's entrance: its door photo, or a mini envelope. (coverImage is
+// the link-preview image for WhatsApp etc., so it isn't used here.)
 function Cover({ inv }) {
   const t = { ...THEMES.blush, ...inv.theme };
   const paper = t.primary;
-  if (inv.coverImage) {
+  const door = PHOTO_DOORS[t.entryStyle];
+  if (door) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={inv.coverImage} alt="" className="h-full w-full object-cover" />;
+    return <img src={door.src} alt="" className="h-full w-full object-cover" style={{ objectPosition: `50% ${(door.y0 + door.y1) / 2}%` }} />;
   }
   return (
     <div className="relative h-full w-full" style={{ background: shade(paper, -0.1) }}>
