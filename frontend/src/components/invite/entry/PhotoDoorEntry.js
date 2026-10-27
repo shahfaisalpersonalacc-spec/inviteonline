@@ -35,16 +35,31 @@ const TOTAL = 3150;
 // Arched top as a polygon (in % of the doorway box). Each half is a circular arc rising from its
 // side with a vertical tangent; `point` is that arc's radius in half-widths: 1 is a round
 // (elliptical) arch, more gives a pointed one.
-function archClip(arch, point = 1) {
-  if (!arch) return undefined;
+function archPoints(arch, point = 1) {
   const c = 1 - point;
   const apex = Math.sqrt(point * point - c * c);
-  const pts = Array.from({ length: 41 }, (_, i) => {
+  return Array.from({ length: 41 }, (_, i) => {
     const t = Math.abs(i / 20 - 1); // 1 at the sides, 0 at the apex
     const rise = Math.sqrt(Math.max(0, point * point - (t - c) ** 2)) / apex;
-    return `${(i * 2.5).toFixed(2)}% ${(arch - arch * rise).toFixed(2)}%`;
+    return [i * 2.5, arch - arch * rise];
   });
+}
+
+function archClip(arch, point) {
+  if (!arch) return undefined;
+  const pts = archPoints(arch, point).map(([x, y]) => `${x.toFixed(2)}% ${y.toFixed(2)}%`);
   return `polygon(0% 100%, ${pts.join(", ")}, 100% 100%)`;
+}
+
+// One leaf's own share of the arched top (px, in the leaf's box), so the curve swings with the
+// leaf instead of the leaf carrying the square corners of wall that sit above the arch.
+function leafClip(arch, point, door, from, width) {
+  if (!arch) return undefined;
+  const pts = archPoints(arch, point).map(([x, y]) => {
+    const lx = Math.min(width, Math.max(0, (x / 100) * door.width - from));
+    return `${lx.toFixed(1)}px ${((y / 100) * door.height).toFixed(1)}px`;
+  });
+  return `polygon(0px 100%, ${pts.join(", ")}, ${width.toFixed(1)}px 100%)`;
 }
 
 // The entrance's own size (it fills the screen, or a preview frame when `contained`).
@@ -105,6 +120,7 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
           transform: `rotateY(${isLeft ? angle : -angle}deg)`,
           transition: phase === 1 ? "transform .4s ease-out" : swing,
           backfaceVisibility: "hidden",
+          clipPath: leafClip(d.arch, d.point, door, isLeft ? 0 : door.seam, width),
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
