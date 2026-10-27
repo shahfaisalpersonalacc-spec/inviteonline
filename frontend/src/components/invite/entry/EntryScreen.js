@@ -17,7 +17,8 @@ export default function EntryScreen({ theme = {}, title, subtitle, date, onStart
   const mounted = useMounted();
   const [leaving, setLeaving] = useState(false);
   const styleId = theme.entryStyle || "linen-monogram";
-  const kind = ENTRY_STYLES.find((s) => s.id === styleId)?.kind || "envelope";
+  // retired door ids are no longer listed but still map to a photo door
+  const kind = ENTRY_STYLES.find((s) => s.id === styleId)?.kind || (PHOTO_DOORS[styleId] ? "door" : "envelope");
   const seal = { color: theme.sealColor, icon: theme.sealIcon, monogram: theme.monogram };
 
   const done = () => {

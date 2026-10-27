@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, Phone, Trash2, Users } from "lucide-react";
 import { api, downloadFile } from "@/lib/api";
@@ -17,11 +17,12 @@ const STATUS = {
 
 export default function GuestsPage() {
   const { id } = useParams();
+  const params = useSearchParams();
   const toast = useToast();
   const [inv, setInv] = useState(null);
   const [rsvp, setRsvp] = useState(null);
   const [wishes, setWishes] = useState([]);
-  const [tab, setTab] = useState("rsvps");
+  const [tab, setTab] = useState(params.get("tab") === "wishes" ? "wishes" : "rsvps");
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
 

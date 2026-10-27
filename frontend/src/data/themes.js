@@ -25,14 +25,13 @@ export const ENTRY_STYLES = [
   { id: "sage-botanical", label: "Olive Botanical", kind: "envelope", swatch: "#7f8b6b" },
   { id: "midnight-gold", label: "Midnight & Gold", kind: "envelope", swatch: "#141a33" },
   // photographic doors (components/invite/entry/PhotoDoorEntry.js); older ids kept so saved invitations still work
-  { id: "door-garden", label: "Lilac & Oak Door", kind: "door", swatch: "#8a4f2a", photo: "/entrances/door-oak-lilac.webp" },
-  { id: "door-castle", label: "Rose Arch Door", kind: "door", swatch: "#9fb5a8", photo: "/entrances/door-rose-arch.webp" },
-  { id: "door-emerald", label: "Emerald Parisian Door", kind: "door", swatch: "#3f6b2e", photo: "/entrances/door-emerald.webp" },
-  { id: "door-mural", label: "Painted Garden Door", kind: "door", swatch: "#3f7a52", photo: "/entrances/door-painted-garden.webp" },
-  { id: "door-pastel", label: "Rose Cottage Door", kind: "door", swatch: "#e8a39a", photo: "/entrances/door-rose-cottage.webp" },
-  { id: "door-golden", label: "Champagne Door", kind: "door", swatch: "#ead5bd", photo: "/entrances/door-champagne.webp" },
-  { id: "door-royal", label: "Blush Palace Door", kind: "door", swatch: "#d9a08f", photo: "/entrances/door-blush-palace.webp" },
-  { id: "door-lattice", label: "Ivory Arch Door", kind: "door", swatch: "#e8d3bb", photo: "/entrances/door-ivory-arch.webp" },
+  { id: "door-garden", label: "Lilac Vines Door", kind: "door", swatch: "#7a4a2c", photo: "/entrances/door-lilac-vines.webp" },
+  { id: "door-castle", label: "Rose & Sage Door", kind: "door", swatch: "#a9c4b6", photo: "/entrances/door-rose-sage.webp" },
+  { id: "door-emerald", label: "Emerald Ivy Door", kind: "door", swatch: "#2f5a35", photo: "/entrances/door-emerald-ivy.webp" },
+  { id: "door-mural", label: "Moorish Garden Door", kind: "door", swatch: "#3f6e50", photo: "/entrances/door-moorish-garden.webp" },
+  { id: "door-pastel", label: "Pink Rose Cottage", kind: "door", swatch: "#e9a094", photo: "/entrances/door-pink-cottage.webp" },
+  { id: "door-royal", label: "Floral Palace Door", kind: "door", swatch: "#e8c9a8", photo: "/entrances/door-floral-palace.webp" },
+  { id: "door-lattice", label: "Ivory Palace Door", kind: "door", swatch: "#efdcc0", photo: "/entrances/door-ivory-palace.webp" },
 ];
 
 export const SEAL_ICONS = [

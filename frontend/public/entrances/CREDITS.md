@@ -1,6 +1,6 @@
 # Entrance photographs
 
-Door photos were supplied by the site owner. Venue photos are from Pexels and free to use under
+Door photos were supplied by the site owner (royalty free). Venue photos are from Pexels and free to use under
 the Pexels License (https://www.pexels.com/license/): commercial use and editing allowed,
 attribution not required. Credited here with thanks to the photographers.
 

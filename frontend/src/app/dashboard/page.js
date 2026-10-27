@@ -94,11 +94,11 @@ export default function DashboardPage() {
 
       <dl className="mt-10 grid grid-cols-3 divide-x divide-ink/10 border-y border-ink/10">
         {[
-          ["Views", totals.views, Eye],
-          ["RSVPs", totals.rsvps, ListChecks],
-          ["Wishes", totals.wishes, MailOpen],
-        ].map(([label, n, Icon]) => (
-          <div key={label} className="flex items-center gap-4 px-3 py-5 first:pl-0 sm:px-6 sm:py-6 sm:first:pl-0">
+          ["Views", totals.views, Eye, "rsvps"],
+          ["RSVPs", totals.rsvps, ListChecks, "rsvps"],
+          ["Wishes", totals.wishes, MailOpen, "wishes"],
+        ].map(([label, n, Icon, tab]) => (
+          <div key={label} className="relative flex items-center gap-4 px-3 py-5 transition first:pl-0 hover:bg-ink/3 sm:px-6 sm:py-6 sm:first:pl-0">
             <span className="hidden h-11 w-11 shrink-0 place-items-center rounded-full border border-ink/10 text-brand-600 sm:grid">
               <Icon className="h-5 w-5" strokeWidth={1.6} />
             </span>
@@ -106,6 +106,10 @@ export default function DashboardPage() {
               <dt className="text-[11px] font-bold uppercase tracking-[0.2em] text-ink-500">{label}</dt>
               <dd className="mt-0.5 font-serif text-3xl leading-none text-ink sm:text-4xl">{n}</dd>
             </div>
+            {/* Totals span every invitation; the guests page is per invitation, so open the latest one (list is newest-edited first). */}
+            {items[0] && (
+              <Link href={`/dashboard/${items[0]._id}/guests${tab === "wishes" ? "?tab=wishes" : ""}`} aria-label={`See ${label.toLowerCase()} on the guests page`} className="absolute inset-0" />
+            )}
           </div>
         ))}
       </dl>

@@ -5,22 +5,24 @@ import useOpenSequence from "./useOpenSequence";
 
 // Photographic door entrances. Each uses a photo (public/entrances) and the doorway's position
 // in it, as % of the image: x0..x1, y0..y1, the seam between the leaves, and `arch` (% of the
-// doorway height its arched top takes; 0 = square top). A single door puts the seam on its latch
+// doorway height its arched top takes; 0 = square top). `point` > 1 makes that arch pointed
+// (two arcs meeting at the apex) instead of round. A single door puts the seam on its latch
 // edge (x0 or x1), so one leaf covers it and swings from the hinge side. The leaves are cut
 // from the same photo, so closed they match it exactly; opening, they swing into the building in
 // real 3D perspective onto a decorated wedding venue (a second photo, `scene`), and the camera walks in.
-const oak = { src: "/entrances/door-oak-lilac.webp", ratio: 736 / 1104, x0: 21, x1: 78.4, y0: 18.8, y1: 86.2, seam: 49.9, arch: 8, light: "#fff0d2", cover: "#3b2a1e", scene: "/entrances/venue-courtyard.webp", scenePos: "50% 60%" };
+const lilac = { src: "/entrances/door-lilac-vines.webp", ratio: 2 / 3, x0: 24, x1: 76.3, y0: 21, y1: 84.7, seam: 50.3, arch: 11.6, light: "#fff0d2", cover: "#3b2a1e", scene: "/entrances/venue-courtyard.webp", scenePos: "50% 60%" };
+const ivory = { src: "/entrances/door-ivory-palace.webp", ratio: 2 / 3, x0: 25.3, x1: 73.7, y0: 15.7, y1: 84.7, seam: 49.5, arch: 0, light: "#fff6e6", cover: "#4a3a2e", scene: "/entrances/venue-chandelier-hall.webp", scenePos: "50% 45%" };
 export const PHOTO_DOORS = {
   // ids from earlier versions are kept so saved invitations keep working
-  "door-royal": { src: "/entrances/door-blush-palace.webp", ratio: 736 / 1308, x0: 10.6, x1: 90, y0: 11, y1: 96.7, seam: 50.3, arch: 32, light: "#fff1d6", cover: "#5a3e34", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 55%" },
-  "door-garden": oak,
-  "door-carved": oak,
-  "door-castle": { src: "/entrances/door-rose-arch.webp", ratio: 736 / 1104, x0: 29, x1: 74.5, y0: 18, y1: 77.6, seam: 50, arch: 20, light: "#fff4e0", cover: "#3a2a2a", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
-  "door-lattice": { src: "/entrances/door-ivory-arch.webp", ratio: 736 / 1308, x0: 20.1, x1: 79.5, y0: 14, y1: 80.3, seam: 49.6, arch: 24, light: "#fff6e6", cover: "#4a3a2e", scene: "/entrances/venue-chandelier-hall.webp", scenePos: "50% 45%" },
-  "door-pastel": { src: "/entrances/door-rose-cottage.webp", ratio: 736 / 1104, x0: 33.7, x1: 66.7, y0: 30.1, y1: 77, seam: 33.7, arch: 0, light: "#fff3dc", cover: "#5a4a44", scene: "/entrances/venue-glass-tent.webp", scenePos: "50% 50%" },
-  "door-golden": { src: "/entrances/door-champagne.webp", ratio: 736 / 1307, x0: 24.5, x1: 76.4, y0: 13.4, y1: 84.5, seam: 50.1, arch: 0, light: "#fff2d8", cover: "#4a3c30", scene: "/entrances/venue-reception.webp", scenePos: "50% 50%" },
-  "door-emerald": { src: "/entrances/door-emerald.webp", ratio: 453 / 680, x0: 24.3, x1: 76.2, y0: 14.7, y1: 95.3, seam: 50.3, arch: 19, light: "#fff4e0", cover: "#3a3630", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 50%" },
-  "door-mural": { src: "/entrances/door-painted-garden.webp", ratio: 736 / 930, x0: 36.7, x1: 61.8, y0: 47.6, y1: 87.6, seam: 49.5, arch: 0, light: "#fff3dc", cover: "#4a4434", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
+  "door-royal": { src: "/entrances/door-floral-palace.webp", ratio: 2 / 3, x0: 21.5, x1: 78.5, y0: 13, y1: 83.5, seam: 50, arch: 25, point: 1.6, light: "#fff1d6", cover: "#5a3e34", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 55%" },
+  "door-garden": lilac,
+  "door-carved": lilac,
+  "door-castle": { src: "/entrances/door-rose-sage.webp", ratio: 2 / 3, x0: 25, x1: 75, y0: 17.5, y1: 78, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a2a2a", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
+  "door-lattice": ivory,
+  "door-golden": ivory,
+  "door-pastel": { src: "/entrances/door-pink-cottage.webp", ratio: 2 / 3, x0: 32.8, x1: 67.8, y0: 29, y1: 81, seam: 32.8, arch: 0, light: "#fff3dc", cover: "#5a4a44", scene: "/entrances/venue-glass-tent.webp", scenePos: "50% 50%" },
+  "door-emerald": { src: "/entrances/door-emerald-ivy.webp", ratio: 2 / 3, x0: 23.5, x1: 76.5, y0: 13.5, y1: 93.5, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a3630", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 50%" },
+  "door-mural": { src: "/entrances/door-moorish-garden.webp", ratio: 4 / 5, x0: 36.3, x1: 63.5, y0: 44, y1: 88, seam: 50.1, arch: 0, light: "#fff3dc", cover: "#4a4434", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
 };
 
 // Phases: 0 closed · 1 unlatched (light at the seam) · 2 swinging open · 3 through the doorway
@@ -30,12 +32,17 @@ const STEPS = [
 ];
 const TOTAL = 3150;
 
-// Arched top as a polygon (in % of the doorway box), sampled from an ellipse.
-function archClip(arch) {
+// Arched top as a polygon (in % of the doorway box). Each half is a circular arc rising from its
+// side with a vertical tangent; `point` is that arc's radius in half-widths: 1 is a round
+// (elliptical) arch, more gives a pointed one.
+function archClip(arch, point = 1) {
   if (!arch) return undefined;
-  const pts = Array.from({ length: 25 }, (_, i) => {
-    const t = Math.PI - (Math.PI * i) / 24;
-    return `${(50 + 50 * Math.cos(t)).toFixed(2)}% ${(arch - arch * Math.sin(t)).toFixed(2)}%`;
+  const c = 1 - point;
+  const apex = Math.sqrt(point * point - c * c);
+  const pts = Array.from({ length: 41 }, (_, i) => {
+    const t = Math.abs(i / 20 - 1); // 1 at the sides, 0 at the apex
+    const rise = Math.sqrt(Math.max(0, point * point - (t - c) ** 2)) / apex;
+    return `${(i * 2.5).toFixed(2)}% ${(arch - arch * rise).toFixed(2)}%`;
   });
   return `polygon(0% 100%, ${pts.join(", ")}, 100% 100%)`;
 }
@@ -148,7 +155,7 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
             {/* the doorway: light beyond, leaves in perspective, clipped to the frame's shape */}
             <div
               className="absolute"
-              style={{ left: door.left, top: door.top, width: door.width, height: door.height, perspective: `${door.width * 2.4}px`, clipPath: archClip(d.arch) }}
+              style={{ left: door.left, top: door.top, width: door.width, height: door.height, perspective: `${door.width * 2.4}px`, clipPath: archClip(d.arch, d.point) }}
             >
               {/* beyond the doors: the decorated venue, slightly larger so it can drift in as the doors part */}
               <div className="absolute inset-0 overflow-hidden" style={{ opacity: phase >= 1 ? 1 : 0, transition: "opacity .4s ease" }}>

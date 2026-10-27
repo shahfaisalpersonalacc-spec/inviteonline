@@ -12,7 +12,7 @@ import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { EVENT_TYPES } from "@/data/eventTypes";
 
 const FEATURES = [
-  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and eight real photographed doors that open onto a decorated wedding venue." },
+  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and seven real photographed doors that open onto a decorated wedding venue." },
   { Icon: Ticket, title: "Scratch to reveal", text: "A gold-foil card hides the date until guests scratch it away." },
   { Icon: Palette, title: "Couture themes", text: "Twelve palettes with paired fonts, in light or evening dark." },
   { Icon: Feather, title: "Your story", text: "The couple, the families, a verse and a timeline of moments." },
