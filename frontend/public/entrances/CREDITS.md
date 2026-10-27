@@ -13,3 +13,7 @@ attribution not required. Credited here with thanks to the photographers.
 | venue-chandelier-hall.webp | https://www.pexels.com/photo/luxurious-hallway-with-ornate-chandeliers-38380941/ |
 | venue-glass-tent.webp | https://www.pexels.com/photo/elegant-wedding-venue-with-floral-archway-in-sao-paulo-32711003/ |
 | venue-reception.webp | https://www.pexels.com/photo/hall-decorated-for-ceeremony-14608917/ |
+
+`wide/door-*.webp` are the door photos above extended sideways to 16:9 for wide screens
+(AI outpainting with the open-source "diffusers-image-outpaint" Space on Hugging Face, SDXL); the
+original photo is unchanged at the centre.

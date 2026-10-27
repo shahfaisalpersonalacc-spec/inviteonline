@@ -10,19 +10,21 @@ import useOpenSequence from "./useOpenSequence";
 // edge (x0 or x1), so one leaf covers it and swings from the hinge side. The leaves are cut
 // from the same photo, so closed they match it exactly; opening, they swing into the building in
 // real 3D perspective onto a decorated wedding venue (a second photo, `scene`), and the camera walks in.
-const lilac = { src: "/entrances/door-lilac-vines.webp", ratio: 2 / 3, x0: 24, x1: 76.3, y0: 21, y1: 84.7, seam: 50.3, arch: 11.6, light: "#fff0d2", cover: "#3b2a1e", scene: "/entrances/venue-courtyard.webp", scenePos: "50% 60%" };
+// `wide` (optional) is the same photo extended sideways to 16:9 (AI outpainting, the original
+// centred at full height), shown around the photo on wide screens.
+const lilac = { src: "/entrances/door-lilac-vines.webp", wide: "/entrances/wide/door-lilac-vines.webp", ratio: 2 / 3, x0: 24, x1: 76.3, y0: 21, y1: 84.7, seam: 50.3, arch: 11.6, light: "#fff0d2", cover: "#3b2a1e", scene: "/entrances/venue-courtyard.webp", scenePos: "50% 60%" };
 const ivory = { src: "/entrances/door-ivory-palace.webp", ratio: 2 / 3, x0: 25.3, x1: 73.7, y0: 15.7, y1: 84.7, seam: 49.5, arch: 0, light: "#fff6e6", cover: "#4a3a2e", scene: "/entrances/venue-chandelier-hall.webp", scenePos: "50% 45%" };
 export const PHOTO_DOORS = {
   // ids from earlier versions are kept so saved invitations keep working
-  "door-royal": { src: "/entrances/door-floral-palace.webp", ratio: 2 / 3, x0: 21.5, x1: 78.5, y0: 13, y1: 83.5, seam: 50, arch: 25, point: 1.6, light: "#fff1d6", cover: "#5a3e34", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 55%" },
+  "door-royal": { src: "/entrances/door-floral-palace.webp", wide: "/entrances/wide/door-floral-palace.webp", ratio: 2 / 3, x0: 21.5, x1: 78.5, y0: 13, y1: 83.5, seam: 50, arch: 25, point: 1.6, light: "#fff1d6", cover: "#5a3e34", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 55%" },
   "door-garden": lilac,
   "door-carved": lilac,
-  "door-castle": { src: "/entrances/door-rose-sage.webp", ratio: 2 / 3, x0: 25, x1: 75, y0: 17.5, y1: 78, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a2a2a", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
+  "door-castle": { src: "/entrances/door-rose-sage.webp", wide: "/entrances/wide/door-rose-sage.webp", ratio: 2 / 3, x0: 25, x1: 75, y0: 17.5, y1: 78, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a2a2a", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
   "door-lattice": ivory,
   "door-golden": ivory,
-  "door-pastel": { src: "/entrances/door-pink-cottage.webp", ratio: 2 / 3, x0: 32.8, x1: 67.8, y0: 29, y1: 81, seam: 32.8, arch: 0, light: "#fff3dc", cover: "#5a4a44", scene: "/entrances/venue-glass-tent.webp", scenePos: "50% 50%" },
-  "door-emerald": { src: "/entrances/door-emerald-ivy.webp", ratio: 2 / 3, x0: 23.5, x1: 76.5, y0: 13.5, y1: 93.5, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a3630", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 50%" },
-  "door-mural": { src: "/entrances/door-moorish-garden.webp", ratio: 4 / 5, x0: 36.3, x1: 63.5, y0: 44, y1: 88, seam: 50.1, arch: 0, light: "#fff3dc", cover: "#4a4434", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
+  "door-pastel": { src: "/entrances/door-pink-cottage.webp", wide: "/entrances/wide/door-pink-cottage.webp", ratio: 2 / 3, x0: 32.8, x1: 67.8, y0: 29, y1: 81, seam: 32.8, arch: 0, light: "#fff3dc", cover: "#5a4a44", scene: "/entrances/venue-glass-tent.webp", scenePos: "50% 50%" },
+  "door-emerald": { src: "/entrances/door-emerald-ivy.webp", wide: "/entrances/wide/door-emerald-ivy.webp", ratio: 2 / 3, x0: 23.5, x1: 76.5, y0: 13.5, y1: 93.5, seam: 50, arch: 22, light: "#fff4e0", cover: "#3a3630", scene: "/entrances/venue-palace-hall.webp", scenePos: "50% 50%" },
+  "door-mural": { src: "/entrances/door-moorish-garden.webp", wide: "/entrances/wide/door-moorish-garden.webp", ratio: 4 / 5, x0: 36.3, x1: 63.5, y0: 44, y1: 88, seam: 50.1, arch: 0, light: "#fff3dc", cover: "#4a4434", scene: "/entrances/venue-floral-aisle.webp", scenePos: "50% 50%" },
 };
 
 // Phases: 0 closed · 1 unlatched (light at the seam) · 2 swinging open · 3 through the doorway
@@ -31,6 +33,10 @@ const STEPS = [
   [3, 2350],
 ];
 const TOTAL = 3150;
+// Share of the photo's width, at each side, that is extended outwards on wide screens
+// (fallback for doors without a `wide` photo).
+const EDGE = 0.1;
+const WIDE = 16 / 9;
 
 // Arched top as a polygon (in % of the doorway box). Each half is a circular arc rising from its
 // side with a vertical tangent; `point` is that arc's radius in half-widths: 1 is a round
@@ -89,9 +95,11 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
   let stage = null;
   if (box) {
     const portrait = box.w / box.h < 0.9;
-    const h = portrait ? Math.max(box.w / d.ratio, box.h) : box.h; // photo height in px
+    // with a wide photo, landscape screens are filled edge to edge too (a little top/bottom crop
+    // at most), centred on the photo so the wide photo lines up around it
+    const h = portrait ? Math.max(box.w / d.ratio, box.h) : d.wide ? Math.min(Math.max(box.h, box.w / WIDE), box.h * 1.15) : box.h; // photo height in px
     const w = h * d.ratio;
-    const centre = box.w / 2 - ((d.x0 + d.x1) / 200) * w;
+    const centre = box.w / 2 - (!portrait && d.wide ? 0.5 : (d.x0 + d.x1) / 200) * w;
     const left = w > box.w ? Math.min(0, Math.max(box.w - w, centre)) : centre;
     const doorMid = (((d.y0 + d.y1) / 2) / 100) * h;
     const top = h > box.h ? Math.min(0, Math.max(box.h - h, box.h / 2 - doorMid)) : 0;
@@ -150,14 +158,39 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
     <div ref={root} className="absolute inset-0 overflow-hidden" style={{ background: d.cover, containerType: "size", opacity: phase >= 3 ? 0 : 1, transition: "opacity .55s ease" }}>
       {stage && (
         <>
-          {/* wide screens: the photo, blurred and dimmed, fills the space on either side */}
-          {stage.wide && (
-            <div className="absolute inset-0 overflow-hidden" style={{ opacity: loaded ? 1 : 0, transition: "opacity .6s ease" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={d.src} alt="" draggable={false} className="absolute inset-0 h-full w-full max-w-none select-none object-cover" style={{ filter: "blur(40px) brightness(.85) saturate(1.1)", transform: "scale(1.2)" }} />
-              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,.5), rgba(0,0,0,.08) 32%, rgba(0,0,0,.08) 68%, rgba(0,0,0,.5))" }} />
-            </div>
-          )}
+          {/* wide screens: the photo's own outer edge (wall, stone, foliage) carries on to either
+              side, mirrored at the join so the colours match, softened and darkening outwards */}
+          {stage.wide &&
+            ["left", "right"].map((side) => {
+              const sideW = side === "left" ? stage.left : box.w - stage.left - stage.w;
+              const bgW = (sideW + 80) / EDGE; // the outer EDGE of the photo, stretched across the side
+              return (
+                <div
+                  key={side}
+                  className="absolute inset-y-0 overflow-hidden"
+                  style={{ [side]: 0, width: sideW + 40, opacity: loaded ? 1 : 0, transition: "opacity .6s ease" }}
+                >
+                  <div
+                    className="absolute -inset-y-10"
+                    style={{
+                      [side]: -40,
+                      width: sideW + 80,
+                      backgroundImage: `url(${d.src})`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: `${bgW}px ${stage.h}px`,
+                      // before the flip: the photo's left edge sits on this box's left (right edge on its right)
+                      backgroundPosition: `${side === "left" ? 0 : sideW + 80 - bgW}px ${stage.top + 40}px`,
+                      transform: "scaleX(-1)",
+                      filter: "blur(14px) brightness(.9)",
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0"
+                    style={{ background: `linear-gradient(to ${side === "left" ? "right" : "left"}, rgba(0,0,0,.6), rgba(0,0,0,.25) 55%, rgba(0,0,0,.05))` }}
+                  />
+                </div>
+              );
+            })}
 
           {/* camera: drifts slightly while waiting, then glides through the doorway */}
           <div
@@ -173,6 +206,17 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
               opacity: loaded ? 1 : 0,
             }}
           >
+            {/* wide screens: the scene carries on to either side, sharp, around the photo */}
+            {stage.wide && d.wide && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={d.wide}
+                alt=""
+                draggable={false}
+                className="absolute top-0 max-w-none select-none"
+                style={{ height: stage.h, width: stage.h * WIDE, left: stage.w / 2 - (stage.h * WIDE) / 2 }}
+              />
+            )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={d.src}
@@ -182,7 +226,7 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
               className="absolute inset-0 h-full w-full max-w-none select-none"
               draggable={false}
               // on wide screens the photo's side edges melt into the blurred backdrop
-              style={stage.wide ? { maskImage: "linear-gradient(to right, transparent, #000 20%, #000 80%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, #000 20%, #000 80%, transparent)" } : undefined}
+              style={stage.wide ? { maskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)" } : undefined}
             />
 
             {/* the doorway: light beyond, leaves in perspective, clipped to the frame's shape */}
