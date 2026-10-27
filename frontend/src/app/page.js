@@ -4,6 +4,7 @@ import {
   Plus, QrCode, Stamp, Ticket,
 } from "lucide-react";
 import Navbar from "@/components/site/Navbar";
+import DashboardRedirect from "@/components/site/DashboardRedirect";
 import Footer from "@/components/site/Footer";
 import LiveDemo from "@/components/site/LiveDemo";
 import { EntranceGallery, ScratchDemo } from "@/components/site/Showcases";
@@ -76,6 +77,7 @@ function SeeBadge() {
 export default function Home() {
   return (
     <>
+      <DashboardRedirect />
       <Navbar />
       <main id="main" className="overflow-x-clip">
         {/* ================= Hero ================= */}
