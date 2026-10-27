@@ -91,7 +91,7 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
       <section className="space-y-4">
         <h3 className="text-sm font-bold text-ink">Details</h3>
         <Text label="Invitation name" value={inv.title} onChange={(v) => set({ title: v })} maxLength={120} />
-        <Select label="Event type" value={inv.eventType} onChange={(v) => set({ eventType: v })} options={EVENT_TYPES.map((e) => ({ value: e.id, label: `${e.emoji} ${e.label}` }))} />
+        <Select label="Event type" value={inv.eventType} onChange={(v) => set({ eventType: v })} options={EVENT_TYPES.map((e) => ({ value: e.id, label: e.label }))} />
       </section>
 
       <section className="space-y-4">

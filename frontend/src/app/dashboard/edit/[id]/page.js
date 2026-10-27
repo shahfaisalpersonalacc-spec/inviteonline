@@ -50,6 +50,8 @@ export default function EditorPage() {
   const timer = useRef(null);
   const inFlight = useRef(false);
   const pending = useRef(false);
+  const retries = useRef(0);
+  const retryRef = useRef(null);
   const previewRef = useRef(null);
 
   useEffect(() => {
@@ -74,10 +76,20 @@ export default function EditorPage() {
     setStatus("saving");
     try {
       await api(`/invitations/${id}`, { method: "PUT", body: pick(latest.current) });
+      retries.current = 0;
       setStatus(pending.current ? "unsaved" : "saved");
     } catch (e) {
       setStatus("error");
-      toast(e.message, "error");
+      // No status = the server couldn't be reached (e.g. restarting): retry quietly a few times.
+      if (!e.status && retries.current < 5) {
+        if (retries.current === 0) toast(e.message, "error");
+        retries.current += 1;
+        clearTimeout(timer.current);
+        timer.current = setTimeout(() => retryRef.current?.(), 2000 * retries.current);
+      } else {
+        retries.current = 0;
+        toast(e.message, "error");
+      }
     } finally {
       inFlight.current = false;
       if (pending.current) {
@@ -86,6 +98,9 @@ export default function EditorPage() {
       }
     }
   }, [id, toast]);
+  useEffect(() => {
+    retryRef.current = flush;
+  }, [flush]);
 
   // Update local state and schedule an autosave.
   const set = useCallback(

@@ -80,7 +80,7 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
     const left = w > box.w ? Math.min(0, Math.max(box.w - w, centre)) : centre;
     const doorMid = (((d.y0 + d.y1) / 2) / 100) * h;
     const top = h > box.h ? Math.min(0, Math.max(box.h - h, box.h / 2 - doorMid)) : 0;
-    stage = { w, h, left, top };
+    stage = { w, h, left, top, wide: w < box.w - 1 };
   }
   const px = (pct, total) => (pct / 100) * total;
   const door = stage && {
@@ -134,6 +134,14 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
     <div ref={root} className="absolute inset-0 overflow-hidden" style={{ background: d.cover, containerType: "size", opacity: phase >= 3 ? 0 : 1, transition: "opacity .55s ease" }}>
       {stage && (
         <>
+          {/* wide screens: the photo, blurred and dimmed, fills the space on either side */}
+          {stage.wide && (
+            <div className="absolute inset-0 overflow-hidden" style={{ opacity: loaded ? 1 : 0, transition: "opacity .6s ease" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={d.src} alt="" draggable={false} className="absolute inset-0 h-full w-full max-w-none select-none object-cover" style={{ filter: "blur(40px) brightness(.85) saturate(1.1)", transform: "scale(1.2)" }} />
+              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(0,0,0,.5), rgba(0,0,0,.08) 32%, rgba(0,0,0,.08) 68%, rgba(0,0,0,.5))" }} />
+            </div>
+          )}
 
           {/* camera: drifts slightly while waiting, then glides through the doorway */}
           <div
@@ -150,7 +158,16 @@ export function PhotoDoorEntry({ styleId, title, onStart, onDone }) {
             }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={d.src} alt="" fetchPriority="high" onLoad={() => setLoaded(true)} className="absolute inset-0 h-full w-full max-w-none select-none" draggable={false} />
+            <img
+              src={d.src}
+              alt=""
+              fetchPriority="high"
+              onLoad={() => setLoaded(true)}
+              className="absolute inset-0 h-full w-full max-w-none select-none"
+              draggable={false}
+              // on wide screens the photo's side edges melt into the blurred backdrop
+              style={stage.wide ? { maskImage: "linear-gradient(to right, transparent, #000 20%, #000 80%, transparent)", WebkitMaskImage: "linear-gradient(to right, transparent, #000 20%, #000 80%, transparent)" } : undefined}
+            />
 
             {/* the doorway: light beyond, leaves in perspective, clipped to the frame's shape */}
             <div
