@@ -30,6 +30,11 @@ const TABS = [
 // Fields that autosave; slug & password are saved explicitly from Settings.
 const AUTOSAVE_FIELDS = ["title", "eventType", "description", "coverImage", "theme", "sections", "stickers", "music", "published"];
 // (a blank title isn't sent: the server requires one, and it would reject the whole save)
+// Scroll sync: mark a pane as being moved by code, so its scroll events are ignored for a moment.
+const lockPane = (ref, pane) => {
+  ref.current = { pane, until: performance.now() + 900 };
+};
+
 const pick = (o) => Object.fromEntries(AUTOSAVE_FIELDS.filter((k) => k !== "title" || o.title?.trim()).map((k) => [k, o[k]]));
 
 export default function EditorPage() {
@@ -58,6 +63,11 @@ export default function EditorPage() {
   const retries = useRef(0);
   const retryRef = useRef(null);
   const previewRef = useRef(null);
+  const panelRef = useRef(null);
+  // Content tab: the section open in the panel, kept in step with the preview (see the scroll sync below)
+  const [openSection, setOpenSection] = useState(null);
+  const syncLock = useRef({ pane: "", until: 0 }); // the pane being scrolled by code, ignored for a moment
+  const lastSynced = useRef("");
 
   useEffect(() => {
     api(`/invitations/${id}`)
@@ -66,6 +76,7 @@ export default function EditorPage() {
         latest.current = d.invitation;
         if (justCreated) window.history.replaceState(null, "", window.location.pathname); // a reload shouldn't say "preparing"
         setTargetSection(d.invitation.sections[0]?.id || "");
+        setOpenSection(d.invitation.sections[0]?.id || null);
       })
       .catch((e) => {
         toast(e.message, "error");
@@ -202,11 +213,78 @@ export default function EditorPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selected, deleteSticker]);
 
-  function focusSection(sid) {
+  // Scroll the preview to a section. `onlyIfHidden`: leave it alone when the section is already on screen
+  // (clicking from field to field in one section shouldn't keep jumping the preview).
+  function focusSection(sid, { onlyIfHidden = false } = {}) {
     const root = previewRef.current;
     const el = root?.querySelector(`[data-section-id="${sid}"]`);
-    if (root && el) root.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
+    if (!root || !el) return;
+    const box = root.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    if (onlyIfHidden && r.bottom > box.top + 40 && r.top < box.bottom - 40) return;
+    lastSynced.current = sid;
+    lockPane(syncLock, "preview");
+    root.scrollTo({ top: r.top - box.top + root.scrollTop - 12, behavior: "smooth" });
   }
+
+  // Keep the panel and the preview in step on the Content tab: scrolling either one brings the other to the
+  // same section. The pane moved by code is ignored briefly so the two don't push each other back and forth.
+  const loaded = !!inv;
+  useEffect(() => {
+    if (tab !== "content" || !loaded) return;
+    const pv = previewRef.current;
+    const pn = panelRef.current;
+    if (!pv || !pn) return;
+    const locked = (pane) => syncLock.current.pane === pane && performance.now() < syncLock.current.until;
+    let t1, t2;
+    const onPreview = () => {
+      if (locked("preview")) return;
+      clearTimeout(t1);
+      t1 = setTimeout(() => {
+        const r = pv.getBoundingClientRect();
+        if (!r.height) return; // hidden (phone, edit view)
+        const line = r.top + r.height * 0.3;
+        const hit = [...pv.querySelectorAll("[data-section-id]")].find((el) => {
+          const b = el.getBoundingClientRect();
+          return b.top <= line && b.bottom > line;
+        });
+        const sid = hit?.dataset.sectionId;
+        if (!sid || sid === lastSynced.current) return;
+        lastSynced.current = sid;
+        setOpenSection(sid);
+        // after the card has opened, bring it to the top of the panel
+        setTimeout(() => {
+          const card = pn.querySelector(`[data-panel-section="${sid}"]`);
+          if (!card) return;
+          lockPane(syncLock, "panel");
+          pn.scrollTo({ top: card.getBoundingClientRect().top - pn.getBoundingClientRect().top + pn.scrollTop - 8, behavior: "smooth" });
+        }, 60);
+      }, 160);
+    };
+    const onPanel = () => {
+      if (locked("panel")) return;
+      clearTimeout(t2);
+      t2 = setTimeout(() => {
+        const top = pn.getBoundingClientRect().top + 80;
+        const card = [...pn.querySelectorAll("[data-panel-section]")].find((c) => c.getBoundingClientRect().bottom > top);
+        const sid = card?.dataset.panelSection;
+        if (!sid || sid === lastSynced.current) return;
+        const el = pv.querySelector(`[data-section-id="${sid}"]`);
+        if (!el) return;
+        lastSynced.current = sid;
+        lockPane(syncLock, "preview");
+        pv.scrollTo({ top: el.getBoundingClientRect().top - pv.getBoundingClientRect().top + pv.scrollTop - 12, behavior: "smooth" });
+      }, 160);
+    };
+    pv.addEventListener("scroll", onPreview, { passive: true });
+    pn.addEventListener("scroll", onPanel, { passive: true });
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      pv.removeEventListener("scroll", onPreview);
+      pn.removeEventListener("scroll", onPanel);
+    };
+  }, [tab, loaded]);
 
   // throws on a wrong password, so the dialog stays open and shows why
   async function removeInvitation(password) {
@@ -262,7 +340,11 @@ export default function EditorPage() {
               role="tab"
               aria-selected={mobileView === v}
               aria-label={label}
-              onClick={() => setMobileView(v)}
+              onClick={() => {
+                setMobileView(v);
+                // phones: the preview opens where you were editing (once it's on screen)
+                if (v === "preview" && tab === "content" && openSection) setTimeout(() => focusSection(openSection), 50);
+              }}
               className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold sm:px-3.5 ${mobileView === v ? "bg-ink text-cream shadow" : "text-ink-500"}`}
             >
               <Icon className="h-4 w-4" />
@@ -298,8 +380,16 @@ export default function EditorPage() {
               </button>
             ))}
           </nav>
-          <div className="min-h-0 flex-1 overflow-y-auto p-4 pb-8 lg:pb-6">
-            {tab === "content" && <SectionsPanel sections={inv.sections} onChange={(sections) => set({ sections })} onFocusSection={focusSection} />}
+          <div ref={panelRef} className="min-h-0 flex-1 overflow-y-auto p-4 pb-8 lg:pb-6">
+            {tab === "content" && (
+              <SectionsPanel
+                sections={inv.sections}
+                onChange={(sections) => set({ sections })}
+                onFocusSection={focusSection}
+                openId={openSection}
+                onOpenChange={setOpenSection}
+              />
+            )}
             {tab === "design" && (
               <DesignPanel
                 theme={inv.theme}

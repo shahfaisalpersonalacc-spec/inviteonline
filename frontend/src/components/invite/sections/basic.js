@@ -309,7 +309,7 @@ export function Hosts({ data }) {
   return (
     <Shell>
       <SectionHeading>{data.heading}</SectionHeading>
-      <div className={`mx-auto grid max-w-4xl items-start ${pair ? "grid-cols-[1fr_auto_1fr] gap-2 @md:items-center @md:gap-10" : "gap-10 @md:grid-cols-2"}`}>
+      <div className={`mx-auto grid max-w-4xl items-start ${pair ? "grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] gap-2 @md:items-center @md:gap-10" : "gap-10 @md:grid-cols-2"}`}>
         {people.map((p, i) => (
           <PersonBlock key={i} p={p} i={i} pair={pair} />
         ))}
@@ -319,13 +319,13 @@ export function Hosts({ data }) {
 }
 
 function PersonBlock({ p, i, pair }) {
-  // side-by-side couple: arches sized to the column on phones; a single host keeps the larger arch
-  const size = pair
-    ? "aspect-[3/4] w-full max-w-[9.5rem] @md:h-64 @md:w-52 @md:max-w-none @5xl:h-80 @5xl:w-64"
-    : "h-56 w-44 @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64";
+  // side-by-side couple: the arches always fill their column (capped as the screen grows), so the pair
+  // never runs off the side on in-between widths; a single host keeps the larger fixed arch
+  const size = pair ? "aspect-[3/4] w-full" : "h-56 w-44 @md:h-64 @md:w-52 @5xl:h-80 @5xl:w-64";
+  const frame = pair ? "relative w-full max-w-[9.5rem] @md:max-w-[13rem] @5xl:max-w-[16rem]" : "relative";
   const block = (
     <Reveal className="flex flex-col items-center text-center" delay={i * 120}>
-      <div className="relative">
+      <div className={frame}>
         <div className="absolute -inset-3 rounded-t-full" style={{ boxShadow: "inset 0 0 0 1px var(--inv-secondary)" }} />
         {p.photo ? (
           <Img src={p.photo} alt={p.name} className={`${size} rounded-t-full object-cover shadow-lg`} />

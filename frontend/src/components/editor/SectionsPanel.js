@@ -8,7 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 import SectionForm from "./SectionForms";
 import { SECTION_META, SECTION_TYPES, newId } from "@/data/sections";
 
-function SortableSection({ s, isOpen, onToggleOpen, onUpdate, onRemove }) {
+function SortableSection({ s, isOpen, onToggleOpen, onUpdate, onRemove, onEditing }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: s.id });
   const meta = SECTION_META[s.type] || { label: s.type };
   const Icon = meta.Icon;
@@ -16,6 +16,9 @@ function SortableSection({ s, isOpen, onToggleOpen, onUpdate, onRemove }) {
   return (
     <div
       ref={setNodeRef}
+      data-panel-section={s.id}
+      // working in a field: show this section in the preview
+      onFocusCapture={onEditing}
       style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 20 : undefined, position: "relative" }}
       className={`rounded-2xl border bg-white transition-shadow ${
         isDragging ? "border-ink/30 shadow-[0_20px_40px_-16px_rgba(28,26,61,.45)]" : isOpen ? "border-ink/25 shadow-[0_14px_30px_-20px_rgba(28,26,61,.5)]" : "border-ink/[0.08]"
@@ -63,8 +66,11 @@ function SortableSection({ s, isOpen, onToggleOpen, onUpdate, onRemove }) {
   );
 }
 
-export default function SectionsPanel({ sections, onChange, onFocusSection }) {
-  const [open, setOpen] = useState(sections[0]?.id || null);
+// openId / onOpenChange (optional): the open section, when the editor keeps it in step with the preview.
+export default function SectionsPanel({ sections, onChange, onFocusSection, openId, onOpenChange }) {
+  const [ownOpen, setOwnOpen] = useState(sections[0]?.id || null);
+  const open = onOpenChange ? openId : ownOpen;
+  const setOpen = onOpenChange || setOwnOpen;
   const [adding, setAdding] = useState(false);
 
   // Small movement threshold so taps on the handle don't start a drag; keyboard: Space + arrows.
@@ -113,6 +119,7 @@ export default function SectionsPanel({ sections, onChange, onFocusSection }) {
                 }}
                 onUpdate={(patch) => update(s.id, patch)}
                 onRemove={() => remove(s.id)}
+                onEditing={() => onFocusSection?.(s.id, { onlyIfHidden: true })}
               />
             ))}
           </div>
