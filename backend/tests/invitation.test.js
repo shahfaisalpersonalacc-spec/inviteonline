@@ -52,7 +52,7 @@ describe('invitations', () => {
 
     expect((await request(app).get(`/api/invitations/${inv._id}`).set(auth(other.token))).status).toBe(404);
     expect((await request(app).put(`/api/invitations/${inv._id}`).set(auth(other.token)).send({ title: 'hacked' })).status).toBe(404);
-    expect((await request(app).delete(`/api/invitations/${inv._id}`).set(auth(other.token))).status).toBe(404);
+    expect((await request(app).delete(`/api/invitations/${inv._id}`).set(auth(other.token)).send({ password: 'password123' })).status).toBe(404);
 
     const ok = await request(app).put(`/api/invitations/${inv._id}`).set(auth(owner.token)).send({ title: 'Updated', theme: { primary: '#123456' } });
     expect(ok.status).toBe(200);
@@ -144,7 +144,9 @@ describe('invitations', () => {
     expect(dup.body.invitation.slug).not.toBe(inv.slug);
     // the sticker stays on the same section, under that section's new id
     expect(dup.body.invitation.stickers[0].sectionId).toBe(dup.body.invitation.sections[1].id);
-    await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token)).expect(200);
+    expect((await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token))).status).toBe(400); // no password
+    expect((await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token)).send({ password: 'wrong-pass' })).status).toBe(400);
+    await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token)).send({ password: 'password123' }).expect(200);
     expect((await request(app).get(`/api/public/${inv.slug}`)).status).toBe(404);
   });
 });

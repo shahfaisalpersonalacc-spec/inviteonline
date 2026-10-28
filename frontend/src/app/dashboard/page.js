@@ -8,7 +8,7 @@ import { api, inviteUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/components/ui/Toast";
 import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
-import Modal from "@/components/ui/Modal";
+import DeleteInvitationDialog from "@/components/site/DeleteInvitationDialog";
 import ShareSheet from "@/components/invite/ShareSheet";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { PHOTO_DOORS } from "@/components/invite/entry/PhotoDoorEntry";
@@ -69,18 +69,12 @@ export default function DashboardPage() {
     }
   }
 
-  async function remove() {
-    setPending("delete");
-    try {
-      await api(`/invitations/${toDelete._id}`, { method: "DELETE" });
-      setItems((list) => list.filter((i) => i._id !== toDelete._id));
-      toast("Invitation deleted");
-    } catch (e) {
-      toast(e.message, "error");
-    } finally {
-      setToDelete(null);
-      setPending("");
-    }
+  // throws on a wrong password, so the dialog stays open and shows why
+  async function remove(password) {
+    await api(`/invitations/${toDelete._id}`, { method: "DELETE", body: { password } });
+    setItems((list) => list.filter((i) => i._id !== toDelete._id));
+    setToDelete(null);
+    toast("Invitation deleted");
   }
 
   if (!items) return <FullPageSpinner />;
@@ -183,19 +177,7 @@ export default function DashboardPage() {
 
       {share && <ShareSheet open onClose={() => setShare(null)} url={inviteUrl(share.slug)} title={share.title} />}
 
-      <Modal open={!!toDelete} onClose={() => setToDelete(null)} title="Delete invitation?">
-        <p className="text-sm text-ink-500">
-          &ldquo;{toDelete?.title}&rdquo; and all its RSVPs and wishes will be permanently deleted. The link will stop working. This can&apos;t be undone.
-        </p>
-        <div className="mt-6 flex justify-end gap-2">
-          <button className="btn-secondary" onClick={() => setToDelete(null)}>
-            Cancel
-          </button>
-          <button className="btn-danger" onClick={remove} disabled={pending === "delete"}>
-            {pending === "delete" && <Spinner className="h-4 w-4" />} {pending === "delete" ? "Deleting…" : "Delete"}
-          </button>
-        </div>
-      </Modal>
+      <DeleteInvitationDialog open={!!toDelete} title={toDelete?.title} onClose={() => setToDelete(null)} onConfirm={remove} />
     </div>
   );
 }

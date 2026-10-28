@@ -35,7 +35,7 @@ export default function MusicLibrary({ eventType, value, onPick }) {
   const row = (t) => {
     const chosen = value === t.src;
     return (
-      <li key={t.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${chosen ? "border-brand-600/50 bg-brand-50" : "border-ink/10 bg-white"}`}>
+      <li key={t.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition ${chosen ? "border-ink/40 bg-cream" : "border-ink/10 bg-white"}`}>
         <button
           type="button"
           onClick={() => preview(t)}
@@ -54,7 +54,7 @@ export default function MusicLibrary({ eventType, value, onPick }) {
           type="button"
           onClick={() => onPick(t)}
           disabled={chosen}
-          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition ${chosen ? "text-brand-600" : "bg-ink/5 text-ink hover:bg-ink/10"}`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold transition ${chosen ? "text-ink" : "bg-ink/5 text-ink hover:bg-ink/10"}`}
         >
           {chosen ? (
             <>
@@ -81,7 +81,7 @@ export default function MusicLibrary({ eventType, value, onPick }) {
           <ul className="space-y-2">{others.map(row)}</ul>
         </>
       ) : (
-        <button type="button" onClick={() => setShowAll(true)} className="mt-2 text-xs font-semibold text-brand-600 hover:underline">
+        <button type="button" onClick={() => setShowAll(true)} className="mt-2 text-xs font-semibold text-ink underline underline-offset-2 hover:text-ink-700">
           Show all {suggested.length + others.length} tracks
         </button>
       )}
