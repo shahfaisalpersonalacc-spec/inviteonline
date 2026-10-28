@@ -12,7 +12,7 @@ const makeUpload = (maxMb, mimePrefix) =>
     storage: multer.memoryStorage(),
     limits: { fileSize: maxMb * MB, files: 1 },
     fileFilter: (req, file, cb) =>
-      file.mimetype.startsWith(mimePrefix) ? cb(null, true) : cb(new HttpError(400, `Only ${mimePrefix.slice(0, -1)} files are allowed`)),
+      file.mimetype.startsWith(mimePrefix) ? cb(null, true) : cb(new HttpError(400, mimePrefix === 'image/' ? 'Please choose an image file (JPG, PNG or WebP).' : 'Please choose an audio file, such as an MP3.')),
   }).single('file');
 
 const imageUpload = makeUpload(8, 'image/');
@@ -21,13 +21,13 @@ const audioUpload = makeUpload(15, 'audio/');
 router.use(requireAuth, uploadLimiter);
 
 router.post('/image', imageUpload, async (req, res) => {
-  if (!req.file) throw new HttpError(400, 'No file uploaded');
+  if (!req.file) throw new HttpError(400, 'Please choose a file to upload.');
   const result = await uploadBuffer(req.file.buffer, { folder: `inviteonline/${req.user._id}/images` });
   res.status(201).json({ url: result.secure_url, width: result.width, height: result.height });
 });
 
 router.post('/audio', audioUpload, async (req, res) => {
-  if (!req.file) throw new HttpError(400, 'No file uploaded');
+  if (!req.file) throw new HttpError(400, 'Please choose a file to upload.');
   const result = await uploadBuffer(req.file.buffer, { folder: `inviteonline/${req.user._id}/audio`, resourceType: 'video' });
   res.status(201).json({ url: result.secure_url, duration: result.duration });
 });

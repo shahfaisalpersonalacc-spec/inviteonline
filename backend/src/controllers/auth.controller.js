@@ -53,7 +53,7 @@ async function sendCode(user, purpose) {
 async function register(req, res) {
   const { name, email: addr, password: pw } = req.body;
   let user = await User.findOne({ email: addr }).select(OTP_FIELDS);
-  if (user && user.emailVerified !== false) throw new HttpError(409, 'An account with this email already exists');
+  if (user && user.emailVerified !== false) throw new HttpError(409, 'An account with this email already exists. Try logging in instead.');
 
   // An unverified account is only a pending signup, so registering again simply takes it over.
   if (user) Object.assign(user, { name, password: pw });
@@ -87,7 +87,7 @@ async function resendCode(req, res) {
 async function login(req, res) {
   const { email: addr, password: pw } = req.body;
   const user = await User.findOne({ email: addr }).select(`+password ${OTP_FIELDS}`);
-  if (!user || !(await user.comparePassword(pw))) throw new HttpError(401, 'Invalid email or password');
+  if (!user || !(await user.comparePassword(pw))) throw new HttpError(401, 'Email or password is incorrect.');
 
   if (user.emailVerified === false) {
     await sendCode(user, 'verify').catch((e) => console.error('[auth] verify code on login failed:', e.message));
@@ -121,7 +121,7 @@ async function resetPassword(req, res) {
 // Step 1 of a password change from the profile: check the current password, email a code.
 async function requestPasswordCode(req, res) {
   const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
-  if (!(await user.comparePassword(req.body.currentPassword))) throw new HttpError(400, 'Current password is incorrect');
+  if (!(await user.comparePassword(req.body.currentPassword))) throw new HttpError(400, 'Your current password is incorrect.');
   await sendCode(user, 'change');
   res.json({ message: `We emailed a 6-digit code to ${user.email}.` });
 }
@@ -131,7 +131,7 @@ async function updateProfile(req, res) {
   const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
   if (newPassword) {
     if (!currentPassword || !(await user.comparePassword(currentPassword))) {
-      throw new HttpError(400, 'Current password is incorrect');
+      throw new HttpError(400, 'Your current password is incorrect.');
     }
     // step 2: the emailed code confirms it's really the account owner
     if (!otp) throw new HttpError(400, 'Enter the 6-digit code we emailed you');

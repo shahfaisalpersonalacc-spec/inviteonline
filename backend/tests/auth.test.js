@@ -157,6 +157,14 @@ describe('auth', () => {
     expect(res.status).toBe(400); // locked out after 5 attempts
   });
 
+  test('form mistakes come back as plain sentences', async () => {
+    const msg = async (body) => (await request(app).post('/api/auth/register').send(body)).body.message;
+    expect(await msg({})).toBe('Name is required');
+    expect(await msg({ name: 'Al', email: 'not-an-email', password: 'password123' })).toBe('Please enter a valid email address');
+    expect(await msg({ name: 'Al', email: 'a@b.com', password: 'short' })).toBe('Password must be at least 8 characters');
+    expect(await msg({ name: 'A', email: 'a@b.com', password: 'password123' })).toBe('Name must be at least 2 characters');
+  });
+
   test('a verify code cannot be used to reset the password', async () => {
     const creds = newCredentials();
     await request(app).post('/api/auth/register').send(creds).expect(201);

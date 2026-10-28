@@ -9,7 +9,7 @@ const { isValidSlug, uniqueSlug, slugify } = require('../utils/slug');
 const { buildDefaultSections, themeFor, monogramFrom, newId } = require('../utils/defaults');
 
 const { SECTION_TYPES, EVENT_TYPES } = Invitation;
-const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a hex colour');
+const color = z.string().regex(/^#[0-9a-fA-F]{3,8}$/, 'must be a colour like #c93a31');
 
 const themeSchema = z
   .object({
@@ -87,7 +87,7 @@ async function loadOwned(req, select) {
   const q = Invitation.findOne({ _id: req.params.id, owner: req.user._id });
   if (select) q.select(select);
   const inv = await q;
-  if (!inv) throw new HttpError(404, 'Invitation not found');
+  if (!inv) throw new HttpError(404, "We couldn't find this invitation. It may have been deleted.");
   return inv;
 }
 
@@ -146,7 +146,7 @@ async function update(req, res) {
     if (!isValidSlug(slug)) {
       throw new HttpError(400, 'Link must be 3–60 characters: lowercase letters, numbers and hyphens only');
     }
-    if (await Invitation.exists({ slug, _id: { $ne: inv._id } })) throw new HttpError(409, 'This link is already taken');
+    if (await Invitation.exists({ slug, _id: { $ne: inv._id } })) throw new HttpError(409, 'This link is already taken. Please choose another.');
     inv.slug = slug;
   }
   const current = inv.toObject();

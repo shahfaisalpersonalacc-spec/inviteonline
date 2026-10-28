@@ -20,7 +20,7 @@ function connectDB(uri = process.env.MONGODB_URI) {
       .catch((err) => {
         pending = null; // allow the next request to retry
         console.error('MongoDB connection failed:', err.message);
-        throw Object.assign(new Error('Database is unavailable, please try again shortly'), { status: 503 });
+        throw Object.assign(new Error("We're having trouble connecting right now. Please try again in a moment."), { status: 503 });
       });
   }
   return pending;

@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
 
   async function reset(e) {
     e.preventDefault();
-    if (password !== confirm) return setError("Passwords do not match");
+    if (password !== confirm) return setError("The two passwords don't match. Please type them again.");
     setBusy(true);
     setError("");
     try {

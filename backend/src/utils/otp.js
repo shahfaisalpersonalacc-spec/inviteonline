@@ -32,7 +32,7 @@ function clearOtp(user) {
 
 // Throws 400 unless `code` matches the user's live code for `purpose`. Saves the attempt count on failure.
 async function consumeOtp(user, purpose, code) {
-  const invalid = new HttpError(400, 'Invalid or expired code');
+  const invalid = new HttpError(400, 'That code is incorrect or has expired. Check your latest email, or ask for a new code.');
   if (!user || !user.otpHash || user.otpPurpose !== purpose || user.otpExpires < new Date()) throw invalid;
 
   // Count the attempt atomically in the database, so guesses sent in parallel can't all read the

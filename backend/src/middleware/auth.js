@@ -9,7 +9,7 @@ async function requireAuth(req, res, next) {
   if (!payload) throw new HttpError(401, 'Please log in to continue');
 
   const user = await User.findById(payload.sub);
-  if (!user) throw new HttpError(401, 'Account no longer exists');
+  if (!user) throw new HttpError(401, 'This account no longer exists. Please sign up again.');
   if (user.passwordChangedAt && payload.iat * 1000 < user.passwordChangedAt.getTime()) {
     throw new HttpError(401, 'Your password was changed. Please log in again.');
   }

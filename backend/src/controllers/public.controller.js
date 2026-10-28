@@ -21,7 +21,7 @@ const schemas = {
 
 async function findPublished(slug) {
   const inv = await Invitation.findOne({ slug: String(slug).toLowerCase(), published: true }).select('+passwordHash');
-  if (!inv) throw new HttpError(404, 'This invitation does not exist or is not published');
+  if (!inv) throw new HttpError(404, "This invitation doesn't exist or isn't available yet. Please check the link.");
   return inv;
 }
 
@@ -33,7 +33,7 @@ function isUnlocked(req, inv) {
 
 async function requireUnlocked(req) {
   const inv = await findPublished(req.params.slug);
-  if (!isUnlocked(req, inv)) throw new HttpError(403, 'This invitation is password protected');
+  if (!isUnlocked(req, inv)) throw new HttpError(403, 'This invitation is private. Please enter its password first.');
   return inv;
 }
 
@@ -71,7 +71,7 @@ async function getBySlug(req, res) {
 async function unlock(req, res) {
   const inv = await findPublished(req.params.slug);
   if (!inv.passwordHash) return res.json({ unlockToken: null });
-  if (!(await bcrypt.compare(req.body.password, inv.passwordHash))) throw new HttpError(401, 'Wrong password');
+  if (!(await bcrypt.compare(req.body.password, inv.passwordHash))) throw new HttpError(401, "That password isn't right. Please check it with the hosts.");
   res.json({ unlockToken: signUnlockToken(inv._id) });
 }
 
@@ -83,11 +83,11 @@ async function trackView(req, res) {
 async function submitRsvp(req, res) {
   const inv = await requireUnlocked(req);
   const rsvpSection = inv.sections.find((s) => s.type === 'rsvp' && s.enabled);
-  if (!rsvpSection) throw new HttpError(400, 'RSVP is not enabled for this invitation');
+  if (!rsvpSection) throw new HttpError(400, 'The hosts are not collecting RSVPs on this invitation.');
 
   const deadline = rsvpSection.data?.deadline && new Date(rsvpSection.data.deadline);
   if (deadline && !Number.isNaN(deadline.getTime()) && deadline.getTime() + 24 * 3600 * 1000 < Date.now()) {
-    throw new HttpError(400, 'The RSVP deadline has passed');
+    throw new HttpError(400, 'Sorry, the RSVP deadline has passed. Please contact the hosts directly.');
   }
   const maxGuests = Number(rsvpSection.data?.maxGuests) || 10;
   const body = { ...req.body, guests: req.body.status === 'no' ? 0 : Math.min(Math.max(req.body.guests, 1), maxGuests) };
@@ -105,7 +105,7 @@ async function listWishes(req, res) {
 
 async function addWish(req, res) {
   const inv = await requireUnlocked(req);
-  if (!inv.sections.some((s) => s.type === 'wishes' && s.enabled)) throw new HttpError(400, 'Wishes are not enabled');
+  if (!inv.sections.some((s) => s.type === 'wishes' && s.enabled)) throw new HttpError(400, 'The hosts have turned off wishes for this invitation.');
   const wish = await Wish.create({ invitation: inv._id, ...req.body });
   res.status(201).json({ wish: { _id: wish._id, name: wish.name, message: wish.message, createdAt: wish.createdAt } });
 }
