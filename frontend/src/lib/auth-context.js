@@ -22,6 +22,13 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false));
   }, []);
 
+  // any request answered 401 (expired or replaced session) logs out here too
+  useEffect(() => {
+    const expired = () => setUser(null);
+    window.addEventListener("auth:expired", expired);
+    return () => window.removeEventListener("auth:expired", expired);
+  }, []);
+
   const handleSession = useCallback((data) => {
     setToken(data.token);
     setUser(data.user);

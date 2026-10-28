@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { RotateCcw } from "lucide-react";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
@@ -39,6 +39,7 @@ export function PhoneFrame({ children, className = "" }) {
 // The demo phone is always laid out at this size, then scaled down as a whole when the screen is
 // narrower, so the invitation inside lines up exactly the same on every device.
 const PHONE = { w: 320, h: 660 };
+const noop = () => () => {};
 
 function useFitScale(ref, width) {
   const [scale, setScale] = useState(1);
@@ -60,6 +61,8 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
   const [run, setRun] = useState(0);
   const [opened, setOpened] = useState(false);
   const inv = useMemo(() => demoInvitation(PRESET_FOR[style] || "royal", style), [style]);
+  // the demo's dates are "today + N days": fixed at deploy time on the server, so show them only in the browser
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
 
   const replay = (next = style) => {
     setStyle(next);
@@ -75,7 +78,7 @@ export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = 
       <div className="inv-cursor" style={{ ...cursorVars(inv.eventType || "wedding", resolveTheme(inv.theme || {})), width: PHONE.w, height: PHONE.h, transform: `scale(${scale})`, transformOrigin: "top left" }}>
       <PhoneFrame className="h-full w-full">
         <div className="no-scrollbar absolute inset-0 overflow-y-auto overflow-x-hidden">
-          <InvitationRenderer invitation={inv} mode="demo" showFooter={false} />
+          {mounted && <InvitationRenderer invitation={inv} mode="demo" showFooter={false} />}
         </div>
         {!opened && (
           <EntryScreen

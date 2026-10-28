@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import InvitationRenderer, { ThemeFonts, themeVars } from "@/components/invite/InvitationRenderer";
 import EntryScreen from "@/components/invite/entry/EntryScreen";
 import { CircleAlert, Share2 } from "lucide-react";
@@ -13,6 +13,7 @@ import { cursorVars } from "@/lib/cursor";
 import { backgroundCss, resolveTheme } from "@/data/themes";
 
 const tokenKey = (slug) => `unlock:${slug}`;
+const noop = () => () => {};
 
 export default function PublicInvitation({ slug, initial }) {
   const [data, setData] = useState(initial);
@@ -22,6 +23,9 @@ export default function PublicInvitation({ slug, initial }) {
   const [playing, setPlaying] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [url, setUrl] = useState("");
+  // Dates and times are shown in the guest's own timezone, which the server can't know; rendering
+  // them only in the browser avoids a server/browser mismatch. (The entrance covers this moment.)
+  const mounted = useSyncExternalStore(noop, () => true, () => false);
 
   const load = useCallback(
     async (token) => {
@@ -63,7 +67,7 @@ export default function PublicInvitation({ slug, initial }) {
       sessionStorage.setItem(tokenKey(slug), token);
     } catch {}
     setUnlockToken(token);
-    await load(token);
+    if (!(await load(token))) throw new Error("Couldn't open the invitation, please try again");
   }
 
   if (!data) {
@@ -98,7 +102,7 @@ export default function PublicInvitation({ slug, initial }) {
 
   return (
     <div className="inv-cursor" style={{ ...themeVars(theme), ...cursorVars(inv.eventType, theme) }}>
-      <InvitationRenderer invitation={inv} mode="public" unlockToken={unlockToken} />
+      {mounted && <InvitationRenderer invitation={inv} mode="public" unlockToken={unlockToken} />}
 
       {showEnvelope && (
         <EntryScreen

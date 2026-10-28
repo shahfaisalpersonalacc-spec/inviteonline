@@ -11,7 +11,7 @@ const schemas = {
   rsvp: z.object({
     name: z.string().trim().min(1).max(80),
     phone: z.string().trim().max(30).optional().default(''),
-    email: z.union([z.email().trim().toLowerCase(), z.literal('')]).optional().default(''),
+    email: z.union([z.string().trim().toLowerCase().pipe(z.email()), z.literal('')]).optional().default(''),
     status: z.enum(['yes', 'no', 'maybe']),
     guests: z.coerce.number().int().min(0).max(50).default(1),
     message: z.string().trim().max(500).optional().default(''),
@@ -98,6 +98,7 @@ async function submitRsvp(req, res) {
 
 async function listWishes(req, res) {
   const inv = await requireUnlocked(req);
+  if (!inv.sections.some((s) => s.type === 'wishes' && s.enabled)) return res.json({ wishes: [] });
   const wishes = await Wish.find({ invitation: inv._id }).sort({ createdAt: -1 }).limit(100).select('name message createdAt').lean();
   res.json({ wishes });
 }

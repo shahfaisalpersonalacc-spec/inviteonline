@@ -106,7 +106,7 @@ describe('invitations', () => {
     const inv = await createInvite(token);
 
     await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'Guest One', status: 'yes', guests: 3 }).expect(201);
-    await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'Guest Two', status: 'no', guests: 4 }).expect(201);
+    await request(app).post(`/api/public/${inv.slug}/rsvp`).send({ name: 'Guest Two', status: 'no', guests: 4, message: '=HYPERLINK("http://x","y")' }).expect(201);
     await request(app).post(`/api/public/${inv.slug}/wishes`).send({ name: 'Aunt', message: 'Congrats!' }).expect(201);
 
     const list = await request(app).get(`/api/invitations/${inv._id}/rsvps`).set(auth(token));
@@ -115,6 +115,7 @@ describe('invitations', () => {
     const csv = await request(app).get(`/api/invitations/${inv._id}/rsvps?format=csv`).set(auth(token));
     expect(csv.headers['content-type']).toMatch(/text\/csv/);
     expect(csv.text).toContain('Guest One');
+    expect(csv.text).toContain(`"'=HYPERLINK(""http://x"",""y"")"`); // a formula is exported as plain text
 
     const wishes = await request(app).get(`/api/public/${inv.slug}/wishes`);
     expect(wishes.body.wishes[0].message).toBe('Congrats!');
@@ -128,9 +129,14 @@ describe('invitations', () => {
   test('duplicate and delete', async () => {
     const { token } = await register(request, app);
     const inv = await createInvite(token);
+    const sectionId = inv.sections[1].id;
+    await request(app).put(`/api/invitations/${inv._id}`).set(auth(token))
+      .send({ stickers: [{ id: 's1', stickerId: 'heart', sectionId, x: 10, y: 10, size: 10 }] }).expect(200);
     const dup = await request(app).post(`/api/invitations/${inv._id}/duplicate`).set(auth(token));
     expect(dup.status).toBe(201);
     expect(dup.body.invitation.slug).not.toBe(inv.slug);
+    // the sticker stays on the same section, under that section's new id
+    expect(dup.body.invitation.stickers[0].sectionId).toBe(dup.body.invitation.sections[1].id);
     await request(app).delete(`/api/invitations/${inv._id}`).set(auth(token)).expect(200);
     expect((await request(app).get(`/api/public/${inv.slug}`)).status).toBe(404);
   });

@@ -7,6 +7,12 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
 
 export default function Modal({ open, onClose, title, children, size = "max-w-md" }) {
   const panel = useRef(null);
+  // callers pass a new onClose each render; read it from a ref so a parent re-render doesn't
+  // re-run the effect below (which would move focus back to the first control)
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -19,7 +25,7 @@ export default function Modal({ open, onClose, title, children, size = "max-w-md
     (first || panel.current)?.focus();
 
     const onKey = (e) => {
-      if (e.key === "Escape") return onClose?.();
+      if (e.key === "Escape") return close.current?.();
       if (e.key !== "Tab" || !panel.current) return;
       // keep Tab / Shift+Tab inside the dialog
       const items = [...panel.current.querySelectorAll(FOCUSABLE)];
@@ -39,7 +45,7 @@ export default function Modal({ open, onClose, title, children, size = "max-w-md
       document.body.style.overflow = prevOverflow;
       previous?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

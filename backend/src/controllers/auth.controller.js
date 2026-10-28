@@ -6,7 +6,7 @@ const { sendEmail, otpEmail, welcomeEmail } = require('../utils/email');
 const { OTP_FIELDS, canResend, issueOtp, consumeOtp } = require('../utils/otp');
 
 const password = z.string().min(8, 'must be at least 8 characters').max(128);
-const email = z.email().trim().toLowerCase();
+const email = z.string().trim().toLowerCase().pipe(z.email());
 const code = z.string().trim().regex(/^\d{6}$/, 'must be 6 digits');
 
 const schemas = {
@@ -129,7 +129,6 @@ async function requestPasswordCode(req, res) {
 async function updateProfile(req, res) {
   const { name, currentPassword, newPassword, code: otp } = req.body;
   const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
-  if (name) user.name = name;
   if (newPassword) {
     if (!currentPassword || !(await user.comparePassword(currentPassword))) {
       throw new HttpError(400, 'Current password is incorrect');
@@ -139,8 +138,10 @@ async function updateProfile(req, res) {
     await consumeOtp(user, 'change', otp);
     user.password = newPassword;
   }
+  if (name) user.name = name; // only once every check above has passed
   await user.save();
-  res.json({ user: user.toPublic() });
+  // a password change ends older sessions, so this one gets a fresh token
+  res.json({ user: user.toPublic(), ...(newPassword ? { token: signAuthToken(user._id) } : {}) });
 }
 
 module.exports = { schemas, register, verifyEmail, resendCode, login, me, forgotPassword, resetPassword, requestPasswordCode, updateProfile };

@@ -28,7 +28,8 @@ const TABS = [
 
 // Fields that autosave; slug & password are saved explicitly from Settings.
 const AUTOSAVE_FIELDS = ["title", "eventType", "description", "coverImage", "theme", "sections", "stickers", "music", "published"];
-const pick = (o) => Object.fromEntries(AUTOSAVE_FIELDS.map((k) => [k, o[k]]));
+// (a blank title isn't sent: the server requires one, and it would reject the whole save)
+const pick = (o) => Object.fromEntries(AUTOSAVE_FIELDS.filter((k) => k !== "title" || o.title?.trim()).map((k) => [k, o[k]]));
 
 export default function EditorPage() {
   const { id } = useParams();
@@ -205,6 +206,8 @@ export default function EditorPage() {
 
   async function removeInvitation() {
     setDeleting(true);
+    clearTimeout(timer.current); // no autosave to a deleted invitation
+    retryRef.current = null;
     try {
       await api(`/invitations/${id}`, { method: "DELETE" });
       toast("Invitation deleted");

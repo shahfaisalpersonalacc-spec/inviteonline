@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, Phone, Trash2, Users } from "lucide-react";
 import { api, downloadFile } from "@/lib/api";
@@ -18,6 +18,7 @@ const STATUS = {
 export default function GuestsPage() {
   const { id } = useParams();
   const params = useSearchParams();
+  const router = useRouter();
   const toast = useToast();
   const [inv, setInv] = useState(null);
   const [rsvp, setRsvp] = useState(null);
@@ -34,8 +35,11 @@ export default function GuestsPage() {
         setRsvp(b);
         setWishes(c.wishes);
       })
-      .catch((e) => toast(e.message, "error"));
-  }, [id, toast]);
+      .catch((e) => {
+        toast(e.message, "error");
+        router.replace("/dashboard");
+      });
+  }, [id, toast, router]);
 
   const list = useMemo(() => {
     if (!rsvp) return [];

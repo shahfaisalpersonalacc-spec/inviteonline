@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { LayoutGrid, LogOut, Plus, UserRound } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import { FullPageSpinner } from "@/components/ui/Spinner";
@@ -14,8 +14,9 @@ export default function DashboardLayout({ children }) {
   const pathname = usePathname();
   const [menu, setMenu] = useState(false);
 
+  const leaving = useRef(false); // logging out: going home, not to /login
   useEffect(() => {
-    if (!loading && !user) router.replace("/login");
+    if (!loading && !user && !leaving.current) router.replace("/login");
   }, [loading, user, router]);
 
   if (loading || !user) return <FullPageSpinner />;
@@ -69,6 +70,7 @@ export default function DashboardLayout({ children }) {
                     </Link>
                     <button
                       onClick={() => {
+                        leaving.current = true;
                         logout();
                         router.replace("/");
                       }}

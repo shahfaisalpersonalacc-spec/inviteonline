@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ImagePlus, Music, Plus, X } from "lucide-react";
 import { uploadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
@@ -96,6 +96,16 @@ export function ColorInput({ label, value, onChange }) {
   );
 }
 
+// The newest props, for code that runs after an await (an upload can take seconds, and the form
+// may have changed meanwhile; writing back the props captured at the start would undo that).
+function useLatest(value) {
+  const ref = useRef(value);
+  useLayoutEffect(() => {
+    ref.current = value;
+  });
+  return ref;
+}
+
 function useUpload(kind) {
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -117,6 +127,7 @@ function useUpload(kind) {
 
 export function ImageInput({ label, hint, value, onChange, shape = "rect" }) {
   const input = useRef(null);
+  const latest = useLatest(onChange);
   const { busy, upload } = useUpload("image");
   const [showUrl, setShowUrl] = useState(false);
 
@@ -160,7 +171,7 @@ export function ImageInput({ label, hint, value, onChange, shape = "rect" }) {
         onChange={async (e) => {
           const [url] = await upload([...e.target.files]);
           e.target.value = "";
-          if (url) onChange(url);
+          if (url) latest.current(url);
         }}
       />
     </Field>
@@ -169,6 +180,7 @@ export function ImageInput({ label, hint, value, onChange, shape = "rect" }) {
 
 export function GalleryInput({ value = [], onChange }) {
   const input = useRef(null);
+  const latest = useLatest({ value, onChange });
   const { busy, upload } = useUpload("image");
   const move = (i, d) => {
     const next = [...value];
@@ -214,7 +226,7 @@ export function GalleryInput({ value = [], onChange }) {
         onChange={async (e) => {
           const urls = await upload([...e.target.files].slice(0, 20));
           e.target.value = "";
-          if (urls.length) onChange([...value, ...urls]);
+          if (urls.length) latest.current.onChange([...latest.current.value, ...urls]);
         }}
       />
     </Field>
@@ -223,6 +235,7 @@ export function GalleryInput({ value = [], onChange }) {
 
 export function AudioInput({ value, onChange }) {
   const input = useRef(null);
+  const latest = useLatest(onChange);
   const { busy, upload } = useUpload("audio");
   return (
     <div className="space-y-2">
@@ -246,7 +259,7 @@ export function AudioInput({ value, onChange }) {
         onChange={async (e) => {
           const [url] = await upload([...e.target.files]);
           e.target.value = "";
-          if (url) onChange(url);
+          if (url) latest.current(url);
         }}
       />
     </div>

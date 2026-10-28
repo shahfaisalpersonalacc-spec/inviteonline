@@ -35,13 +35,18 @@ async function consumeOtp(user, purpose, code) {
   const invalid = new HttpError(400, 'Invalid or expired code');
   if (!user || !user.otpHash || user.otpPurpose !== purpose || user.otpExpires < new Date()) throw invalid;
 
-  if (sha256(code) !== user.otpHash) {
-    user.otpAttempts = (user.otpAttempts || 0) + 1;
-    if (user.otpAttempts >= MAX_ATTEMPTS) clearOtp(user);
-    await user.save();
+  // Count the attempt atomically in the database, so guesses sent in parallel can't all read the
+  // same count and slip past the limit. (Only the counter is written, nothing else on the user.)
+  const Model = user.constructor;
+  const counted = await Model.findOneAndUpdate({ _id: user._id, otpHash: user.otpHash }, { $inc: { otpAttempts: 1 } }, { new: true }).select(OTP_FIELDS);
+  const spent = !counted || counted.otpAttempts > MAX_ATTEMPTS;
+  if (spent || sha256(code) !== user.otpHash) {
+    if (counted && counted.otpAttempts >= MAX_ATTEMPTS) {
+      await Model.updateOne({ _id: user._id }, { $unset: { otpHash: 1, otpPurpose: 1, otpExpires: 1, otpAttempts: 1, otpSentAt: 1 } });
+    }
     throw invalid;
   }
-  clearOtp(user);
+  clearOtp(user); // the caller saves
 }
 
 module.exports = { OTP_FIELDS, MAX_ATTEMPTS, canResend, issueOtp, consumeOtp };

@@ -6,6 +6,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, maxlength: 80 },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     password: { type: String, required: true, select: false },
+    // login tokens issued before this are no longer accepted (set whenever the password changes)
+    passwordChangedAt: { type: Date },
     // No default on purpose: accounts created before email verification existed have no
     // value and must keep working. Only an explicit `false` means "not verified yet".
     emailVerified: { type: Boolean },
@@ -20,6 +22,8 @@ const userSchema = new mongoose.Schema(
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
+  // 1s back, so the token issued right after this change (iat is in whole seconds) still counts as newer
+  if (!this.isNew) this.passwordChangedAt = new Date(Date.now() - 1000);
   this.password = await bcrypt.hash(this.password, 12);
 });
 

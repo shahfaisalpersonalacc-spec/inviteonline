@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { z } = require('zod');
 const bcrypt = require('bcryptjs');
 const Invitation = require('../models/Invitation');
@@ -169,6 +170,7 @@ async function duplicate(req, res) {
   const src = await loadOwned(req);
   const o = src.toObject();
   const title = `${o.title} (copy)`.slice(0, 120);
+  const ids = {}; // old section id -> new
   const copy = await Invitation.create({
     owner: req.user._id,
     title,
@@ -177,8 +179,9 @@ async function duplicate(req, res) {
     description: o.description,
     coverImage: o.coverImage,
     theme: o.theme,
-    sections: o.sections.map((s) => ({ ...s, id: newId() })),
-    stickers: o.stickers.map((s) => ({ ...s, id: newId() })),
+    sections: o.sections.map((s) => ({ ...s, id: (ids[s.id] = newId()) })),
+    // stickers follow their section to its new id
+    stickers: o.stickers.map((s) => ({ ...s, id: newId(), sectionId: ids[s.sectionId] || '' })),
     music: o.music,
     published: false,
   });
@@ -189,7 +192,7 @@ async function slugAvailable(req, res) {
   const slug = slugify(req.params.slug);
   const valid = isValidSlug(slug) && slug === req.params.slug.toLowerCase();
   const taken = valid
-    ? await Invitation.exists({ slug, ...(req.query.exclude ? { _id: { $ne: req.query.exclude } } : {}) })
+    ? await Invitation.exists({ slug, ...(mongoose.isValidObjectId(req.query.exclude) ? { _id: { $ne: req.query.exclude } } : {}) })
     : true;
   res.json({ slug, valid, available: valid && !taken });
 }
@@ -199,7 +202,12 @@ async function listRsvps(req, res) {
   const rsvps = await Rsvp.find({ invitation: inv._id }).sort({ createdAt: -1 }).lean();
 
   if (req.query.format === 'csv') {
-    const esc = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    // quotes doubled; guest text starting with = + - @ (or tab/CR) is prefixed with ' so
+    // spreadsheets show it as text instead of running it as a formula
+    const esc = (v) => {
+      const s = String(v ?? '');
+      return `"${(/^[=+\-@\t\r]/.test(s) ? `'${s}` : s).replace(/"/g, '""')}"`;
+    };
     const rows = [
       ['Name', 'Status', 'Guests', 'Phone', 'Email', 'Message', 'Date'],
       ...rsvps.map((r) => [r.name, r.status, r.guests, r.phone, r.email, r.message, new Date(r.createdAt).toISOString()]),

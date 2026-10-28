@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { api } from "@/lib/api";
+import { api, setToken } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/components/ui/Toast";
 import PasswordInput from "@/components/ui/PasswordInput";
@@ -23,6 +23,7 @@ export default function ProfilePage() {
     setBusy(kind);
     try {
       const d = await api("/auth/profile", { method: "PUT", body });
+      if (d.token) setToken(d.token);
       setUser(d.user);
       toast(kind === "pw" ? "Password updated" : "Profile saved");
       if (kind === "pw") cancelChange();

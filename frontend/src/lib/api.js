@@ -44,6 +44,10 @@ export async function api(path, { method = "GET", body, headers = {}, auth = tru
   const isJson = res.headers.get("content-type")?.includes("application/json");
   const data = isJson ? await res.json() : null;
   if (!res.ok) {
+    if (res.status === 401 && token) {
+      setToken(null);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("auth:expired"));
+    }
     const err = new Error(data?.message || `Request failed (${res.status})`);
     err.status = res.status;
     err.data = data;

@@ -9,7 +9,7 @@ router.post('/verify-email', authLimiter, validate(c.schemas.verifyEmail), c.ver
 router.post('/resend-code', emailLimiter, validate(c.schemas.resendCode), c.resendCode);
 router.post('/login', authLimiter, validate(c.schemas.login), c.login);
 router.get('/me', requireAuth, c.me);
-router.put('/profile', requireAuth, validate(c.schemas.profile), c.updateProfile);
+router.put('/profile', requireAuth, authLimiter, validate(c.schemas.profile), c.updateProfile);
 router.post('/password-code', requireAuth, emailLimiter, validate(c.schemas.passwordCode), c.requestPasswordCode);
 router.post('/forgot-password', emailLimiter, validate(c.schemas.forgot), c.forgotPassword);
 router.post('/reset-password', authLimiter, validate(c.schemas.reset), c.resetPassword);

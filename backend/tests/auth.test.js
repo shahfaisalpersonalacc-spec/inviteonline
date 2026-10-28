@@ -127,10 +127,34 @@ describe('auth', () => {
     expect((await change({})).status).toBe(400); // no code
     await plantCode(credentials.email, 'change');
     expect((await change({ code: '000000' })).status).toBe(400); // wrong code
-    expect((await change({ code: CODE })).status).toBe(200);
+    const done = await change({ code: CODE });
+    expect(done.status).toBe(200);
+    expect(done.body.token).toBeTruthy(); // this session continues with a fresh token...
 
+    // ...while older sessions end
+    expect((await request(app).get('/api/auth/me').set(auth)).status).toBe(401);
     await request(app).post('/api/auth/login').send({ email: credentials.email, password: 'changed1234' }).expect(200);
-    expect((await change({ currentPassword: 'changed1234', newPassword: 'again12345', code: CODE })).status).toBe(400); // code is single-use
+    const again = await request(app).put('/api/auth/profile').set({ Authorization: `Bearer ${done.body.token}` })
+      .send({ currentPassword: 'changed1234', newPassword: 'again12345', code: CODE });
+    expect(again.status).toBe(400); // code is single-use
+  });
+
+  test('a wrong code does not save other profile changes', async () => {
+    const { token, credentials } = await register(request, app);
+    const auth = { Authorization: `Bearer ${token}` };
+    await plantCode(credentials.email, 'change');
+    const res = await request(app).put('/api/auth/profile').set(auth).send({ name: 'Changed Name', currentPassword: credentials.password, newPassword: 'changed1234', code: '000000' });
+    expect(res.status).toBe(400);
+    expect((await request(app).get('/api/auth/me').set(auth)).body.user.name).toBe('Test User');
+  });
+
+  test('parallel wrong guesses still use up the code', async () => {
+    const creds = newCredentials();
+    await request(app).post('/api/auth/register').send(creds).expect(201);
+    await plantCode(creds.email, 'reset');
+    await Promise.all(Array.from({ length: 12 }, () => request(app).post('/api/auth/reset-password').send({ email: creds.email, code: '000000', password: 'newpassword1' })));
+    const res = await request(app).post('/api/auth/reset-password').send({ email: creds.email, code: CODE, password: 'newpassword1' });
+    expect(res.status).toBe(400); // locked out after 5 attempts
   });
 
   test('a verify code cannot be used to reset the password', async () => {
