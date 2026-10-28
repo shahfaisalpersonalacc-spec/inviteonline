@@ -7,6 +7,7 @@ import { EVENT_TYPES } from "@/data/eventTypes";
 import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
+import LogoLoader from "@/components/ui/LogoLoader";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import TemplatePreview from "@/components/site/TemplatePreview";
 import { getTemplate, templateTheme, templatesFor } from "@/data/templates";
@@ -41,7 +42,8 @@ export default function NewInvitationPage() {
       const body = { title: title.trim() || "My Invitation", eventType, themePreset: theme, mode };
       if (t) Object.assign(body, { theme: templateTheme(t), heroLayout: t.heroLayout, heroFoil: !!t.design.foil });
       const d = await api("/invitations", { method: "POST", body });
-      router.replace(`/dashboard/edit/${d.invitation._id}`);
+      // ?new=1: the editor keeps the same animated loader up while it opens
+      router.replace(`/dashboard/edit/${d.invitation._id}?new=1`);
     } catch (e) {
       setError(e.message);
       setBusy(false);
@@ -50,6 +52,7 @@ export default function NewInvitationPage() {
 
   return (
     <div className="mx-auto max-w-4xl pb-10">
+      {busy && <LogoLoader />}
       <p className="eyebrow">
         <span className="h-px w-8 bg-brand-600/40" /> New invitation
       </p>
@@ -183,8 +186,8 @@ export default function NewInvitationPage() {
 
       <form onSubmit={create}>
       <Step n="IV">Give it a name</Step>
-      <input className="input mt-4 !rounded-2xl !py-3.5 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Ayesha weds Ahmed" />
-      <p className="mt-2 text-xs text-ink-500">This also becomes your link, e.g. /i/ayesha-weds-ahmed. You can change it later.</p>
+      <input className="input mt-4 !rounded-2xl !py-3.5 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
+      <p className="mt-2 text-xs text-ink-500">This also becomes your link, e.g. /i/our-celebration. You can change it later.</p>
 
       {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
       <div className="mt-12 flex justify-stretch border-t border-ink/10 pt-8 sm:justify-end">

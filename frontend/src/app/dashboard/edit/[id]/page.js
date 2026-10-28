@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
+import LogoLoader from "@/components/ui/LogoLoader";
 import Modal from "@/components/ui/Modal";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import ShareSheet from "@/components/invite/ShareSheet";
@@ -33,6 +34,9 @@ const pick = (o) => Object.fromEntries(AUTOSAVE_FIELDS.filter((k) => k !== "titl
 
 export default function EditorPage() {
   const { id } = useParams();
+  const searchParams = useSearchParams();
+  // arriving from "Create": the same loader continues (read once; the ?new=1 is removed after loading)
+  const [justCreated] = useState(() => searchParams.get("new") === "1");
   const router = useRouter();
   const toast = useToast();
 
@@ -61,13 +65,14 @@ export default function EditorPage() {
       .then((d) => {
         setInv(d.invitation);
         latest.current = d.invitation;
+        if (justCreated) window.history.replaceState(null, "", window.location.pathname); // a reload shouldn't say "preparing"
         setTargetSection(d.invitation.sections[0]?.id || "");
       })
       .catch((e) => {
         toast(e.message, "error");
         router.replace("/dashboard");
       });
-  }, [id, router, toast]);
+  }, [id, router, toast, justCreated]);
 
   const flush = useCallback(async () => {
     if (inFlight.current) {
@@ -218,7 +223,7 @@ export default function EditorPage() {
     }
   }
 
-  if (!inv) return <FullPageSpinner />;
+  if (!inv) return justCreated ? <LogoLoader /> : <FullPageSpinner />;
 
   const selectedSticker = inv.stickers.find((s) => s.id === selected);
   const statusLabel = { saved: "All changes saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Not saved" }[status];

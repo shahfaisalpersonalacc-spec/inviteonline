@@ -107,6 +107,37 @@ body {
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* LogoLoader (animated logo): card rises out of the envelope, flap lifts, sparkle, confetti */
+@keyframes ll-card {
+  0%, 100% { transform: translateY(10px); }
+  45%, 60% { transform: translateY(-6px); }
+}
+@keyframes ll-flap {
+  0%, 100% { transform: scaleY(1); }
+  45%, 60% { transform: scaleY(1.25); }
+}
+@keyframes ll-twinkle {
+  0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.5; }
+  50% { transform: scale(1.15) rotate(45deg); opacity: 1; }
+}
+@keyframes ll-pop {
+  0% { transform: translateY(4px) scale(0); opacity: 0; }
+  30% { transform: translateY(0) scale(1.2); opacity: 1; }
+  100% { transform: translateY(-8px) scale(0.6); opacity: 0; }
+}
+@keyframes ll-fade {
+  0% { opacity: 0; transform: translateY(4px); }
+  20%, 80% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+@keyframes ll-bar {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(320%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[ll-"] { animation: none !important; }
+}
+
 /* Landing page with a saved session: a plain cover until the redirect check is done (DashboardRedirect) */
 html.auth-pending::after {
   content: "";
