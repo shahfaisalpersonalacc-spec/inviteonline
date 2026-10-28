@@ -8,6 +8,7 @@ import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
+import { defaultMusicFor } from "@/data/music";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import TemplatePreview from "@/components/site/TemplatePreview";
 import { getTemplate, templateTheme, templatesFor } from "@/data/templates";
@@ -39,7 +40,8 @@ export default function NewInvitationPage() {
     setError("");
     try {
       const t = template && getTemplate(template);
-      const body = { title: title.trim() || "My Invitation", eventType, themePreset: theme, mode };
+      const song = defaultMusicFor(eventType); // a soft track that suits the occasion (changeable in Settings)
+      const body = { title: title.trim() || "My Invitation", eventType, themePreset: theme, mode, music: { url: song.src, title: song.title, enabled: true } };
       if (t) Object.assign(body, { theme: templateTheme(t), heroLayout: t.heroLayout, heroFoil: !!t.design.foil });
       const d = await api("/invitations", { method: "POST", body });
       // ?new=1: the editor keeps the same animated loader up while it opens

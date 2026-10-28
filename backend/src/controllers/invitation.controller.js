@@ -65,6 +65,8 @@ const schemas = {
     theme: themeSchema.optional(),
     heroFoil: z.boolean().optional(),
     heroLayout: z.enum(['arch', 'circle', 'full', 'classic', 'photo-top', 'floral']).optional(),
+    // background music to start with (the app picks a built-in track for the occasion)
+    music: z.object({ url: z.string().max(1000), title: z.string().max(120), enabled: z.boolean() }).partial().optional(),
   }),
   update: z.object({
     title: z.string().trim().min(1).max(120).optional(),
@@ -117,7 +119,7 @@ async function list(req, res) {
 }
 
 async function create(req, res) {
-  const { title, eventType, themePreset, mode, theme, heroLayout, heroFoil } = req.body;
+  const { title, eventType, themePreset, mode, theme, heroLayout, heroFoil, music } = req.body;
   const { sections, themePreset: defaultPreset, monogram } = buildDefaultSections(eventType, title);
   const hero = sections.find((s) => s.type === 'hero');
   if (hero && heroLayout) hero.data.layout = heroLayout;
@@ -129,6 +131,7 @@ async function create(req, res) {
     slug: await uniqueSlug(Invitation, title),
     theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(title) || monogram), ...theme, mode },
     sections,
+    ...(music ? { music } : {}),
   });
   res.status(201).json({ invitation: serialize(inv) });
 }

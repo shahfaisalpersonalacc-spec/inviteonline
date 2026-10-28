@@ -7,6 +7,8 @@ import { useToast } from "@/components/ui/Toast";
 import Spinner from "@/components/ui/Spinner";
 import { EVENT_TYPES } from "@/data/eventTypes";
 import { AudioInput, Field, ImageInput, Select, Text, TextArea, Toggle } from "./fields";
+import MusicLibrary from "./MusicLibrary";
+import { musicTrack } from "@/data/music";
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
 
@@ -110,8 +112,11 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
 
       <section className="space-y-4">
         <h3 className="text-sm font-bold text-ink">Background music</h3>
-        <Toggle label="Play music" hint="Starts when guests open the envelope; they can pause anytime." checked={music.enabled} onChange={(v) => set({ music: { ...music, enabled: v } })} />
-        <AudioInput value={music.url} onChange={(v) => set({ music: { ...music, url: v, enabled: v ? true : music.enabled } })} />
+        <Toggle label="Play music" hint="Plays softly once guests open the invitation; they can pause anytime." checked={music.enabled} onChange={(v) => set({ music: { ...music, enabled: v } })} />
+        <MusicLibrary eventType={inv.eventType} value={music.url} onPick={(t) => set({ music: { ...music, url: t.src, title: t.title, enabled: true } })} />
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">Or your own song</p>
+        {/* a library track is shown in the list above, so this box is only for the user's own file or link */}
+        <AudioInput value={musicTrack(music.url) ? "" : music.url} onChange={(v) => set({ music: { ...music, url: v, enabled: v ? true : music.enabled } })} />
         <Text label="Song title (optional)" value={music.title} onChange={(v) => set({ music: { ...music, title: v } })} maxLength={120} />
       </section>
 

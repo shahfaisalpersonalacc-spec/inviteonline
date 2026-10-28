@@ -3,14 +3,25 @@
 import { useEffect, useRef } from "react";
 import { Disc3, VolumeX } from "lucide-react";
 
+// Background music plays softly: it eases in to a low volume so it sits under the invitation.
+const SOFT = 0.35;
+
 export default function MusicPlayer({ url, title, playing, setPlaying }) {
   const audio = useRef(null);
 
   useEffect(() => {
     const el = audio.current;
     if (!el) return;
-    if (playing) el.play().catch(() => setPlaying(false));
-    else el.pause();
+    if (!playing) return el.pause();
+    el.volume = 0;
+    el.play().catch(() => setPlaying(false));
+    const start = performance.now();
+    const t = setInterval(() => {
+      const k = Math.min(1, (performance.now() - start) / 2500);
+      el.volume = SOFT * k * k;
+      if (k >= 1) clearInterval(t);
+    }, 60);
+    return () => clearInterval(t);
   }, [playing, setPlaying]);
 
   if (!url) return null;

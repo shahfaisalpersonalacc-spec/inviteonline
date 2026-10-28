@@ -126,6 +126,13 @@ describe('invitations', () => {
     expect(row.wishCount).toBe(1);
   });
 
+  test('a new invitation can start with background music', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, { title: 'Ali & Sara', eventType: 'nikah', music: { url: '/music/noor.mp3', title: 'Noor', enabled: true } });
+    expect(inv.music.url).toBe('/music/noor.mp3');
+    expect(inv.music.enabled).toBe(true);
+  });
+
   test('duplicate and delete', async () => {
     const { token } = await register(request, app);
     const inv = await createInvite(token);
