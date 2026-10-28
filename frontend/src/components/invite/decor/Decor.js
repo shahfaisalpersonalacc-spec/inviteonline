@@ -1,7 +1,7 @@
 "use client";
 
 import { FLORA, FloralCorner, FloralGarland } from "./flora";
-import { BalloonCorner, DecoCorner, GeometricCorner, SkyCorner, Toran } from "./ornaments";
+import { BalloonCorner, CrimsonRoseCorner, DecoCorner, GeometricCorner, SkyCorner, Toran } from "./ornaments";
 import { getTemplate } from "@/data/templates";
 import { luminance } from "@/lib/color";
 
@@ -18,6 +18,7 @@ export function DecorPiece({ decor, theme, className = "", style, seed }) {
   if (decor === "balloons") return <BalloonCorner colors={[p, s, "#3cc6b5", "#7b6cf6"]} className={className} style={style} />;
   if (decor === "geometric") return <GeometricCorner gold={s} deep={p} className={className} style={style} />;
   if (decor === "deco") return <DecoCorner color={s} className={className} style={style} />;
+  if (decor === "crimson") return <CrimsonRoseCorner className={className} style={style} seed={seed} />;
   return null;
 }
 

@@ -8,14 +8,17 @@ import { api } from "@/lib/api";
 import { formatDate, timeAgo } from "@/lib/format";
 import Spinner from "@/components/ui/Spinner";
 
+// Fields: a soft wash of the text colour and a fine border, so they read well on light pages and on
+// dark bands alike (the page colour itself would vanish into a dark card).
 const fieldStyle = {
-  background: "var(--inv-bg)",
-  border: "1px solid color-mix(in srgb, var(--inv-secondary) 70%, transparent)",
+  background: "color-mix(in srgb, var(--inv-text) 5%, transparent)",
+  border: "1px solid color-mix(in srgb, var(--inv-text) 16%, transparent)",
   color: "var(--inv-text)",
+  "--tw-ring-color": "color-mix(in srgb, var(--inv-secondary) 70%, transparent)",
 };
 // text-base (16px) stops iOS Safari zooming in when a field is focused.
-const fieldCls = "block min-h-12 w-full rounded-xl px-3.5 py-2.5 text-base outline-none focus:ring-2";
-const labelCls = "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70";
+const fieldCls = "block min-h-12 w-full rounded-xl px-4 py-3 text-base outline-none transition placeholder:opacity-50 focus:ring-2";
+const labelCls = "mb-2 block text-[10.5px] font-medium uppercase tracking-[0.22em] opacity-60";
 
 function useGuestHeaders() {
   const { unlockToken } = useInvite();
@@ -79,7 +82,7 @@ export function Rsvp({ data }) {
             </div>
           ) : (
             // The form is its own container so it adapts to the card's width, not the screen's.
-            <form onSubmit={submit} className="@container space-y-4">
+            <form onSubmit={submit} className="@container space-y-5">
               <div className={`grid gap-3 ${data.askPhone !== false ? "@lg:grid-cols-2" : ""}`}>
                 <label className="block">
                   <span className={labelCls}>Your name</span>
@@ -95,12 +98,12 @@ export function Rsvp({ data }) {
 
               <fieldset>
                 <legend className={labelCls}>Will you attend?</legend>
-                {/* Stacked rows on narrow cards, three tiles once there is room. */}
-                <div className="grid gap-2 @sm:grid-cols-3" role="radiogroup" aria-label="Will you attend?">
+                {/* one row of three on every screen; the chosen one is tinted and outlined in the accent */}
+                <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Will you attend?">
                   {[
-                    ["yes", "Joyfully accept", Check],
+                    ["yes", "Accept", Check],
                     ["maybe", "Maybe", CircleHelp],
-                    ["no", "Regretfully decline", X],
+                    ["no", "Decline", X],
                   ].map(([v, label, Icon]) => {
                     const active = form.status === v;
                     return (
@@ -110,18 +113,25 @@ export function Rsvp({ data }) {
                         role="radio"
                         aria-checked={active}
                         onClick={() => setForm((f) => ({ ...f, status: v }))}
-                        className="flex min-h-12 items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-sm font-semibold leading-tight transition @sm:flex-col @sm:justify-center @sm:gap-1.5 @sm:px-2 @sm:py-3 @sm:text-center"
-                        style={active ? { background: "var(--inv-primary)", color: "var(--inv-on-primary)", boxShadow: "0 10px 22px -14px var(--inv-primary)" } : fieldStyle}
+                        className="flex min-h-[4.25rem] flex-col items-center justify-center gap-1.5 rounded-xl px-1 py-2.5 text-center text-[13px] font-medium leading-tight transition"
+                        style={
+                          active
+                            ? {
+                                background: "color-mix(in srgb, var(--inv-primary) 16%, transparent)",
+                                border: "1px solid var(--inv-primary)",
+                                color: "var(--inv-text)",
+                              }
+                            : fieldStyle
+                        }
                       >
-                        <Icon className="h-5 w-5 shrink-0" strokeWidth={1.8} />
-                        <span className="flex-1 @sm:flex-none">{label}</span>
                         <span
-                          className="grid h-5 w-5 shrink-0 place-items-center rounded-full @sm:hidden"
-                          style={{ boxShadow: `inset 0 0 0 1.5px ${active ? "var(--inv-on-primary)" : "color-mix(in srgb, var(--inv-text) 35%, transparent)"}` }}
+                          className="grid h-7 w-7 place-items-center rounded-full transition"
+                          style={active ? { background: "var(--inv-primary)", color: "var(--inv-on-primary)" } : { boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-text) 30%, transparent)" }}
                           aria-hidden
                         >
-                          {active && <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--inv-on-primary)" }} />}
+                          <Icon className="h-3.5 w-3.5" strokeWidth={2.2} />
                         </span>
+                        {label}
                       </button>
                     );
                   })}
@@ -129,30 +139,31 @@ export function Rsvp({ data }) {
               </fieldset>
 
               {form.status !== "no" && (
-                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl px-3.5 py-2.5" style={fieldStyle}>
-                  <span className="text-sm font-semibold">
-                    Guests <span className="font-normal opacity-70">(including you)</span>
+                <div className="flex items-center justify-between gap-4 rounded-xl px-4 py-2.5" style={fieldStyle}>
+                  <span className="min-w-0 text-sm leading-tight">
+                    <span className="font-medium">Guests</span>
+                    <span className="block whitespace-nowrap text-xs opacity-60">including you</span>
                   </span>
                   <div className="flex items-center gap-1" role="group" aria-label="Number of guests">
                     <button
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, guests: Math.max(1, Number(f.guests) - 1) }))}
                       disabled={form.guests <= 1}
-                      className="grid h-10 w-10 place-items-center rounded-full disabled:opacity-35"
-                      style={{ boxShadow: "inset 0 0 0 1.5px var(--inv-primary)", color: "var(--inv-primary)" }}
+                      className="grid h-9 w-9 place-items-center rounded-full transition disabled:opacity-30"
+                      style={{ boxShadow: "inset 0 0 0 1px var(--inv-primary)", color: "var(--inv-primary)" }}
                       aria-label="Fewer guests"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-9 text-center text-lg font-semibold tabular-nums" aria-live="polite">
+                    <span className="w-10 text-center text-lg font-medium tabular-nums" aria-live="polite">
                       {form.guests}
                     </span>
                     <button
                       type="button"
                       onClick={() => setForm((f) => ({ ...f, guests: Math.min(max, Number(f.guests) + 1) }))}
                       disabled={form.guests >= max}
-                      className="grid h-10 w-10 place-items-center rounded-full disabled:opacity-35"
-                      style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)" }}
+                      className="grid h-9 w-9 place-items-center rounded-full transition disabled:opacity-30"
+                      style={{ boxShadow: "inset 0 0 0 1px var(--inv-primary)", color: "var(--inv-primary)" }}
                       aria-label="More guests"
                     >
                       <Plus className="h-4 w-4" />

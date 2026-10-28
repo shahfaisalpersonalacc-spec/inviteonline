@@ -107,6 +107,25 @@ body {
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* Invitation templates with buttons: "square" (Crimson Rose): small square-cornered gold buttons
+   in spaced capitals, like printed stationery. Big numbers in the heading face set lighter. */
+[data-inv-buttons="square"] .inv-btn {
+  border-radius: 3px;
+  box-shadow: none !important;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 0.95rem 1.75rem;
+}
+[data-inv-numerals="heading"] .font-semibold.tabular-nums { font-weight: 400; }
+[data-inv-numerals="heading"] .inv-time {
+  font-family: var(--inv-font-heading);
+  font-size: 1.15rem; /* fits the time column: "10:30 PM" */
+  font-weight: 400;
+  line-height: 1;
+}
+
 /* LogoLoader (animated logo): card rises out of the envelope, flap lifts, sparkle, confetti */
 @keyframes ll-card {
   0%, 100% { transform: translateY(10px); }

@@ -69,8 +69,10 @@ function EditorHint({ children }) {
 }
 
 // Photo filling the top of the page, names over it in white (the photo-led templates).
-function PhotoTopHero({ data, photo, minH, overlay, theme, mode }) {
+function PhotoTopHero({ data, photo, minH, overlay, theme, mode, design }) {
   const date = data.date && formatDate(data.date, { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, " · ");
+  // "stagger" templates: two names in spaced capitals, the first set left and the second right
+  const staggered = design?.heroNames === "stagger" ? twoNames(data.title) : null;
   return (
     <div className={`relative flex ${minH} flex-col items-center justify-end overflow-hidden px-6 text-center text-white`} style={{ paddingBottom: "clamp(64px, 16cqw, 120px)" }}>
       {photo ? (
@@ -95,9 +97,16 @@ function PhotoTopHero({ data, photo, minH, overlay, theme, mode }) {
       </div>
       <div className="relative z-[1] flex max-w-2xl flex-col items-center [text-shadow:0_2px_18px_rgba(0,0,0,.35)]">
         {data.tagline && <p className="animate-float-up max-w-sm text-[11px] font-semibold uppercase tracking-[0.34em] opacity-90 @md:text-xs">{data.tagline}</p>}
-        <h1 className="animate-float-up mt-4 break-words leading-[1.02]" style={{ fontSize: "clamp(2.7rem, 15cqw, 7rem)", fontFamily: "var(--inv-font-heading)", animationDelay: "120ms" }}>
-          {data.title}
-        </h1>
+        {staggered ? (
+          <h1 className="animate-float-up mt-4 uppercase leading-[1.05]" style={{ fontSize: "clamp(2.5rem, 13cqw, 6.5rem)", letterSpacing: "0.06em", fontFamily: "var(--inv-font-heading)", fontWeight: 400, animationDelay: "120ms" }}>
+            <span className="block" style={{ marginRight: "1.6em" }}>{staggered[0]}</span>
+            <span className="block" style={{ marginLeft: "1.6em" }}>{staggered[1]}</span>
+          </h1>
+        ) : (
+          <h1 className="animate-float-up mt-4 break-words leading-[1.02]" style={{ fontSize: "clamp(2.7rem, 15cqw, 7rem)", fontFamily: "var(--inv-font-heading)", animationDelay: "120ms" }}>
+            {data.title}
+          </h1>
+        )}
         {data.subtitle && <p className="animate-float-up mt-3 max-w-md text-base opacity-90 @md:text-lg" style={{ animationDelay: "240ms" }}>{data.subtitle}</p>}
         {date && <p className="animate-float-up mt-5 text-sm font-semibold tracking-[0.4em] @md:text-base" style={{ animationDelay: "320ms" }}>{date}</p>}
       </div>
@@ -191,7 +200,7 @@ export function Hero({ data }) {
   const bg = layout === "classic" && photo;
   const overlay = (data.overlay ?? 60) / 100;
 
-  if (layout === "photo-top") return <PhotoTopHero data={data} photo={photo} minH={mode === "public" ? "min-h-[72svh] @3xl:min-h-[92svh]" : "min-h-[540px] @3xl:min-h-[620px]"} overlay={overlay} theme={theme} mode={mode} />;
+  if (layout === "photo-top") return <PhotoTopHero data={data} photo={photo} minH={mode === "public" ? "min-h-[72svh] @3xl:min-h-[92svh]" : "min-h-[540px] @3xl:min-h-[620px]"} overlay={overlay} theme={theme} mode={mode} design={design} />;
   if (layout === "floral") return <FloralHero data={data} photo={photo} minH={minH} theme={theme} design={design} />;
 
   return (

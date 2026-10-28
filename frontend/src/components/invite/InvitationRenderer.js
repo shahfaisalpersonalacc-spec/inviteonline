@@ -105,10 +105,10 @@ function isEmptySection(type, d, mode) {
   }
 }
 
-function darkBand(theme) {
+function darkBand(theme, color, design) {
   const vars = themeVars(theme);
-  const dark = vars["--inv-band-dark"];
-  const on = vars["--inv-on-band-dark"];
+  const dark = color || vars["--inv-band-dark"]; // a template may name its band colour exactly
+  const on = design?.bandText || (color ? readableOn(color) : vars["--inv-on-band-dark"]);
   const accent = (luminance(theme.background || "#ffffff") < 0.35 ? theme.primary : theme.secondary) || "#c9a24a";
   return {
     background: dark,
@@ -118,6 +118,8 @@ function darkBand(theme) {
     "--inv-on-primary": readableOn(accent),
     "--inv-bg": dark,
     "--inv-surface": shade(dark, 0.06),
+    // a template may give band headings their own colour (e.g. white titles, gold buttons)
+    ...(design?.bandHeading ? { "--inv-heading": design.bandHeading } : {}),
   };
 }
 
@@ -125,7 +127,7 @@ function darkBand(theme) {
 // Soft tints are opaque so dividers drawn in the same colour blend seamlessly.
 function templateBand(design, type, index, theme) {
   if (type === "hero" || design.bands === "plain") return undefined;
-  if (design.bands === "alternate") return index % 2 === 0 ? darkBand(theme) : undefined;
+  if (design.bands === "alternate") return index % 2 === 0 ? darkBand(theme, design.band, design) : undefined;
   // On dark pages the surface is close to the page colour, so the alternate band needs a stronger
   // tint; otherwise two near-identical colours meet at the divider and it looks like a glitch.
   const tint = luminance(theme.background || "#ffffff") < 0.3 ? 14 : 5;
@@ -220,7 +222,17 @@ export default function InvitationRenderer({
       <ThemeFonts theme={theme} extra={sections.some((s) => s.type === "quote" && s.data?.arabic) ? ["Amiri"] : []} />
       <div
         className="relative min-h-full w-full"
-        style={{ ...themeVars(theme), background: backgroundCss(theme), color: "var(--inv-text)", fontFamily: "var(--inv-font-body)" }}
+        data-inv-buttons={design?.buttons || undefined}
+        data-inv-numerals={design?.numerals || undefined}
+        style={{
+          ...themeVars(theme),
+          background: backgroundCss(theme),
+          color: "var(--inv-text)",
+          fontFamily: "var(--inv-font-body)",
+          // template typography: body weight, and the face used for big numbers (times, countdown, dates)
+          fontWeight: design?.bodyWeight,
+          "--inv-font-num": design?.numerals === "heading" ? "var(--inv-font-heading)" : "var(--inv-font-body)",
+        }}
         onPointerDown={editable ? () => onSelectSticker?.(null) : undefined}
       >
         <Effects kind={theme.animation} theme={theme} fixed={mode === "public"} />

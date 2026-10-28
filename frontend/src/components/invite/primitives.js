@@ -62,7 +62,15 @@ export function SectionHeading({ children, sub, eyebrow, align = "center" }) {
     <div className={`mb-6 text-center @3xl:mb-10 ${split ? "@5xl:mb-0 @5xl:text-left" : ""}`}>
       {eyebrow && <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.32em] opacity-60">{eyebrow}</p>}
       {children &&
-        (style === "caps" ? (
+        (style === "display" ? (
+          // heading font in spaced capitals (tall display faces like Italiana)
+          <h2
+            className="break-words uppercase leading-[1.05]"
+            style={{ fontSize: "clamp(2rem, 9.5cqw, 3.6rem)", letterSpacing: "0.06em", fontFamily: "var(--inv-font-heading)", fontWeight: 400, color: "var(--inv-heading, var(--inv-primary))", textWrap: "balance" }}
+          >
+            {children}
+          </h2>
+        ) : style === "caps" ? (
           <h2
             className="break-words uppercase leading-snug"
             style={{ fontSize: "clamp(1.15rem, 5.4cqw, 2.3rem)", letterSpacing: "clamp(0.12em, 0.6cqw, 0.24em)", fontFamily: "var(--inv-font-body)", fontWeight: 500, color: "var(--inv-primary)", textWrap: "balance" }}
@@ -123,7 +131,8 @@ export function ThemeButton({ children, href, onClick, type = "button", disabled
     variant === "solid"
       ? { background: "var(--inv-primary)", color: "var(--inv-on-primary)", boxShadow: "0 10px 24px -12px var(--inv-primary)" }
       : { boxShadow: "inset 0 0 0 1.5px var(--inv-primary)", color: "var(--inv-primary)" };
-  const cls = `inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition hover:opacity-90 active:scale-[.98] disabled:opacity-60 ${className}`;
+  // inv-btn: templates can restyle buttons (globals.css, [data-inv-buttons])
+  const cls = `inv-btn inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold tracking-wide transition hover:opacity-90 active:scale-[.98] disabled:opacity-60 ${className}`;
   if (href)
     return (
       <a href={href} target="_blank" rel="noopener noreferrer" className={cls} style={style} {...rest}>

@@ -3,8 +3,14 @@
 // renderer reads from `theme.template`:
 //   bands    plain | soft | alternate       how sections alternate behind the content
 //   divider  none | torn | floral | wave | cloud | scallop | line   where two bands meet
-//   decor    floral palette (data in decor/flora.js) or sky | balloons | geometric | deco | toran
-//   heading  script | caps | serif          section heading style
+//   decor    floral palette (data in decor/flora.js) or sky | balloons | geometric | deco | toran | crimson
+//   band     (optional) exact colour of the dark bands; otherwise derived from the primary
+//   heading  script | caps | serif | display  section heading style (display: heading font in spaced capitals)
+//   heroNames (optional) "stagger": on the photo cover, two names offset left and right
+//   bandHeading / bandText (optional) heading and text colours on the dark bands
+//   bodyWeight (optional) body text weight, e.g. 300 for a light sans
+//   buttons  (optional) "square": square-cornered buttons in spaced capitals
+//   numerals (optional) "heading": times, countdown and calendar days in the heading font
 //   foil     gold-foil names on the cover (set on the hero when the template is applied)
 // `events` lists the occasions a template suits; the picker shows those first.
 
@@ -34,6 +40,22 @@ export const TEMPLATES = [
       entryStyle: "burgundy-dove", sealColor: "#c9a24a", sealIcon: "dove", bgType: "color", bgValue: "",
     },
     design: { bands: "alternate", divider: "torn", decor: "bordeaux", heading: "serif" },
+  },
+  {
+    id: "crimson-rose",
+    label: "Crimson Rose",
+    tagline: "Crimson bands, torn white paper and tall Italiana capitals",
+    events: ["wedding", "walima", "engagement", "anniversary"],
+    heroLayout: "photo-top",
+    theme: {
+      primary: "#8f1219", secondary: "#b08d57", background: "#ffffff", surface: "#fbf6f1", text: "#2b1a1a",
+      fontHeading: "Italiana", fontBody: "Montserrat", animation: "petals",
+      entryStyle: "burgundy-dove", sealColor: "#8f1219", sealIcon: "rose", bgType: "color", bgValue: "",
+    },
+    design: {
+      bands: "alternate", band: "#8f1219", bandHeading: "#ffffff", bandText: "#f6dede", divider: "torn", decor: "crimson",
+      heading: "display", heroNames: "stagger", bodyWeight: 300, buttons: "square", numerals: "heading",
+    },
   },
   {
     id: "wine-peony",

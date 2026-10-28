@@ -121,6 +121,56 @@ export function DecoCorner({ color = "#b8a27a", className = "", style }) {
   );
 }
 
+// ---------- crimson rose (Wedding Day Taplink design): flat layered roses and loose petals ----------
+// One rose drawn in a 100×100 box: four rings of rounded petals, alternately in the rose colour and
+// a dark shadow, with a swirl at the centre; exactly the rose of the design.
+function TapRose({ x, y, size, color, turn = 0 }) {
+  const ring = (rx, ry, angles, fill, opacity) => (
+    <g fill={fill} opacity={opacity}>
+      {angles.map((a) => (
+        <ellipse key={a} cx="50" cy="50" rx={rx} ry={ry} transform={`rotate(${a} 50 50)`} />
+      ))}
+    </g>
+  );
+  return (
+    <g transform={`translate(${x - size / 2} ${y - size / 2}) scale(${size / 100}) rotate(${turn} 50 50)`}>
+      {ring(46, 30, [0, 45, 90, 135], color)}
+      {ring(34, 22, [22, 67, 112, 157], "#000", 0.18)}
+      {ring(30, 19, [10, 70, 130], color)}
+      {ring(20, 13, [40, 100, 160], "#000", 0.22)}
+      {ring(16, 10, [25, 95], color)}
+      <path d="M50 50c6-4 10 2 6 6s-10 0-8-4 7-6 10-2 1 9-4 10-10-3-8-8 8-8 13-5" fill="none" stroke="#000" strokeOpacity=".45" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M50 50c-6 4-10-2-6-6s10 0 8 4-7 6-10 2-1-9 4-10 10 3 8 8" fill="none" stroke="#000" strokeOpacity=".35" strokeWidth="1.8" strokeLinecap="round" />
+    </g>
+  );
+}
+
+function TapPetal({ x, y, size, turn, color = "#c21220" }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${turn}) scale(${size / 60})`}>
+      <path d="M0 -28C14 -16 20 4 8 22c-4 6-12 6-16 0C-20 4-14 -16 0 -28Z" fill={color} />
+      <path d="M0 -24c8 12 10 26 4 40" fill="none" stroke="#000" strokeOpacity=".25" strokeWidth="1.5" />
+    </g>
+  );
+}
+
+// A corner cluster: a large crimson rose, a cream one and a deep-red one, with a few loose petals.
+// `seed` turns the roses a little so repeated corners don't look stamped.
+export function CrimsonRoseCorner({ className = "", style, seed = 1 }) {
+  const t = (n) => ((seed * 37 + n * 53) % 90) - 45;
+  return (
+    <svg viewBox="0 0 300 300" className={className} style={{ overflow: "visible", filter: "drop-shadow(0 10px 16px rgba(0,0,0,.35))", ...style }} aria-hidden="true">
+      <TapRose x={88} y={78} size={170} color="#b3111c" turn={t(1)} />
+      <TapRose x={208} y={44} size={96} color="#f2e7d8" turn={t(2)} />
+      <TapRose x={48} y={206} size={110} color="#8a0c13" turn={t(3)} />
+      <TapRose x={168} y={160} size={64} color="#f2e7d8" turn={t(4)} />
+      <TapPetal x={258} y={128} size={34} turn={30 + t(5)} />
+      <TapPetal x={120} y={248} size={30} turn={-50 + t(6)} />
+      <TapPetal x={236} y={214} size={24} turn={110} />
+    </svg>
+  );
+}
+
 // ---------- mehndi: a hanging toran of marigold strings and mango leaves ----------
 export function Toran({ className = "", style, colors = ["#f59e0b", "#fcd34d", "#f97316"], leaf = "#4f7f17" }) {
   const uid = useId().replace(/:/g, "");

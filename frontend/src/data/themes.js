@@ -56,6 +56,7 @@ export const FONTS = [
   { name: "Pinyon Script", kind: "script", weights: null },
   { name: "Playfair Display", kind: "serif", weights: "400;600;700" },
   { name: "Cinzel", kind: "serif", weights: "400;600;700" },
+  { name: "Italiana", kind: "serif", weights: null },
   { name: "Cormorant Garamond", kind: "serif", weights: "ital,wght@0,400;0,600;0,700;1,400" },
   { name: "Lora", kind: "serif", weights: "400;600;700" },
   { name: "Amiri", kind: "serif", weights: "400;700" },

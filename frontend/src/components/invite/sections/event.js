@@ -22,7 +22,7 @@ function DateBlock({ date, size = "md" }) {
   return (
     <div className="relative mt-5 flex items-center justify-center gap-2.5 @sm:gap-4">
       <span className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.26em]">{formatDate(date, { weekday: "long" })}</span>
-      <span className={`px-3 leading-none tabular-nums @sm:px-4 ${big}`} style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
+      <span className={`px-3 leading-none tabular-nums @sm:px-4 ${big}`} style={{ color: "var(--inv-primary)", fontFamily: "var(--inv-font-num)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
         {formatDate(date, { day: "numeric" })}
       </span>
       <span className="text-left text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.26em]">
@@ -112,7 +112,7 @@ function SingleEvent({ e }) {
             {e.date && (
               <div className="relative mt-6 flex items-center gap-2.5 @sm:gap-5">
                 <span className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.3em]">{formatDate(e.date, { weekday: "long" })}</span>
-                <span className="px-3 text-[3.6rem] leading-none tabular-nums @sm:px-5 @sm:text-[4.5rem] @3xl:text-[5.5rem]" style={{ color: "var(--inv-primary)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
+                <span className="px-3 text-[3.6rem] leading-none tabular-nums @sm:px-5 @sm:text-[4.5rem] @3xl:text-[5.5rem]" style={{ color: "var(--inv-primary)", fontFamily: "var(--inv-font-num)", boxShadow: "inset 1px 0 0 var(--inv-secondary), inset -1px 0 0 var(--inv-secondary)" }}>
                   {formatDate(e.date, { day: "numeric" })}
                 </span>
                 <span className="text-left text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.3em]">
@@ -225,7 +225,7 @@ export function Countdown({ data }) {
                 style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)", boxShadow: "0 14px 30px -16px var(--inv-primary)" }}
               >
                 <div className="pointer-events-none absolute inset-1 rounded-xl" style={{ boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 60%, transparent)" }} />
-                <div className="text-3xl font-semibold tabular-nums @md:text-5xl @3xl:text-7xl" style={{ fontFamily: "var(--inv-font-body)" }}>
+                <div className="text-3xl font-semibold tabular-nums @md:text-5xl @3xl:text-7xl" style={{ fontFamily: "var(--inv-font-num, var(--inv-font-body))" }}>
                   {left ? String(left[k]).padStart(2, "0") : "--"}
                 </div>
                 <div className="mt-1 text-[9px] font-semibold uppercase tracking-[0.25em] opacity-80 @md:text-[11px] @3xl:mt-2 @3xl:text-xs">{k}</div>
@@ -257,7 +257,7 @@ export function Schedule({ data }) {
         <span className="absolute bottom-2 left-[5.25rem] top-2 w-px" style={{ background: "var(--inv-secondary)" }} aria-hidden />
         {items.map((x, i) => (
           <Reveal as="li" key={i} delay={i * 80} className="relative mb-8 grid grid-cols-[4.25rem_1fr] gap-8 last:mb-0">
-            <span className="whitespace-nowrap pt-0.5 text-right text-[13px] font-bold" style={{ color: "var(--inv-primary)" }}>
+            <span className="inv-time whitespace-nowrap pt-0.5 text-right text-[13px] font-bold" style={{ color: "var(--inv-primary)" }}>
               {x.time}
             </span>
             <span
