@@ -6,6 +6,7 @@ import { Card, Reveal, SectionHeading, Shell, ThemeButton } from "../primitives"
 import { useInvite } from "../InviteContext";
 import { api } from "@/lib/api";
 import { formatDate, timeAgo } from "@/lib/format";
+import Spinner from "@/components/ui/Spinner";
 
 const fieldStyle = {
   background: "var(--inv-bg)",
@@ -167,7 +168,7 @@ export function Rsvp({ data }) {
 
               {state.error && <p className="text-sm text-red-600">{state.error}</p>}
               <ThemeButton type="submit" disabled={state.sending || mode !== "public"} className="min-h-12 w-full !text-base">
-                <Send className="h-4 w-4" /> {state.sending ? "Sending…" : "Send RSVP"}
+                {state.sending ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />} {state.sending ? "Sending…" : "Send RSVP"}
               </ThemeButton>
               {mode !== "public" && <p className="text-center text-xs italic opacity-70">Preview only: guests can reply on the live page.</p>}
               {data.deadline && <p className="text-center text-sm opacity-75">Please respond by {formatDate(data.deadline)}</p>}
@@ -226,7 +227,7 @@ export function Wishes({ data }) {
             <textarea required rows={3} maxLength={500} placeholder="Write your wishes…" value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} className={fieldCls} style={fieldStyle} />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <ThemeButton type="submit" disabled={sending || mode !== "public"} className="w-full">
-              {mode !== "public" ? "Wishes (works on the live page)" : sending ? "Sending…" : (<><Send className="h-4 w-4" /> Send wishes</>)}
+              {mode !== "public" ? "Wishes (works on the live page)" : sending ? (<><Spinner className="h-4 w-4" /> Sending…</>) : (<><Send className="h-4 w-4" /> Send wishes</>)}
             </ThemeButton>
           </form>
         </Card>

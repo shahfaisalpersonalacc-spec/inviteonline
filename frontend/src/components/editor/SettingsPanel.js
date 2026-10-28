@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Lock, Trash2 } from "lucide-react";
 import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import Spinner from "@/components/ui/Spinner";
 import { EVENT_TYPES } from "@/data/eventTypes";
 import { AudioInput, Field, ImageInput, Select, Text, TextArea, Toggle } from "./fields";
 
@@ -14,6 +15,7 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
   const [slug, setSlug] = useState(inv.slug);
   const [slugState, setSlugState] = useState("same"); // same | checking | ok | taken | invalid
   const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(""); // "slug" | "password" | "remove"
 
   useEffect(() => setSlug(inv.slug), [inv.slug]);
 
@@ -30,21 +32,27 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
   }, [slug, inv.slug, inv._id]);
 
   async function saveSlug() {
+    setPending("slug");
     try {
       await saveNow({ slug });
       toast("Link updated");
     } catch (e) {
       toast(e.message, "error");
+    } finally {
+      setPending("");
     }
   }
 
   async function savePassword(value) {
+    setPending(value ? "password" : "remove");
     try {
       await saveNow({ password: value });
       setPassword("");
       toast(value ? "Password set — share it with your guests" : "Password removed");
     } catch (e) {
       toast(e.message, "error");
+    } finally {
+      setPending("");
     }
   }
 
@@ -79,8 +87,8 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
               {{ ok: "Available", taken: "Already taken", invalid: "3–60 characters, can't start or end with -", checking: "Checking…", same: inviteUrl(inv.slug) }[slugState]}
             </span>
             {slugState === "ok" && (
-              <button className="btn-primary !px-3 !py-1 !text-xs" onClick={saveSlug}>
-                Save link
+              <button className="btn-primary !px-3 !py-1 !text-xs" onClick={saveSlug} disabled={pending === "slug"}>
+                {pending === "slug" && <Spinner className="h-3 w-3" />} Save link
               </button>
             )}
           </div>
@@ -112,13 +120,13 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
         <p className="text-xs text-ink-500">{inv.hasPassword ? (<span className="inline-flex items-center gap-1.5 font-semibold text-ink"><Lock className="h-3.5 w-3.5" /> This invitation is password protected.</span>) : "Anyone with the link can view. Add a password to keep it private."}</p>
         <div className="flex gap-2">
           <input className="input" type="text" minLength={4} maxLength={64} placeholder={inv.hasPassword ? "New password" : "Set a password"} value={password} onChange={(e) => setPassword(e.target.value)} />
-          <button className="btn-primary shrink-0 !py-2" disabled={password.length < 4} onClick={() => savePassword(password)}>
-            Save
+          <button className="btn-primary shrink-0 !py-2" disabled={password.length < 4 || pending === "password"} onClick={() => savePassword(password)}>
+            {pending === "password" && <Spinner className="h-4 w-4" />} Save
           </button>
         </div>
         {inv.hasPassword && (
-          <button className="text-xs font-medium text-red-600 hover:underline" onClick={() => savePassword(null)}>
-            Remove password
+          <button className="inline-flex items-center gap-1.5 text-xs font-medium text-red-600 hover:underline disabled:opacity-60" disabled={pending === "remove"} onClick={() => savePassword(null)}>
+            {pending === "remove" && <Spinner className="h-3 w-3" />} Remove password
           </button>
         )}
       </section>

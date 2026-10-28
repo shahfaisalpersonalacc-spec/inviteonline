@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
-import { FullPageSpinner } from "@/components/ui/Spinner";
+import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
 import Modal from "@/components/ui/Modal";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import ShareSheet from "@/components/invite/ShareSheet";
@@ -44,6 +44,7 @@ export default function EditorPage() {
   const [device, setDevice] = useState("phone"); // phone | desktop
   const [shareOpen, setShareOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [previewEntry, setPreviewEntry] = useState(0); // >0 shows the entrance over the preview
 
   const latest = useRef(null);
@@ -203,12 +204,14 @@ export default function EditorPage() {
   }
 
   async function removeInvitation() {
+    setDeleting(true);
     try {
       await api(`/invitations/${id}`, { method: "DELETE" });
       toast("Invitation deleted");
       router.replace("/dashboard");
     } catch (e) {
       toast(e.message, "error");
+      setDeleting(false);
     }
   }
 
@@ -366,8 +369,8 @@ export default function EditorPage() {
           <button className="btn-secondary" onClick={() => setConfirmDelete(false)}>
             Cancel
           </button>
-          <button className="btn-danger" onClick={removeInvitation}>
-            Delete
+          <button className="btn-danger" onClick={removeInvitation} disabled={deleting}>
+            {deleting && <Spinner className="h-4 w-4" />} {deleting ? "Deleting…" : "Delete"}
           </button>
         </div>
       </Modal>

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Download, Phone, Trash2, Users } from "lucide-react";
 import { api, downloadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
-import { FullPageSpinner } from "@/components/ui/Spinner";
+import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
 import { timeAgo, whatsappLink } from "@/lib/format";
 
 const STATUS = {
@@ -25,6 +25,7 @@ export default function GuestsPage() {
   const [tab, setTab] = useState(params.get("tab") === "wishes" ? "wishes" : "rsvps");
   const [filter, setFilter] = useState("all");
   const [q, setQ] = useState("");
+  const [pending, setPending] = useState(""); // "csv", or the id being deleted
 
   useEffect(() => {
     Promise.all([api(`/invitations/${id}`), api(`/invitations/${id}/rsvps`), api(`/invitations/${id}/wishes`)])
@@ -44,7 +45,14 @@ export default function GuestsPage() {
 
   async function delRsvp(rid) {
     if (!confirm("Delete this RSVP?")) return;
-    await api(`/invitations/${id}/rsvps/${rid}`, { method: "DELETE" });
+    setPending(rid);
+    try {
+      await api(`/invitations/${id}/rsvps/${rid}`, { method: "DELETE" });
+    } catch (e) {
+      return toast(e.message, "error");
+    } finally {
+      setPending("");
+    }
     const rsvps = rsvp.rsvps.filter((r) => r._id !== rid);
     const summary = { yes: 0, no: 0, maybe: 0, totalGuests: 0 };
     rsvps.forEach((r) => {
@@ -56,7 +64,14 @@ export default function GuestsPage() {
 
   async function delWish(wid) {
     if (!confirm("Delete this wish?")) return;
-    await api(`/invitations/${id}/wishes/${wid}`, { method: "DELETE" });
+    setPending(wid);
+    try {
+      await api(`/invitations/${id}/wishes/${wid}`, { method: "DELETE" });
+    } catch (e) {
+      return toast(e.message, "error");
+    } finally {
+      setPending("");
+    }
     setWishes((w) => w.filter((x) => x._id !== wid));
   }
 
@@ -74,8 +89,17 @@ export default function GuestsPage() {
           <Link href={`/dashboard/edit/${id}`} className="btn-secondary">
             Edit invitation
           </Link>
-          <button className="btn-primary" onClick={() => downloadFile(`/invitations/${id}/rsvps?format=csv`, `rsvps-${inv.slug}.csv`).catch((e) => toast(e.message, "error"))}>
-            <Download className="h-4 w-4" /> Export CSV
+          <button
+            className="btn-primary"
+            disabled={pending === "csv"}
+            onClick={() => {
+              setPending("csv");
+              downloadFile(`/invitations/${id}/rsvps?format=csv`, `rsvps-${inv.slug}.csv`)
+                .catch((e) => toast(e.message, "error"))
+                .finally(() => setPending(""));
+            }}
+          >
+            {pending === "csv" ? <Spinner className="h-4 w-4" /> : <Download className="h-4 w-4" />} Export CSV
           </button>
         </div>
       </div>
@@ -138,8 +162,8 @@ export default function GuestsPage() {
                     )}
                   </div>
                   {r.message && <p className="mt-2 rounded-xl bg-cream p-3 text-sm text-ink/80">“{r.message}”</p>}
-                  <button onClick={() => delRsvp(r._id)} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline">
-                    <Trash2 className="h-3.5 w-3.5" /> Delete
+                  <button onClick={() => delRsvp(r._id)} disabled={pending === r._id} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-red-600 hover:underline disabled:opacity-60">
+                    {pending === r._id ? <Spinner className="h-3.5 w-3.5" /> : <Trash2 className="h-3.5 w-3.5" />} Delete
                   </button>
                 </div>
               ))}
@@ -157,8 +181,8 @@ export default function GuestsPage() {
                 <span className="font-semibold text-brand-600">
                   — {w.name} <span className="font-normal text-zinc-400">· {timeAgo(w.createdAt)}</span>
                 </span>
-                <button onClick={() => delWish(w._id)} className="text-red-600 hover:underline">
-                  Delete
+                <button onClick={() => delWish(w._id)} disabled={pending === w._id} className="inline-flex items-center gap-1 text-red-600 hover:underline disabled:opacity-60">
+                  {pending === w._id && <Spinner className="h-3 w-3" />} Delete
                 </button>
               </div>
             </div>

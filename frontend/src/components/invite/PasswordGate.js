@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Lock } from "lucide-react";
+import Spinner from "@/components/ui/Spinner";
 
 export default function PasswordGate({ title, onUnlock }) {
   const [password, setPassword] = useState("");
@@ -44,10 +45,10 @@ export default function PasswordGate({ title, onUnlock }) {
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         <button
           disabled={busy}
-          className="mt-4 w-full rounded-full py-3 text-sm font-semibold disabled:opacity-60"
+          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold disabled:opacity-60"
           style={{ background: "var(--inv-primary)", color: "var(--inv-on-primary)" }}
         >
-          {busy ? "Checking…" : "View invitation"}
+          {busy && <Spinner className="h-4 w-4" />} {busy ? "Checking…" : "View invitation"}
         </button>
       </form>
     </div>

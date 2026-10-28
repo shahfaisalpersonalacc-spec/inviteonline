@@ -7,7 +7,7 @@ import { Copy, Eye, ListChecks, MailOpen, Pencil, Plus, Share2, Trash2, Users } 
 import { api, inviteUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/components/ui/Toast";
-import { FullPageSpinner } from "@/components/ui/Spinner";
+import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
 import Modal from "@/components/ui/Modal";
 import ShareSheet from "@/components/invite/ShareSheet";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
@@ -46,6 +46,7 @@ export default function DashboardPage() {
   const [items, setItems] = useState(null);
   const [share, setShare] = useState(null);
   const [toDelete, setToDelete] = useState(null);
+  const [pending, setPending] = useState(""); // the action in flight, e.g. "copy:<id>" or "delete"
 
   useEffect(() => {
     api("/invitations")
@@ -57,16 +58,19 @@ export default function DashboardPage() {
   }, [toast]);
 
   async function duplicate(id) {
+    setPending(`copy:${id}`);
     try {
       const d = await api(`/invitations/${id}/duplicate`, { method: "POST" });
       toast("Invitation duplicated");
       router.push(`/dashboard/edit/${d.invitation._id}`);
     } catch (e) {
       toast(e.message, "error");
+      setPending("");
     }
   }
 
   async function remove() {
+    setPending("delete");
     try {
       await api(`/invitations/${toDelete._id}`, { method: "DELETE" });
       setItems((list) => list.filter((i) => i._id !== toDelete._id));
@@ -75,6 +79,7 @@ export default function DashboardPage() {
       toast(e.message, "error");
     } finally {
       setToDelete(null);
+      setPending("");
     }
   }
 
@@ -163,8 +168,8 @@ export default function DashboardPage() {
                   <Link href={`/dashboard/${inv._id}/guests`} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink">
                     <Users className="h-3.5 w-3.5" /> Guests
                   </Link>
-                  <button onClick={() => duplicate(inv._id)} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink">
-                    <Copy className="h-3.5 w-3.5" /> Copy
+                  <button onClick={() => duplicate(inv._id)} disabled={!!pending} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-ink-500 hover:bg-cream hover:text-ink disabled:opacity-60">
+                    {pending === `copy:${inv._id}` ? <Spinner className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />} Copy
                   </button>
                   <button onClick={() => setToDelete(inv)} className="flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 min-[380px]:flex-row text-red-600 hover:bg-red-50">
                     <Trash2 className="h-3.5 w-3.5" /> Delete
@@ -186,8 +191,8 @@ export default function DashboardPage() {
           <button className="btn-secondary" onClick={() => setToDelete(null)}>
             Cancel
           </button>
-          <button className="btn-danger" onClick={remove}>
-            Delete
+          <button className="btn-danger" onClick={remove} disabled={pending === "delete"}>
+            {pending === "delete" && <Spinner className="h-4 w-4" />} {pending === "delete" ? "Deleting…" : "Delete"}
           </button>
         </div>
       </Modal>

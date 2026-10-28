@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/Toast";
 import PasswordInput from "@/components/ui/PasswordInput";
 import OtpInput from "@/components/ui/OtpInput";
 import ResendCode from "@/components/ui/ResendCode";
+import Spinner from "@/components/ui/Spinner";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -79,7 +80,7 @@ export default function ProfilePage() {
           <input id="name" className="input" required minLength={2} value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <button className="btn-primary" disabled={busy === "name"}>
-          Save
+          {busy === "name" && <Spinner className="h-4 w-4" />} {busy === "name" ? "Saving…" : "Save"}
         </button>
       </form>
 
@@ -103,7 +104,7 @@ export default function ProfilePage() {
               <PasswordInput required minLength={8} autoComplete="new-password" placeholder="At least 8 characters" value={pw.newPassword} onChange={(e) => setPw({ ...pw, newPassword: e.target.value })} />
             </div>
             <button className="btn-primary" disabled={busy === "pw"}>
-              Update password
+              {busy === "pw" && <Spinner className="h-4 w-4" />} {busy === "pw" ? "Sending code…" : "Update password"}
             </button>
           </>
         ) : (
@@ -114,7 +115,7 @@ export default function ProfilePage() {
             <OtpInput value={code} onChange={setCode} />
             <div className="flex flex-wrap items-center gap-3">
               <button className="btn-primary" disabled={busy === "pw" || code.length !== 6}>
-                Confirm &amp; update password
+                {busy === "pw" && <Spinner className="h-4 w-4" />} {busy === "pw" ? "Updating…" : "Confirm & update password"}
               </button>
               <button type="button" className="btn-ghost" onClick={cancelChange}>
                 Cancel
