@@ -107,6 +107,15 @@ body {
 @keyframes spin-slow {
   to { transform: rotate(360deg); }
 }
+/* Landing page with a saved session: a plain cover until the redirect check is done (DashboardRedirect) */
+html.auth-pending::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: var(--color-cream);
+}
+
 /* FullPageSpinner: the seal breathes, the caption's dots count up */
 @keyframes loader-breathe {
   0%, 100% { transform: scale(1); }

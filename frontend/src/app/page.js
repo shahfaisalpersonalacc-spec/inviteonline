@@ -77,6 +77,9 @@ function SeeBadge() {
 export default function Home() {
   return (
     <>
+      {/* runs before the page paints: with a saved session, cover the landing page (see .auth-pending
+          in globals.css) until DashboardRedirect knows whether to go to the dashboard */}
+      <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("inviteonline_token"))document.documentElement.classList.add("auth-pending")}catch(e){}` }} />
       <DashboardRedirect />
       <Navbar />
       <main id="main" className="overflow-x-clip">

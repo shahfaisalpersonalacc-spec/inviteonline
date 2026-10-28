@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
 
 // InviteOnline brand mark: open envelope with an invitation card rising out, confetti and a sparkle.
 // Colours from the brand board: coral #E8544A (flap shades derived), ink #1C1A3D, gold #F5C451, cream #FFF8F1.
@@ -31,8 +34,10 @@ export function Wordmark({ light = false, className = "" }) {
 }
 
 export default function Logo({ className = "", light = false, size = 36 }) {
+  // logged in, "home" is the dashboard (linking to / would flash the landing page, then redirect)
+  const { user } = useAuth() || {};
   return (
-    <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label="InviteOnline home">
+    <Link href={user ? "/dashboard" : "/"} className={`flex items-center gap-2.5 ${className}`} aria-label={user ? "InviteOnline dashboard" : "InviteOnline home"}>
       <LogoMark size={size} onDark={light} className="drop-shadow-[0_6px_10px_rgba(232,84,74,0.28)]" />
       <Wordmark light={light} className="text-[1.45rem]" />
     </Link>

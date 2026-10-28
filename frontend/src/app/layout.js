@@ -26,7 +26,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${cormorant.variable} ${greatVibes.variable} ${fraunces.variable} antialiased`}>
+    // suppressHydrationWarning: the landing page's inline script may add "auth-pending" here before React loads
+    <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${cormorant.variable} ${greatVibes.variable} ${fraunces.variable} antialiased`}>
       <body className="min-h-screen font-sans">
         <a href="#main" className="skip-link">
           Skip to content
