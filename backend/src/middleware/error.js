@@ -25,7 +25,9 @@ function errorHandler(err, req, res, next) {
   }
 
   if (status >= 500) console.error(err);
-  res.status(status).json({ message: status >= 500 && process.env.NODE_ENV === 'production' ? 'Server error' : message });
+  // Only unexpected crashes (500) are masked in production; deliberate 502/503 messages (email or
+  // uploads unavailable, database down) are written for users and say what went wrong.
+  res.status(status).json({ message: status === 500 && process.env.NODE_ENV === 'production' ? 'Server error' : message });
 }
 
 module.exports = { notFound, errorHandler };
