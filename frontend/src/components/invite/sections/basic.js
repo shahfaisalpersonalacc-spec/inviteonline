@@ -105,18 +105,31 @@ function PhotoTopHero({ data, photo, minH, overlay, theme, mode }) {
   );
 }
 
-// The date written large between the two names: 16 / Levan / 10 / Diana / 25.
+// The two names in script with a small "&" between, over a classic printed-invitation date:
+//            OCTOBER
+//   ─WEDNESDAY─   28   ─ 2026 ─
 function MonumentDate({ names, date }) {
   const num = (opts) => formatDate(date, opts);
-  const big = { fontFamily: "var(--inv-font-body)", fontSize: "clamp(3rem, 17cqw, 6.5rem)", fontWeight: 300, lineHeight: 0.95 };
-  const name = { fontFamily: "var(--inv-font-heading)", fontSize: "clamp(2.4rem, 13cqw, 5rem)", lineHeight: 1.05, color: "var(--inv-primary)" };
+  const name = { fontFamily: "var(--inv-font-heading)", fontSize: "clamp(2.6rem, 14cqw, 5.5rem)", lineHeight: 1.05, color: "var(--inv-primary)" };
+  const side = "w-[6.5rem] border-y py-1.5 text-center text-[11px] font-semibold uppercase tracking-[0.28em] @md:w-32 @md:text-xs";
+  const rule = { borderColor: "color-mix(in srgb, var(--inv-secondary) 70%, transparent)" };
   return (
-    <div className="animate-float-up flex flex-col items-center" style={{ color: "var(--inv-primary)", animationDelay: "120ms" }}>
-      <span style={big}>{num({ day: "2-digit" })}</span>
-      <span className="-my-[0.1em] px-[0.2em]" style={name}>{names[0]}</span>
-      <span style={big}>{num({ month: "2-digit" })}</span>
-      <span className="-my-[0.1em] px-[0.2em]" style={name}>{names[1]}</span>
-      <span style={big}>{num({ year: "2-digit" })}</span>
+    <div className="flex flex-col items-center">
+      <div className="animate-float-up flex flex-col items-center" style={{ animationDelay: "120ms" }}>
+        <span className="px-[0.2em]" style={name}>{names[0]}</span>
+        <span className="my-1 text-2xl italic @md:text-3xl" style={{ fontFamily: "var(--inv-font-body)", color: "var(--inv-secondary)" }}>&amp;</span>
+        <span className="px-[0.2em]" style={name}>{names[1]}</span>
+      </div>
+      <div className="animate-float-up mt-8 flex flex-col items-center" style={{ color: "var(--inv-primary)", animationDelay: "320ms" }}>
+        <span className="text-xs font-semibold uppercase tracking-[0.4em] @md:text-sm">{num({ month: "long" })}</span>
+        <div className="mt-2 flex items-center gap-4 @md:gap-6">
+          <span className={side} style={rule}>{num({ weekday: "long" })}</span>
+          <span className="leading-none" style={{ fontFamily: "var(--inv-font-body)", fontSize: "clamp(3rem, 15cqw, 5rem)", fontWeight: 300 }}>
+            {num({ day: "numeric" })}
+          </span>
+          <span className={side} style={rule}>{num({ year: "numeric" })}</span>
+        </div>
+      </div>
     </div>
   );
 }
