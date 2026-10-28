@@ -35,11 +35,17 @@ const layout = (inner) => `
   </div>
 </div>`;
 
-// purpose: 'verify' | 'reset'
+const OTP_INTRO = {
+  verify: 'Use this code to confirm your email and finish creating your account.',
+  reset: 'Use this code to reset your password.',
+  change: 'Use this code to confirm the change of your password.',
+};
+
+// purpose: 'verify' | 'reset' | 'change'
 const otpEmail = (name, code, purpose) =>
   layout(`
     <p>Hi ${escapeHtml(name)},</p>
-    <p>${purpose === 'reset' ? 'Use this code to reset your password.' : 'Use this code to confirm your email and finish creating your account.'} It is valid for 10 minutes.</p>
+    <p>${OTP_INTRO[purpose] || OTP_INTRO.verify} It is valid for 10 minutes.</p>
     <p style="text-align:center;margin:28px 0;font-size:32px;font-weight:bold;letter-spacing:8px;color:#be185d">${code}</p>
     <p style="font-size:13px;color:#6b7280">If you didn't request this, you can safely ignore this email.</p>`);
 

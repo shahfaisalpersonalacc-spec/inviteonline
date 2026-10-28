@@ -6,8 +6,8 @@ import { api } from "@/lib/api";
 const COOLDOWN = 60;
 
 // "Resend code" link with a countdown matching the server's 60s resend cooldown.
-// purpose: "verify" | "reset"
-export default function ResendCode({ email, purpose }) {
+// purpose: "verify" | "reset"; or pass onResend to send the code some other way.
+export default function ResendCode({ email, purpose, onResend }) {
   const [left, setLeft] = useState(COOLDOWN);
   const [note, setNote] = useState("");
 
@@ -21,7 +21,8 @@ export default function ResendCode({ email, purpose }) {
     setNote("");
     setLeft(COOLDOWN);
     try {
-      await api("/auth/resend-code", { method: "POST", body: { email, purpose }, auth: false });
+      if (onResend) await onResend();
+      else await api("/auth/resend-code", { method: "POST", body: { email, purpose }, auth: false });
       setNote("A new code is on its way.");
     } catch (err) {
       setNote(err.message);

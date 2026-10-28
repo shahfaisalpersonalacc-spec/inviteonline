@@ -116,6 +116,23 @@ describe('auth', () => {
     expect(again.status).toBe(400);
   });
 
+  test('changing the password from the profile needs the current password and an emailed code', async () => {
+    const { token, credentials } = await register(request, app);
+    const auth = { Authorization: `Bearer ${token}` };
+    const change = (body) => request(app).put('/api/auth/profile').set(auth).send({ currentPassword: credentials.password, newPassword: 'changed1234', ...body });
+
+    expect((await request(app).post('/api/auth/password-code').set(auth).send({ currentPassword: 'wrong-pass' })).status).toBe(400);
+    expect((await request(app).post('/api/auth/password-code').set(auth).send({ currentPassword: credentials.password })).status).toBe(200);
+
+    expect((await change({})).status).toBe(400); // no code
+    await plantCode(credentials.email, 'change');
+    expect((await change({ code: '000000' })).status).toBe(400); // wrong code
+    expect((await change({ code: CODE })).status).toBe(200);
+
+    await request(app).post('/api/auth/login').send({ email: credentials.email, password: 'changed1234' }).expect(200);
+    expect((await change({ currentPassword: 'changed1234', newPassword: 'again12345', code: CODE })).status).toBe(400); // code is single-use
+  });
+
   test('a verify code cannot be used to reset the password', async () => {
     const creds = newCredentials();
     await request(app).post('/api/auth/register').send(creds).expect(201);

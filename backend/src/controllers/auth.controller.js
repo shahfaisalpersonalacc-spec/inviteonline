@@ -20,7 +20,9 @@ const schemas = {
     name: z.string().trim().min(2).max(80).optional(),
     currentPassword: z.string().optional(),
     newPassword: password.optional(),
+    code: code.optional(), // required with newPassword: the code from POST /password-code
   }),
+  passwordCode: z.object({ currentPassword: z.string().min(1) }),
 };
 
 const clientUrl = () => (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
@@ -36,7 +38,7 @@ async function sendCode(user, purpose) {
     await sendEmail({
       to: user.email,
       toName: user.name,
-      subject: purpose === 'reset' ? `${otp} is your InviteOnline reset code` : `${otp} is your InviteOnline verification code`,
+      subject: `${otp} is your InviteOnline ${{ reset: 'reset', change: 'password change' }[purpose] || 'verification'} code`,
       html: otpEmail(user.name, otp, purpose),
     });
   } catch (e) {
@@ -116,18 +118,29 @@ async function resetPassword(req, res) {
   res.json({ message: 'Password updated.', token: signAuthToken(user._id), user: user.toPublic() });
 }
 
+// Step 1 of a password change from the profile: check the current password, email a code.
+async function requestPasswordCode(req, res) {
+  const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
+  if (!(await user.comparePassword(req.body.currentPassword))) throw new HttpError(400, 'Current password is incorrect');
+  await sendCode(user, 'change');
+  res.json({ message: `We emailed a 6-digit code to ${user.email}.` });
+}
+
 async function updateProfile(req, res) {
-  const { name, currentPassword, newPassword } = req.body;
-  const user = await User.findById(req.user._id).select('+password');
+  const { name, currentPassword, newPassword, code: otp } = req.body;
+  const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
   if (name) user.name = name;
   if (newPassword) {
     if (!currentPassword || !(await user.comparePassword(currentPassword))) {
       throw new HttpError(400, 'Current password is incorrect');
     }
+    // step 2: the emailed code confirms it's really the account owner
+    if (!otp) throw new HttpError(400, 'Enter the 6-digit code we emailed you');
+    await consumeOtp(user, 'change', otp);
     user.password = newPassword;
   }
   await user.save();
   res.json({ user: user.toPublic() });
 }
 
-module.exports = { schemas, register, verifyEmail, resendCode, login, me, forgotPassword, resetPassword, updateProfile };
+module.exports = { schemas, register, verifyEmail, resendCode, login, me, forgotPassword, resetPassword, requestPasswordCode, updateProfile };
