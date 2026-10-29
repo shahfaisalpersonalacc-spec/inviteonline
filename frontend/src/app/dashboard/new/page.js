@@ -604,7 +604,11 @@ export default function NewInvitationPage() {
           >
             {last ? (
               <>
-                {busy && <Spinner className="h-4 w-4" />} Create<span className="hidden sm:inline">&nbsp;&amp; start editing</span>
+                {busy && <Spinner className="h-4 w-4" />}
+                {/* one element, so the button's flex gap doesn't open up inside the label */}
+                <span>
+                  Create<span className="hidden sm:inline"> &amp; start editing</span>
+                </span>
               </>
             ) : (
               <>Next</>
