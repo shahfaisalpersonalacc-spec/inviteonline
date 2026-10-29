@@ -77,8 +77,8 @@ const schemas = {
         contact: z
           .object({
             name: z.string().trim().max(80),
-            // empty, or 10-15 digits with an optional leading + and spaces/dashes/brackets
-            phone: z.union([z.literal(''), z.string().trim().regex(/^\+?[\d\s\-()]+$/, 'must be a valid phone number').refine((v) => { const n = v.replace(/\D/g, '').length; return n >= 10 && n <= 15; }, 'must have 10 to 15 digits')]),
+            // empty, or a 10-digit mobile number
+            phone: z.union([z.literal(''), z.string().trim().regex(/^\d{10}$/, 'must be a 10-digit mobile number')]),
           })
           .partial()
           .optional(),

@@ -109,7 +109,8 @@ body {
 }
 /* Invitation templates with buttons: "square" (Crimson Rose): small square-cornered gold buttons
    in spaced capitals, like printed stationery. Big numbers in the heading face set lighter. */
-[data-inv-buttons="square"] .inv-btn {
+/* (pills next to app buttons, like Call beside WhatsApp, keep their round shape) */
+[data-inv-buttons="square"] .inv-btn:not(.inv-btn-pill) {
   border-radius: 3px;
   box-shadow: none !important;
   text-transform: uppercase;

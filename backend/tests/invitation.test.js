@@ -136,7 +136,7 @@ describe('invitations', () => {
         families: [{ title: "Bride's family", names: 'Mr. & Mrs. Khan' }],
         schedule: [{ time: '6:00 PM', title: 'Nikah' }, { time: '', title: '' }],
         venue: { name: 'Pearl Hall', address: 'Lahore' },
-        contact: { name: 'Usman', phone: '03001234567' },
+        contact: { name: 'Usman', phone: '9876543210' },
         closing: 'Thank you!',
       },
     });
@@ -147,8 +147,15 @@ describe('invitations', () => {
     expect(data('families').groups).toEqual([{ title: "Bride's family", names: 'Mr. & Mrs. Khan' }]);
     expect(data('schedule').items.length).toBe(1); // the empty row is dropped
     expect(data('venue').name).toBe('Pearl Hall');
-    expect(data('contact').people[0].phone).toBe('03001234567');
+    expect(data('contact').people[0].phone).toBe('9876543210');
     expect(data('closing').text).toBe('Thank you!');
+  });
+
+  test('non-couple occasions skip the verse and blessings', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, { title: "Zara's Birthday", eventType: 'birthday' });
+    const on = inv.sections.filter((s) => s.enabled).map((s) => s.type);
+    expect(on).toEqual(['hero', 'scratch', 'countdown', 'schedule', 'venue', 'rsvp', 'wishes', 'contact', 'closing']);
   });
 
   test('a new invitation can start with background music', async () => {

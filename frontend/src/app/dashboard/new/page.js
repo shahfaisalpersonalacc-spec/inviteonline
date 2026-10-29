@@ -27,20 +27,20 @@ const to12h = (v) => {
   const [h, m] = v.split(":").map(Number);
   return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
-// Phone: digits with optional +, spaces, dashes or brackets; 10 to 15 digits (e.g. 0300 1234567, +92 300 1234567).
-const PHONE_CHARS = /[^\d+\-\s()]/g;
-const phoneError = (v) => {
-  if (!v.trim()) return "";
-  const digits = v.replace(/\D/g, "").length;
-  if (!/^\+?[\d\s\-()]+$/.test(v.trim()) || v.indexOf("+") > 0) return "Use digits only, with an optional + at the start.";
-  if (digits < 10 || digits > 15) return "Enter a full phone number (10 to 15 digits), e.g. 0300 1234567.";
-  return "";
+// Phone: a 10-digit mobile number, digits only (e.g. 9876543210).
+const PHONE_CHARS = /\D/g;
+const phoneError = (v) => (!v || v.length === 10 ? "" : "Enter a 10-digit mobile number, e.g. 9876543210.");
+// The design each occasion starts with (listed first, pre-selected); all others stay available.
+const DEFAULT_TEMPLATE = {
+  wedding: "bordeaux", walima: "bordeaux", engagement: "bordeaux", anniversary: "crimson-rose",
+  nikah: "emerald-nikah", mehndi: "marigold-mehndi",
+  birthday: "confetti-pop", party: "confetti-pop", graduation: "confetti-pop", "baby-shower": "little-star",
+  corporate: "ivory-classic", other: "ivory-classic",
 };
-// Bordeaux Romance (burgundy bands, torn paper) is the starting design for every occasion.
-const DEFAULT_TEMPLATE = "bordeaux";
 const designsFor = (eventType) => {
   const list = templatesFor(eventType);
-  return [...list.filter((t) => t.id === DEFAULT_TEMPLATE), ...list.filter((t) => t.id !== DEFAULT_TEMPLATE)];
+  const first = DEFAULT_TEMPLATE[eventType] || "bordeaux";
+  return [...list.filter((t) => t.id === first), ...list.filter((t) => t.id !== first)];
 };
 // A typical desi programme for each occasion (times are <input type="time"> values), editable in the step.
 const PROGRAMMES = {
@@ -197,21 +197,24 @@ export default function NewInvitationPage() {
   }
 
   return (
-    // not one big <form>: the design previews contain the invitation's own RSVP form
-    // Sized to the screen (below the 4rem header, above the fixed bar) so the page itself never scrolls;
-    // a step that needs more room scrolls inside its own area.
-    <div className="mx-auto -mb-16 -mt-6 flex max-w-4xl flex-col sm:-mt-10" style={{ height: "calc(100dvh - 4rem - 1rem - 4.75rem)" }}>
+    // not one big <form>: the design previews contain the invitation's own RSVP form.
+    // The wizard fills the screen between the 4rem header and the 4rem bottom bar (fixed, so it never
+    // depends on the page padding); a step that needs more room scrolls inside its own area.
+    <>
+    <div className="fixed inset-x-0 top-16 z-10" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
+    <div className="mx-auto flex h-full max-w-4xl flex-col px-4 pt-3 sm:px-6 sm:pt-6">
       {busy && <LogoLoader />}
-      <p className="eyebrow">
+      <p className="eyebrow hidden sm:flex">
         <span className="h-px w-8 bg-brand-600/40" /> New invitation
       </p>
-      <h1 className="display mt-2 text-[2rem] leading-[1.05] sm:text-5xl">
+      {/* one line on phones */}
+      <h1 className="display whitespace-nowrap text-[clamp(1.3rem,6.6vw,2rem)] leading-[1.1] sm:mt-2 sm:whitespace-normal sm:text-5xl">
         What are we <em className="text-brand-600">celebrating?</em>
       </h1>
-      <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 [@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
+      <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 sm:[@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
       {/* progress: finished steps can be revisited */}
-      <ol className="mt-4 flex shrink-0 items-center gap-2 border-y border-ink/10 py-3 sm:gap-3" aria-label="Steps">
+      <ol className="mt-3 flex shrink-0 items-center gap-1.5 border-y border-ink/10 py-2.5 sm:mt-4 sm:gap-3 sm:py-3" aria-label="Steps">
         {STEPS.map((label, i) => {
           const done = i < step;
           const current = i === step;
@@ -254,7 +257,9 @@ export default function NewInvitationPage() {
                 setEventType(id);
                 setTheme(t);
                 setSchedule(programmeFor(id));
-                if (template) setTemplate(designsFor(id)[0].id);
+                setClassic(false);
+                setTemplate(designsFor(id)[0].id);
+                setEntry(null); // the new design's own entrance
               }}
               className={`relative flex flex-col items-center gap-1.5 rounded-2xl border bg-white px-1.5 py-2.5 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-3 min-[420px]:text-left ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
             >
@@ -541,16 +546,16 @@ export default function NewInvitationPage() {
               <span className="label">Phone / WhatsApp</span>
               <input
                 type="tel"
-                inputMode="tel"
                 autoComplete="tel"
                 className={`input ${phoneTouched && phoneError(contact.phone) ? "!border-red-400" : ""}`}
-                maxLength={20}
+                maxLength={10}
+                inputMode="numeric"
                 value={contact.phone}
                 onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value.replace(PHONE_CHARS, "") }))}
                 onBlur={() => setPhoneTouched(true)}
                 aria-invalid={phoneTouched && !!phoneError(contact.phone)}
                 aria-describedby="phone-help"
-                placeholder="e.g. 0300 1234567"
+                placeholder="e.g. 9876543210"
               />
               <span id="phone-help" className={`mt-1 block text-xs ${phoneTouched && phoneError(contact.phone) ? "text-red-600" : "text-ink-500"}`}>
                 {(phoneTouched && phoneError(contact.phone)) || "Guests can call or WhatsApp this number."}
@@ -569,9 +574,11 @@ export default function NewInvitationPage() {
       )}
       </div>
 
+    </div>
+    </div>
       {/* fixed to the bottom of the screen: back, where you are, next (create on the last step) */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-cream/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-4 sm:px-6">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="btn-secondary !px-4">
               <ArrowLeft className="h-4 w-4" /> Back
@@ -582,7 +589,7 @@ export default function NewInvitationPage() {
               <ArrowLeft className="h-4 w-4" /> Back
             </Link>
           )}
-          <p className="flex-1 text-center text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
+          <p className="flex-1 whitespace-nowrap text-center text-[10px] font-semibold uppercase tracking-[0.14em] text-ink-500 min-[360px]:text-xs min-[360px]:tracking-[0.18em]">
             Step {step + 1} of {STEPS.length}
           </p>
           {/* the details steps submit their form (Enter in a field does the same) */}
@@ -606,6 +613,6 @@ export default function NewInvitationPage() {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

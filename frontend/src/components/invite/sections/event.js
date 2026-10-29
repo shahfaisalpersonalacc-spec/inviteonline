@@ -341,7 +341,7 @@ export function Contact({ data }) {
               </div>
               {p.phone && (
                 <div className="flex gap-2">
-                  <ThemeButton href={`tel:${phoneDigits(p.phone)}`} className="!px-4 !py-2 !text-xs" target="_self">
+                  <ThemeButton href={`tel:${phoneDigits(p.phone)}`} className="inv-btn-pill !px-4 !py-2 !text-xs" target="_self">
                     <Phone className="h-3.5 w-3.5" /> Call
                   </ThemeButton>
                   {p.whatsapp && (

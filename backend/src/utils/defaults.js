@@ -46,6 +46,8 @@ const PRESETS = {
 // is the contract the frontend editor and renderer rely on.
 // Shown by default, in this order: cover, verse, scratch card, countdown, blessings, programme,
 // venue, RSVP, wishes, then contact and the thank-you at the very end. Everything else starts switched off.
+// Couple occasions get the verse and "With the blessings of"; others skip the verse and show "Hosted by"
+// only when hosts were given.
 // `details` (optional, from the new-invitation steps) fills in the owner's own information.
 function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
   const base = { ...PRESETS.other, ...(PRESETS[eventType] || {}) };
@@ -63,7 +65,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
 
   const shown = [
     { type: 'hero', data: { title: p.heroTitle, subtitle: p.subtitle, tagline: p.tagline, date, image: '', layout: isCouple ? 'arch' : 'classic', foil: true } },
-    {
+    isCouple && {
       type: 'quote',
       data: isIslamic
         ? { arabic: 'وَخَلَقْنَاكُمْ أَزْوَاجًا', text: 'And We created you in pairs.', source: 'Surah An-Naba 78:8' }
@@ -71,10 +73,10 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
     },
     { type: 'scratch', data: { heading: 'Save the date', text: 'Scratch the gold foil to reveal the date', date } },
     { type: 'countdown', data: { heading: 'Counting down to the big day', target: date } },
-    {
+    (isCouple || families.length) && {
       type: 'families',
       data: {
-        heading: 'With the blessings of',
+        heading: isCouple ? 'With the blessings of' : 'Hosted by',
         groups: families.length
           ? families
           : isCouple
@@ -107,6 +109,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
 
   // switched off: ready in the editor whenever the owner wants them
   const hidden = [
+    !isCouple && { type: 'quote', data: { arabic: '', text: 'Where there is love, there is life.', source: 'Mahatma Gandhi' } },
     isCouple && {
       type: 'hosts',
       data: { heading: eventType === 'anniversary' ? 'The Couple' : 'The Happy Couple', people: p.hosts || [
@@ -160,7 +163,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
     themePreset: p.theme,
     monogram: p.monogram,
     sections: [
-      ...shown.map((s) => ({ id: id(), enabled: true, type: s.type, data: s.data })),
+      ...shown.filter(Boolean).map((s) => ({ id: id(), enabled: true, type: s.type, data: s.data })),
       ...hidden.map((s) => ({ id: id(), enabled: false, type: s.type, data: s.data })),
     ],
   };
