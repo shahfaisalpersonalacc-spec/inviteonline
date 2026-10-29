@@ -8,6 +8,7 @@
 //   heading  script | caps | serif | display  section heading style (display: heading font in spaced capitals)
 //   heroNames (optional) "stagger": on the photo cover, two names offset left and right
 //   bandHeading / bandText (optional) heading and text colours on the dark bands
+//   bandCard / bandCardText (optional) cards on the dark bands as light paper with dark text (the primary stays the accent)
 //   bodyWeight (optional) body text weight, e.g. 300 for a light sans
 //   buttons  (optional) "square": square-cornered buttons in spaced capitals
 //   numerals (optional) "heading": times, countdown and calendar days in the heading font
@@ -53,7 +54,7 @@ export const TEMPLATES = [
       entryStyle: "burgundy-dove", sealColor: "#8f1219", sealIcon: "rose", bgType: "color", bgValue: "",
     },
     design: {
-      bands: "alternate", band: "#8f1219", bandHeading: "#ffffff", bandText: "#f6dede", divider: "torn", decor: "crimson",
+      bands: "alternate", band: "#8f1219", bandHeading: "#ffffff", bandText: "#f6dede", bandCard: "#fffaf5", bandCardText: "#2b1a1a", divider: "torn", decor: "crimson",
       heading: "display", heroNames: "stagger", bodyWeight: 300, buttons: "square", numerals: "heading",
     },
   },

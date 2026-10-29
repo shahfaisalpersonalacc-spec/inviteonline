@@ -120,6 +120,8 @@ function darkBand(theme, color, design) {
     "--inv-surface": shade(dark, 0.06),
     // a template may give band headings their own colour (e.g. white titles, gold buttons)
     ...(design?.bandHeading ? { "--inv-heading": design.bandHeading } : {}),
+    // light paper cards on the dark band (globals.css, [data-band-card])
+    ...(design?.bandCard ? { "--inv-card-bg": design.bandCard, "--inv-card-text": design.bandCardText || "#2b1a1a", "--inv-card-accent": design.band || theme.primary } : {}),
   };
 }
 
@@ -247,6 +249,7 @@ export default function InvitationRenderer({
                 key={s.id}
                 id={`sec-${s.id}`}
                 data-section-id={s.id}
+                data-band-card={band?.["--inv-card-bg"] ? "" : undefined}
                 className="relative scroll-mt-16 @3xl:scroll-mt-0"
                 style={{ ...band, "--inv-section-bg": band?.background || "var(--inv-bg)", paddingBottom: s.type === "hero" ? undefined : edgeBelow(i) }}
               >

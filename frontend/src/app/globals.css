@@ -119,6 +119,17 @@ body {
   padding: 0.95rem 1.75rem;
 }
 [data-inv-numerals="heading"] .font-semibold.tabular-nums { font-weight: 400; }
+/* thin display numerals sit low in their box: give them room so nothing is clipped */
+[data-inv-numerals="heading"] .tabular-nums { line-height: 1.15; padding-bottom: 0.04em; }
+
+/* Cards on a dark band as light paper (templates with design.bandCard): dark text, the band colour as accent */
+[data-band-card] .inv-card {
+  --inv-surface: var(--inv-card-bg);
+  --inv-text: var(--inv-card-text);
+  --inv-primary: var(--inv-card-accent);
+  --inv-on-primary: #ffffff;
+  color: var(--inv-card-text);
+}
 [data-inv-numerals="heading"] .inv-time {
   font-family: var(--inv-font-heading);
   font-size: 1.15rem; /* fits the time column: "10:30 PM" */

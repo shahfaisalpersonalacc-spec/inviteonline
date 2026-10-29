@@ -104,7 +104,7 @@ export function Shell({ children, className = "" }) {
 export function Card({ children, className = "", style }) {
   return (
     <div
-      className={`relative rounded-[1.75rem] p-5 @md:p-7 ${className}`}
+      className={`inv-card relative rounded-[1.75rem] p-5 @md:p-7 ${className}`}
       style={{
         background: "var(--inv-surface)",
         boxShadow: "0 18px 40px -24px color-mix(in srgb, var(--inv-primary) 45%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--inv-secondary) 55%, transparent)",
