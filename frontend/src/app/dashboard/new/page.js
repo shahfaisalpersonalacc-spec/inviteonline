@@ -214,12 +214,12 @@ export default function NewInvitationPage() {
       <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 sm:[@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
       {/* progress: finished steps can be revisited */}
-      <ol className="mt-3 flex shrink-0 items-center gap-1.5 border-y border-ink/10 py-2.5 sm:mt-4 sm:gap-3 sm:py-3" aria-label="Steps">
+      <ol className="mt-3 flex shrink-0 items-center gap-1.5 border-y border-ink/10 py-2.5 sm:mt-4 sm:gap-3 sm:py-3 lg:gap-2" aria-label="Steps">
         {STEPS.map((label, i) => {
           const done = i < step;
           const current = i === step;
           return (
-            <li key={label} className="flex min-w-0 flex-1 items-center gap-2 last:flex-none sm:gap-3">
+            <li key={label} className="flex min-w-0 flex-1 items-center gap-2 last:flex-none sm:gap-3 lg:min-w-max lg:gap-2">
               <button
                 type="button"
                 onClick={() => done && go(i)}
@@ -234,7 +234,7 @@ export default function NewInvitationPage() {
                 >
                   {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
                 </span>
-                <span className={`hidden whitespace-nowrap text-sm font-semibold lg:block ${current ? "text-ink" : "text-ink-500"}`}>{label}</span>
+                <span className={`hidden whitespace-nowrap text-[13px] font-semibold lg:block ${current ? "text-ink" : "text-ink-500"}`}>{label}</span>
               </button>
               {i < STEPS.length - 1 && <span className={`h-px flex-1 ${done ? "bg-ink/40" : "bg-ink/10"}`} aria-hidden />}
             </li>
