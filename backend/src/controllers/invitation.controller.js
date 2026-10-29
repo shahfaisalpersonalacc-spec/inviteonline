@@ -67,6 +67,24 @@ const schemas = {
     theme: themeSchema.optional(),
     heroFoil: z.boolean().optional(),
     heroLayout: z.enum(['arch', 'circle', 'full', 'classic', 'photo-top', 'floral']).optional(),
+    // the owner's own details from the new-invitation steps (all optional)
+    details: z
+      .object({
+        date: z.iso.datetime({ offset: true }).optional(),
+        families: z.array(z.object({ title: z.string().trim().max(60), names: z.string().trim().max(300) })).max(4).optional(),
+        schedule: z.array(z.object({ time: z.string().trim().max(30), title: z.string().trim().max(80) })).max(12).optional(),
+        venue: z.object({ name: z.string().trim().max(120), address: z.string().trim().max(200), mapUrl: z.union([z.literal(''), z.url().max(500)]) }).partial().optional(),
+        contact: z
+          .object({
+            name: z.string().trim().max(80),
+            // empty, or 10-15 digits with an optional leading + and spaces/dashes/brackets
+            phone: z.union([z.literal(''), z.string().trim().regex(/^\+?[\d\s\-()]+$/, 'must be a valid phone number').refine((v) => { const n = v.replace(/\D/g, '').length; return n >= 10 && n <= 15; }, 'must have 10 to 15 digits')]),
+          })
+          .partial()
+          .optional(),
+        closing: z.string().trim().max(400).optional(),
+      })
+      .optional(),
     // background music to start with (the app picks a built-in track for the occasion)
     music: z.object({ url: z.string().max(1000), title: z.string().max(120), enabled: z.boolean() }).partial().optional(),
   }),
@@ -121,8 +139,8 @@ async function list(req, res) {
 }
 
 async function create(req, res) {
-  const { title, eventType, themePreset, mode, theme, heroLayout, heroFoil, music } = req.body;
-  const { sections, themePreset: defaultPreset, monogram } = buildDefaultSections(eventType, title);
+  const { title, eventType, themePreset, mode, theme, heroLayout, heroFoil, music, details } = req.body;
+  const { sections, themePreset: defaultPreset, monogram } = buildDefaultSections(eventType, title, details);
   const hero = sections.find((s) => s.type === 'hero');
   if (hero && heroLayout) hero.data.layout = heroLayout;
   if (hero && heroFoil !== undefined) hero.data.foil = heroFoil;
@@ -131,7 +149,7 @@ async function create(req, res) {
     title,
     eventType,
     slug: await uniqueSlug(Invitation, title),
-    theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(title) || monogram), ...theme, mode },
+    theme: { ...themeFor(themePreset || defaultPreset, monogramFrom(hero?.data?.title || title) || monogram), ...theme, mode },
     sections,
     ...(music ? { music } : {}),
   });

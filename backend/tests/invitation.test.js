@@ -126,6 +126,31 @@ describe('invitations', () => {
     expect(row.wishCount).toBe(1);
   });
 
+  test('new invitations show the chosen sections in order and use the details given', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, {
+      title: 'Ali & Sara',
+      eventType: 'wedding',
+      details: {
+        date: '2026-12-20T14:00:00.000Z',
+        families: [{ title: "Bride's family", names: 'Mr. & Mrs. Khan' }],
+        schedule: [{ time: '6:00 PM', title: 'Nikah' }, { time: '', title: '' }],
+        venue: { name: 'Pearl Hall', address: 'Lahore' },
+        contact: { name: 'Usman', phone: '03001234567' },
+        closing: 'Thank you!',
+      },
+    });
+    const on = inv.sections.filter((s) => s.enabled).map((s) => s.type);
+    expect(on).toEqual(['hero', 'quote', 'scratch', 'countdown', 'families', 'schedule', 'venue', 'rsvp', 'wishes', 'contact', 'closing']);
+    const data = (type) => inv.sections.find((s) => s.type === type).data;
+    expect(data('hero').date).toBe('2026-12-20T14:00:00.000Z');
+    expect(data('families').groups).toEqual([{ title: "Bride's family", names: 'Mr. & Mrs. Khan' }]);
+    expect(data('schedule').items.length).toBe(1); // the empty row is dropped
+    expect(data('venue').name).toBe('Pearl Hall');
+    expect(data('contact').people[0].phone).toBe('03001234567');
+    expect(data('closing').text).toBe('Thank you!');
+  });
+
   test('a new invitation can start with background music', async () => {
     const { token } = await register(request, app);
     const inv = await createInvite(token, { title: 'Ali & Sara', eventType: 'nikah', music: { url: '/music/noor.mp3', title: 'Noor', enabled: true } });

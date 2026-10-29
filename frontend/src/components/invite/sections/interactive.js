@@ -38,7 +38,7 @@ export function Rsvp({ data }) {
     } catch {}
   }, [storeKey]);
 
-  const max = Math.max(1, Number(data.maxGuests) || 5);
+  const max = Math.max(1, Number(data.maxGuests) || 10);
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   async function submit(e) {

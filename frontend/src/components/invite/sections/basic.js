@@ -1,6 +1,9 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { useRef, useState } from "react";
+import { ChevronDown, ImagePlus } from "lucide-react";
+import { uploadFile } from "@/lib/api";
+import Spinner from "@/components/ui/Spinner";
 import { Card, FramedCard, Img, Ornament, Placeholder, Reveal, SectionHeading, Shell } from "../primitives";
 import { useInvite } from "../InviteContext";
 import Effects from "../Effects";
@@ -60,11 +63,40 @@ const twoNames = (title = "") => {
   return parts.length === 2 ? parts : null;
 };
 
-function EditorHint({ children }) {
+// Editor only: a pill on the cover that uploads the cover photo right there.
+function CoverPhotoPill() {
+  const { onHeroPhoto } = useInvite();
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const cls = "absolute left-1/2 top-4 z-[30] inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-lg backdrop-blur transition hover:bg-black/70";
+  if (!onHeroPhoto) return <p className={cls}>Add a cover photo in Content → Cover</p>;
   return (
-    <p className="absolute left-1/2 top-4 z-[2] -translate-x-1/2 whitespace-nowrap rounded-full bg-black/45 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur">
-      {children}
-    </p>
+    <>
+      <button type="button" className={cls} onClick={() => input.current?.click()} disabled={busy}>
+        {busy ? <Spinner className="h-3.5 w-3.5" /> : <ImagePlus className="h-3.5 w-3.5" />} {busy ? "Uploading…" : error || "Add a cover photo"}
+      </button>
+      <input
+        ref={input}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (!file) return;
+          setBusy(true);
+          setError("");
+          try {
+            onHeroPhoto((await uploadFile("image", file)).url);
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      />
+    </>
   );
 }
 
@@ -87,7 +119,7 @@ function PhotoTopHero({ data, photo, minH, overlay, theme, mode, design }) {
           </span>
         </div>
       )}
-      {mode === "editor" && !photo && <EditorHint>Add a cover photo in Content → Cover</EditorHint>}
+      {mode === "editor" && !photo && <CoverPhotoPill />}
       <div
         className="absolute inset-0"
         style={{ background: `linear-gradient(to bottom, rgba(0,0,0,${overlay * 0.3}) 0%, transparent 28%, rgba(0,0,0,${overlay * 0.45}) 60%, rgba(0,0,0,${Math.min(0.92, overlay * 1.2)}) 100%)` }}

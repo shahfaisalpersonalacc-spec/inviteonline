@@ -50,7 +50,7 @@ export default function EditorPage() {
   const [status, setStatus] = useState("saved"); // saved | unsaved | saving | error
   const [selected, setSelected] = useState(null);
   const [targetSection, setTargetSection] = useState("");
-  const [mobileView, setMobileView] = useState("edit"); // edit | preview
+  const [mobileView, setMobileView] = useState(justCreated ? "preview" : "edit"); // edit | preview (phones open a new invitation on its preview)
   const [device, setDevice] = useState("phone"); // phone | desktop
   const [shareOpen, setShareOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -286,6 +286,12 @@ export default function EditorPage() {
     };
   }, [tab, loaded]);
 
+  // the cover pill in the preview uploads straight into the cover section
+  const setHeroPhoto = useCallback(
+    (url) => set((cur) => ({ sections: cur.sections.map((s) => (s.type === "hero" ? { ...s, data: { ...s.data, image: url } } : s)) })),
+    [set]
+  );
+
   // throws on a wrong password, so the dialog stays open and shows why
   async function removeInvitation(password) {
     await api(`/invitations/${id}`, { method: "DELETE", body: { password } });
@@ -429,6 +435,7 @@ export default function EditorPage() {
                 selectedStickerId={selected}
                 onSelectSticker={setSelected}
                 onStickerChange={updateSticker}
+                onHeroPhoto={setHeroPhoto}
               />
             </div>
             {previewEntry > 0 && (

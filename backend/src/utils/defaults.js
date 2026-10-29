@@ -44,24 +44,69 @@ const PRESETS = {
 
 // Builds the starting sections for a new invitation. Shape of each section's `data`
 // is the contract the frontend editor and renderer rely on.
-function buildDefaultSections(eventType = 'wedding', title = '') {
+// Shown by default, in this order: cover, verse, scratch card, countdown, blessings, programme,
+// venue, RSVP, wishes, then contact and the thank-you at the very end. Everything else starts switched off.
+// `details` (optional, from the new-invitation steps) fills in the owner's own information.
+function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
   const base = { ...PRESETS.other, ...(PRESETS[eventType] || {}) };
   // Use the owner's own names/title in place of the sample one.
   const p = title && title !== 'My Invitation' ? { ...base, heroTitle: title } : base;
-  const date = (p.events && p.events[0]?.date) || inDays(30);
+  const date = details.date || (p.events && p.events[0]?.date) || inDays(30);
   const isCouple = COUPLE_EVENTS.includes(eventType);
   const isIslamic = ['wedding', 'nikah', 'walima'].includes(eventType);
+  const filled = (list) => (list || []).filter((x) => Object.values(x).some((v) => String(v || '').trim()));
 
-  const sections = [
+  const families = filled(details.families);
+  const schedule = filled(details.schedule);
+  const venue = details.venue || {};
+  const contact = details.contact || {};
+
+  const shown = [
     { type: 'hero', data: { title: p.heroTitle, subtitle: p.subtitle, tagline: p.tagline, date, image: '', layout: isCouple ? 'arch' : 'classic', foil: true } },
-    isIslamic && {
+    {
       type: 'quote',
+      data: isIslamic
+        ? { arabic: 'وَخَلَقْنَاكُمْ أَزْوَاجًا', text: 'And We created you in pairs.', source: 'Surah An-Naba 78:8' }
+        : { arabic: '', text: 'Where there is love, there is life.', source: 'Mahatma Gandhi' },
+    },
+    { type: 'scratch', data: { heading: 'Save the date', text: 'Scratch the gold foil to reveal the date', date } },
+    { type: 'countdown', data: { heading: 'Counting down to the big day', target: date } },
+    {
+      type: 'families',
       data: {
-        arabic: 'وَخَلَقْنَاكُمْ أَزْوَاجًا',
-        text: 'And We created you in pairs.',
-        source: 'Surah An-Naba 78:8',
+        heading: 'With the blessings of',
+        groups: families.length
+          ? families
+          : isCouple
+            ? [
+                { title: "Bride's family", names: 'Mr. & Mrs. Imran Khan\nGrandparents & family' },
+                { title: "Groom's family", names: 'Mr. & Mrs. Tariq Malik\nGrandparents & family' },
+              ]
+            : [{ title: 'With love from', names: 'The family' }],
       },
     },
+    {
+      type: 'schedule',
+      data: {
+        heading: 'Programme',
+        items: schedule.length
+          ? schedule.map((x) => ({ time: x.time || '', title: x.title || '', description: '' }))
+          : [
+              { time: '7:00 PM', title: 'Guests arrive', description: 'Welcome drinks' },
+              { time: '8:00 PM', title: 'Main ceremony', description: '' },
+              { time: '9:30 PM', title: 'Dinner', description: '' },
+            ],
+      },
+    },
+    { type: 'venue', data: { heading: 'Venue', name: venue.name || 'Venue name', address: venue.address || (venue.mapUrl ? '' : 'Street, City'), mapUrl: venue.mapUrl || '', mapQuery: '', image: '' } },
+    { type: 'rsvp', data: { heading: 'Will you join us?', text: 'Kindly let us know by the date below.', deadline: inDays(20), maxGuests: 10, askPhone: true } },
+    { type: 'wishes', data: { heading: 'Send your wishes', text: 'Leave a message for us' } },
+    { type: 'contact', data: { heading: 'Contact', people: [{ name: contact.name || 'Family contact', phone: contact.phone || '', whatsapp: true }] } },
+    { type: 'closing', data: { text: details.closing || 'Your presence is the greatest gift. We look forward to celebrating with you!', signature: p.heroTitle } },
+  ];
+
+  // switched off: ready in the editor whenever the owner wants them
+  const hidden = [
     isCouple && {
       type: 'hosts',
       data: { heading: eventType === 'anniversary' ? 'The Couple' : 'The Happy Couple', people: p.hosts || [
@@ -69,34 +114,11 @@ function buildDefaultSections(eventType = 'wedding', title = '') {
         { name: 'Groom', role: 'The Groom', photo: '', bio: '' },
       ] },
     },
-    isCouple && {
-      type: 'families',
-      data: {
-        heading: 'With the blessings of',
-        groups: [
-          { title: "Bride's family", names: 'Mr. & Mrs. Imran Khan\nGrandparents & family' },
-          { title: "Groom's family", names: 'Mr. & Mrs. Tariq Malik\nGrandparents & family' },
-        ],
-      },
-    },
-    { type: 'scratch', data: { heading: 'Save the date', text: 'Scratch the gold foil to reveal the date', date } },
-    { type: 'countdown', data: { heading: 'Counting down to the big day', target: date } },
     {
       type: 'event',
       data: {
         heading: 'Event Details',
-        items: p.events || [{ name: p.heroTitle, date, time: '7:00 PM', venue: 'Venue name', address: 'Full address' }],
-      },
-    },
-    {
-      type: 'schedule',
-      data: {
-        heading: 'Programme',
-        items: [
-          { time: '7:00 PM', title: 'Guests arrive', description: 'Welcome drinks' },
-          { time: '8:00 PM', title: 'Main ceremony', description: '' },
-          { time: '9:30 PM', title: 'Dinner', description: '' },
-        ],
+        items: p.events || [{ name: p.heroTitle, date, time: '7:00 PM', venue: venue.name || 'Venue name', address: venue.address || 'Full address' }],
       },
     },
     isCouple && {
@@ -110,25 +132,20 @@ function buildDefaultSections(eventType = 'wedding', title = '') {
         ],
       },
     },
-    { type: 'story', enabled: false, data: { heading: 'Our Story', text: p.story || 'Every love story is beautiful, but ours is our favourite.', image: '' } },
-    { type: 'venue', data: { heading: 'Venue', name: 'Venue name', address: 'Street, City', mapQuery: '', image: '' } },
+    { type: 'story', data: { heading: 'Our Story', text: p.story || 'Every love story is beautiful, but ours is our favourite.', image: '' } },
     { type: 'gallery', data: { heading: 'Gallery', images: [], layout: 'grid' } },
-    { type: 'video', enabled: false, data: { heading: 'Watch', url: '' } },
-    { type: 'dresscode', enabled: false, data: { heading: 'Dress Code', text: 'Traditional / Formal', colors: ['#7a2430', '#c9a24a', '#f3e9dc'] } },
+    { type: 'video', data: { heading: 'Watch', url: '' } },
+    { type: 'dresscode', data: { heading: 'Dress Code', text: 'Traditional / Formal', colors: ['#7a2430', '#c9a24a', '#f3e9dc'] } },
     {
       type: 'gifts',
-      enabled: false,
       data: {
         heading: 'Gifts',
         text: 'Your presence is our gift. Should you wish to bless us, details are below.',
         accounts: [{ label: 'Bank transfer', title: 'Account title', number: 'PK00 XXXX 0000 0000 0000', note: 'Bank name' }],
       },
     },
-    { type: 'rsvp', data: { heading: 'Will you join us?', text: 'Kindly let us know by the date below.', deadline: inDays(20), maxGuests: 5, askPhone: true } },
-    { type: 'wishes', data: { heading: 'Send your wishes', text: 'Leave a message for us' } },
     {
       type: 'faq',
-      enabled: isCouple,
       data: {
         heading: 'Good to know',
         items: [
@@ -137,14 +154,15 @@ function buildDefaultSections(eventType = 'wedding', title = '') {
         ],
       },
     },
-    { type: 'contact', data: { heading: 'Contact', people: [{ name: 'Family contact', phone: '', whatsapp: true }] } },
-    { type: 'closing', data: { text: 'Your presence is the greatest gift. We look forward to celebrating with you!', signature: p.heroTitle } },
   ].filter(Boolean);
 
   return {
     themePreset: p.theme,
     monogram: p.monogram,
-    sections: sections.map((s) => ({ id: id(), enabled: s.enabled ?? true, type: s.type, data: s.data })),
+    sections: [
+      ...shown.map((s) => ({ id: id(), enabled: true, type: s.type, data: s.data })),
+      ...hidden.map((s) => ({ id: id(), enabled: false, type: s.type, data: s.data })),
+    ],
   };
 }
 

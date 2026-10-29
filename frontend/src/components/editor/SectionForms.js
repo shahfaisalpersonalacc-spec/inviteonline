@@ -147,6 +147,7 @@ const FORMS = {
       <Heading d={d} set={set} />
       <Text label="Venue name" value={d.name} onChange={(v) => set({ name: v })} />
       <TextArea label="Address" rows={2} value={d.address} onChange={(v) => set({ address: v })} />
+      <Text label="Map link (optional)" hint="Paste the exact Google Maps link (Share → Copy link) so guests open the right spot." value={d.mapUrl} onChange={(v) => set({ mapUrl: v.trim() })} placeholder="https://maps.app.goo.gl/…" />
       <Text label="Map search (optional)" hint="Exact place name or coordinates for Google Maps. Leave empty to use the address." value={d.mapQuery} onChange={(v) => set({ mapQuery: v })} />
       <ImageInput label="Venue photo" value={d.image} onChange={(v) => set({ image: v })} />
     </>

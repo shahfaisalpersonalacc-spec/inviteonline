@@ -32,6 +32,16 @@ export function mapEmbedUrl(query) {
   return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed` : "";
 }
 
+// Initials for a monogram from the names on the cover: two names -> "A&A", otherwise the first letter.
+export function monogramOf(title = "") {
+  const parts = String(title).split(/\s*(?:&|\+|\band\b|\bweds\b|\bwith\b)\s*/i).map((x) => x.trim()).filter(Boolean);
+  const initial = (x) => (x.match(/[\p{L}\p{N}]/u) || [""])[0].toUpperCase();
+  return parts.length >= 2 ? `${initial(parts[0])}&${initial(parts[1])}` : initial(parts[0] || "");
+}
+
+// A pasted map link (Google Maps share link, etc.) rather than an address.
+export const isLink = (v) => /^https?:\/\/\S+$/i.test(String(v || "").trim());
+
 export function mapLink(query) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query || "")}`;
 }

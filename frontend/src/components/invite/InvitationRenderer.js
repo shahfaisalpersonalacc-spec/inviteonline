@@ -11,7 +11,7 @@ import Gallery from "./sections/Gallery";
 import { Rsvp, Wishes } from "./sections/interactive";
 import { backgroundCss, googleFontsHref, resolveTheme } from "@/data/themes";
 import { luminance, readableOn, shade } from "@/lib/color";
-import { formatTime, videoEmbed } from "@/lib/format";
+import { formatTime, videoEmbed, monogramOf } from "@/lib/format";
 import { InviteFooter, SideNav, TabBar } from "./PageChrome";
 import { Divider, SectionDecor, designFor } from "./decor/Decor";
 
@@ -170,10 +170,16 @@ export default function InvitationRenderer({
   selectedStickerId,
   onSelectSticker,
   onStickerChange,
+  onHeroPhoto, // editor: upload a cover photo straight from the cover
   showFooter = true,
   showChrome = true,
 }) {
-  const theme = useMemo(() => resolveTheme(invitation.theme || {}), [invitation.theme]);
+  // the cover's monogram follows the names on it (first letters), so it never shows a stale letter
+  const heroTitle = (invitation.sections || []).find((s) => s.type === "hero")?.data?.title || "";
+  const theme = useMemo(() => {
+    const t = resolveTheme(invitation.theme || {});
+    return { ...t, monogram: monogramOf(heroTitle) || t.monogram };
+  }, [invitation.theme, heroTitle]);
   const editable = mode === "editor" && !!onStickerChange;
   const sections = useMemo(() => {
     const date = (invitation.sections || []).find((s) => s.type === "hero")?.data?.date || "";
@@ -196,7 +202,7 @@ export default function InvitationRenderer({
   // the closing section already signs off with the names; don't repeat them in the footer
   const hasSignature = sections.some((s) => s.type === "closing" && s.data?.signature);
   const design = useMemo(() => designFor(theme), [theme]);
-  const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme, design }), [mode, invitation.slug, unlockToken, theme, design]);
+  const ctx = useMemo(() => ({ mode, slug: invitation.slug, unlockToken, theme, design, onHeroPhoto }), [mode, invitation.slug, unlockToken, theme, design, onHeroPhoto]);
   const heroLayout = sections[0]?.type === "hero" ? sections[0].data?.layout : null;
   const photoCover = (heroLayout === "photo-top" || heroLayout === "full") && !!(hero.image || hero.bgImage || heroLayout === "photo-top");
 

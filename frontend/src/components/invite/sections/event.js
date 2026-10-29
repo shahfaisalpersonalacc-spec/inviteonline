@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from "react";
 import { CalendarDays, CalendarPlus, Clock, MapPin, Navigation, Phone, PartyPopper } from "lucide-react";
 import { Card, IconBadge, Img, Reveal, SectionHeading, Shell, ThemeButton } from "../primitives";
 import { WhatsAppIcon } from "@/components/ui/BrandIcons";
-import { formatDate, googleCalendarLink, mapEmbedUrl, mapLink, phoneDigits, whatsappLink } from "@/lib/format";
+import { formatDate, googleCalendarLink, isLink, mapEmbedUrl, mapLink, phoneDigits, whatsappLink } from "@/lib/format";
 
 function Row({ Icon, children, muted }) {
   return (
@@ -277,8 +277,13 @@ export function Schedule({ data }) {
 }
 
 export function Venue({ data }) {
-  const query = data.mapQuery || [data.name, data.address].filter(Boolean).join(", ");
-  if (!query && !data.image) return null;
+  // an exact map link (pasted as the map link, or into the address) opens directly;
+  // otherwise Google Maps searches for the place name and address
+  const link = [data.mapUrl, data.address].find(isLink) || "";
+  const address = isLink(data.address) ? "" : data.address;
+  const query = (isLink(data.mapQuery) ? "" : data.mapQuery) || [data.name, address].filter(Boolean).join(", ");
+  const open = link || (query ? mapLink(query) : "");
+  if (!open && !data.image) return null;
   return (
     <Shell>
       <SectionHeading>{data.heading}</SectionHeading>
@@ -292,14 +297,14 @@ export function Venue({ data }) {
                   {data.name}
                 </h3>
               )}
-              {data.address && (
+              {address && (
                 <p className="mt-2 flex items-center justify-center gap-2 opacity-80 @5xl:justify-start">
-                  <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.7} /> {data.address}
+                  <MapPin className="h-4 w-4 shrink-0" strokeWidth={1.7} /> {address}
                 </p>
               )}
-              {query && (
+              {open && (
                 <div className="mt-6 hidden @5xl:block">
-                  <ThemeButton href={mapLink(query)}>
+                  <ThemeButton href={open}>
                     <Navigation className="h-4 w-4" /> Open in Google Maps
                   </ThemeButton>
                 </div>
@@ -307,9 +312,9 @@ export function Venue({ data }) {
             </div>
           </div>
           {query && <iframe title="Map" src={mapEmbedUrl(query)} className="h-64 w-full border-0 @md:h-80 @5xl:h-full @5xl:min-h-[420px]" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />}
-          {query && (
+          {open && (
             <div className="p-5 text-center @5xl:hidden">
-              <ThemeButton href={mapLink(query)}>
+              <ThemeButton href={open}>
                 <Navigation className="h-4 w-4" /> Open in Google Maps
               </ThemeButton>
             </div>

@@ -1,11 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Moon, Sun } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Moon, Plus, Sun, X } from "lucide-react";
 import { EVENT_TYPES } from "@/data/eventTypes";
 import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
+import { isLink } from "@/lib/format";
 import Spinner from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
 import { defaultMusicFor } from "@/data/music";
@@ -13,7 +15,57 @@ import WaxSeal from "@/components/invite/entry/WaxSeal";
 import TemplatePreview from "@/components/site/TemplatePreview";
 import { getTemplate, templateTheme, templatesFor } from "@/data/templates";
 
-const STEPS = ["Occasion", "Design", "Look", "Name"];
+const STEPS = ["Occasion", "Design", "Look & entrance", "Names", "Families", "Programme", "Contact"];
+const COUPLE = ["wedding", "nikah", "walima", "mehndi", "engagement", "anniversary"];
+const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+// <input type="datetime-local"> value -> ISO (local time as the owner typed it)
+const toIso = (v) => (v ? new Date(v).toISOString() : undefined);
+// <input type="time"> value "18:30" -> "6:30 PM" (how times are shown on the invitation)
+const to12h = (v) => {
+  if (!v) return "";
+  const [h, m] = v.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+// Phone: digits with optional +, spaces, dashes or brackets; 10 to 15 digits (e.g. 0300 1234567, +92 300 1234567).
+const PHONE_CHARS = /[^\d+\-\s()]/g;
+const phoneError = (v) => {
+  if (!v.trim()) return "";
+  const digits = v.replace(/\D/g, "").length;
+  if (!/^\+?[\d\s\-()]+$/.test(v.trim()) || v.indexOf("+") > 0) return "Use digits only, with an optional + at the start.";
+  if (digits < 10 || digits > 15) return "Enter a full phone number (10 to 15 digits), e.g. 0300 1234567.";
+  return "";
+};
+// Bordeaux Romance (burgundy bands, torn paper) is the starting design for every occasion.
+const DEFAULT_TEMPLATE = "bordeaux";
+const designsFor = (eventType) => {
+  const list = templatesFor(eventType);
+  return [...list.filter((t) => t.id === DEFAULT_TEMPLATE), ...list.filter((t) => t.id !== DEFAULT_TEMPLATE)];
+};
+// A typical desi programme for each occasion (times are <input type="time"> values), editable in the step.
+const PROGRAMMES = {
+  wedding: [["20:00", "Baraat arrival"], ["20:30", "Nikah"], ["22:00", "Dinner"], ["23:30", "Rukhsati"]],
+  nikah: [["16:30", "Guests arrive"], ["17:00", "Nikah ceremony"], ["17:45", "Dua & mithai"], ["18:00", "Hi-tea"]],
+  walima: [["20:00", "Guests arrive"], ["21:00", "Couple's entry"], ["22:00", "Dinner"], ["23:30", "Farewell"]],
+  mehndi: [["20:00", "Guests arrive"], ["21:00", "Mehndi rasam"], ["22:00", "Dholki & dances"], ["23:00", "Dinner"]],
+  engagement: [["19:00", "Guests arrive"], ["20:00", "Ring ceremony"], ["21:00", "Dinner"]],
+  anniversary: [["19:30", "Guests arrive"], ["20:30", "Cake cutting"], ["21:00", "Dinner"]],
+  birthday: [["17:00", "Guests arrive"], ["18:00", "Cake cutting"], ["18:30", "Games & fun"], ["19:30", "Dinner"]],
+  "baby-shower": [["16:00", "Guests arrive"], ["16:30", "Games"], ["17:30", "Gift opening"], ["18:00", "Hi-tea"]],
+};
+const programmeFor = (eventType) =>
+  (PROGRAMMES[eventType] || [["19:00", "Guests arrive"], ["20:00", "Main event"], ["21:30", "Dinner"]]).map(([time, title]) => ({ time, title }));
+// The wizard keeps a draft in this tab (sessionStorage), so a reload returns to the same step with
+// everything filled in. It's cleared once the invitation is created.
+const DRAFT_KEY = "new-invitation-draft";
+function readDraft() {
+  try {
+    return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}") || {};
+  } catch {
+    return {};
+  }
+}
+const DEFAULT_THANKS = "Your presence is the greatest gift. We look forward to celebrating with you!";
 
 // A horizontal slider: swipe on touch screens, arrow buttons on the sides.
 // Each arrow shows only when there is more to see on that side.
@@ -36,7 +88,7 @@ function Slider({ children }) {
   const slide = (dir) => track.current?.scrollBy({ left: dir * track.current.clientWidth * 0.8, behavior: "smooth" });
   return (
     <div className="relative mt-4">
-      <div ref={track} className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 pb-3 sm:mx-0 sm:gap-4 sm:px-0">
+      <div ref={track} className="no-scrollbar -mx-1 flex snap-x snap-mandatory scroll-px-1 gap-3 overflow-x-auto scroll-smooth px-1 pb-3 sm:gap-4">
         {children}
       </div>
       {[-1, 1].filter((dir) => !(dir < 0 ? edges.start : edges.end)).map((dir) => (
@@ -65,17 +117,46 @@ function Step({ n, children }) {
 
 export default function NewInvitationPage() {
   const router = useRouter();
-  const [eventType, setEventType] = useState("wedding");
-  const [theme, setTheme] = useState(EVENT_TYPES[0].theme);
+  // (this page only renders in the browser, after the login check, so reading the draft here is safe)
+  const [draft] = useState(readDraft);
+  const [eventType, setEventType] = useState(draft.eventType ?? "wedding");
+  const [theme, setTheme] = useState(draft.theme ?? EVENT_TYPES[0].theme);
   // the design: a template id, or "" for a simple colour theme (`theme` preset)
-  const [template, setTemplate] = useState(templatesFor("wedding")[0].id);
-  const [classic, setClassic] = useState(false);
-  const [title, setTitle] = useState("");
-  const [mode, setMode] = useState("light");
+  const [template, setTemplate] = useState(draft.template ?? designsFor("wedding")[0].id);
+  const [classic, setClassic] = useState(draft.classic ?? false);
+  const [title, setTitle] = useState(draft.title ?? ""); // non-couple events: the invitation name
+  const [bride, setBride] = useState(draft.bride ?? "");
+  const [groom, setGroom] = useState(draft.groom ?? "");
+  const couple = COUPLE.includes(eventType);
+  // couple events: "Bride & Groom" on the cover and in the link
+  const fullTitle = couple ? [bride.trim(), groom.trim()].filter(Boolean).join(" & ") : title.trim();
+  const namesReady = couple ? !!(bride.trim() && groom.trim()) : !!title.trim();
+  // the owner's details (all optional; anything left empty keeps the sample content)
+  const [date, setDate] = useState(draft.date ?? "");
+  const [families, setFamilies] = useState(draft.families ?? [
+    { title: "", names: "" },
+    { title: "", names: "" },
+  ]);
+  // a ready-made programme for the occasion, which the owner can adjust
+  const [schedule, setSchedule] = useState(() => draft.schedule ?? programmeFor("wedding"));
+  const [venue, setVenue] = useState(draft.venue ?? { name: "", address: "" });
+  const [contact, setContact] = useState(draft.contact ?? { name: "", phone: "" });
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [closing, setClosing] = useState(draft.closing ?? DEFAULT_THANKS);
+  const [mode, setMode] = useState(draft.mode ?? "light");
+  const [entry, setEntry] = useState(draft.entry ?? null); // entrance (envelope / door); null = the design's own
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState(0); // 0 occasion · 1 design · 2 light/dark · 3 name
+  const [step, setStep] = useState(draft.step ?? 0); // 0 occasion · 1 design · 2 light/dark · 3 name
   const last = step === STEPS.length - 1;
+  const designEntry = (template && getTemplate(template)?.theme.entryStyle) || THEMES[theme]?.entryStyle || "burgundy-dove";
+  const entryStyle = entry || designEntry;
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, eventType, theme, template, classic, mode, entry, title, bride, groom, date, families, schedule, venue, contact, closing }));
+    } catch {}
+  }, [step, eventType, theme, template, classic, mode, entry, title, bride, groom, date, families, schedule, venue, contact, closing]);
 
   const body = useRef(null);
   function go(n) {
@@ -90,9 +171,23 @@ export default function NewInvitationPage() {
     try {
       const t = template && getTemplate(template);
       const song = defaultMusicFor(eventType); // a soft track that suits the occasion (changeable in Settings)
-      const body = { title: title.trim() || "My Invitation", eventType, themePreset: theme, mode, music: { url: song.src, title: song.title, enabled: true } };
-      if (t) Object.assign(body, { theme: templateTheme(t), heroLayout: t.heroLayout, heroFoil: !!t.design.foil });
+      const famTitles = couple ? ["Bride's family", "Groom's family"] : ["With love from", ""];
+      const details = {
+        date: toIso(date),
+        families: families.map((f, i) => ({ title: f.title.trim() || famTitles[i] || "Family", names: f.names.trim() })).filter((f) => f.names),
+        schedule: schedule.filter((x) => x.time || x.title.trim()).map((x) => ({ time: to12h(x.time), title: x.title.trim() })),
+        // a pasted map link becomes the venue's map link, not its written address
+        venue: isLink(venue.address) ? { name: venue.name, address: "", mapUrl: venue.address.trim() } : venue,
+        contact,
+        closing: closing.trim() || undefined,
+      };
+      const body = { title: fullTitle || "My Invitation", eventType, themePreset: theme, mode, details, music: { url: song.src, title: song.title, enabled: true } };
+      if (t) Object.assign(body, { theme: { ...templateTheme(t), entryStyle }, heroLayout: t.heroLayout, heroFoil: !!t.design.foil });
+      else body.theme = { entryStyle };
       const d = await api("/invitations", { method: "POST", body });
+      try {
+        sessionStorage.removeItem(DRAFT_KEY); // created: the next new invitation starts fresh
+      } catch {}
       // ?new=1: the editor keeps the same animated loader up while it opens
       router.replace(`/dashboard/edit/${d.invitation._id}?new=1`);
     } catch (e) {
@@ -121,13 +216,13 @@ export default function NewInvitationPage() {
           const done = i < step;
           const current = i === step;
           return (
-            <li key={label} className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+            <li key={label} className="flex min-w-0 flex-1 items-center gap-2 last:flex-none sm:gap-3">
               <button
                 type="button"
                 onClick={() => done && go(i)}
                 disabled={!done}
                 aria-current={current ? "step" : undefined}
-                className="flex min-w-0 items-center gap-2 text-left disabled:cursor-default"
+                className="flex shrink-0 items-center gap-2 text-left disabled:cursor-default"
               >
                 <span
                   className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition ${
@@ -136,7 +231,7 @@ export default function NewInvitationPage() {
                 >
                   {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
                 </span>
-                <span className={`hidden truncate text-sm font-semibold sm:block ${current ? "text-ink" : "text-ink-500"}`}>{label}</span>
+                <span className={`hidden whitespace-nowrap text-sm font-semibold lg:block ${current ? "text-ink" : "text-ink-500"}`}>{label}</span>
               </button>
               {i < STEPS.length - 1 && <span className={`h-px flex-1 ${done ? "bg-ink/40" : "bg-ink/10"}`} aria-hidden />}
             </li>
@@ -158,7 +253,8 @@ export default function NewInvitationPage() {
               onClick={() => {
                 setEventType(id);
                 setTheme(t);
-                if (template) setTemplate(templatesFor(id)[0].id);
+                setSchedule(programmeFor(id));
+                if (template) setTemplate(designsFor(id)[0].id);
               }}
               className={`relative flex flex-col items-center gap-1.5 rounded-2xl border bg-white px-1.5 py-2.5 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-3 min-[420px]:text-left ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
             >
@@ -185,7 +281,7 @@ export default function NewInvitationPage() {
         <>
           {/* card width follows the screen height (9:16 previews), so the step fits without scrolling */}
           <Slider>
-            {templatesFor(eventType).map((t) => {
+            {designsFor(eventType).map((t) => {
               const active = template === t.id;
               const fits = t.events.includes(eventType);
               return (
@@ -247,7 +343,7 @@ export default function NewInvitationPage() {
               );
             })}
           </Slider>
-          <button type="button" onClick={() => { setClassic(false); setTemplate(templatesFor(eventType)[0].id); }} className="mt-2 text-xs font-semibold text-ink-500 underline underline-offset-2 hover:text-ink">
+          <button type="button" onClick={() => { setClassic(false); setTemplate(designsFor(eventType)[0].id); }} className="mt-2 text-xs font-semibold text-ink-500 underline underline-offset-2 hover:text-ink">
             Back to design templates
           </button>
         </>
@@ -259,7 +355,7 @@ export default function NewInvitationPage() {
       {step === 2 && (
       <>
       <Step n="III">Light or dark?</Step>
-      <div className="mt-4 grid max-w-md grid-cols-2 gap-3" role="radiogroup" aria-label="Invitation appearance">
+      <div className="mt-3 grid max-w-md grid-cols-2 gap-3" role="radiogroup" aria-label="Invitation appearance">
         {[
           ["light", "Light", "Soft, bright paper tones", Sun, "#fffaf3", "#1c1a3d"],
           ["dark", "Dark", "Deep, glowing evening look", Moon, "#16141f", "#f3eadb"],
@@ -284,14 +380,189 @@ export default function NewInvitationPage() {
       </div>
       <p className="mt-2 text-xs text-ink-500">This is how guests will see your invitation. You can switch it any time in the editor.</p>
 
+      <h3 className="mt-4 font-serif text-xl text-ink">Choose the entrance</h3>
+      <p className="mt-1 text-xs text-ink-500">What guests tap to open your invitation: an envelope with a wax seal, or a door that swings open.</p>
+      <Slider>
+        {ENTRY_STYLES.map((e) => {
+          const active = entryStyle === e.id;
+          const seal = (template && getTemplate(template)?.theme.sealColor) || THEMES[theme]?.sealColor || "#c9a24a";
+          return (
+            <button
+              type="button"
+              key={e.id}
+              onClick={() => setEntry(e.id)}
+              aria-pressed={active}
+              className={`relative w-28 shrink-0 snap-start overflow-hidden rounded-2xl border bg-white text-left transition sm:w-32 ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)] ring-2 ring-gold/50" : "border-ink/[0.07] hover:border-ink/25"}`}
+            >
+              <span className="relative block aspect-[4/5]" style={{ background: e.swatch }}>
+                {e.photo ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={e.photo} alt="" className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <>
+                    <span className="absolute inset-0" style={{ background: "rgba(0,0,0,.14)", clipPath: "polygon(0 0, 100% 0, 50% 58%)" }} />
+                    <WaxSeal color={seal} icon="monogram" monogram="A&A" className="absolute left-1/2 top-[58%] w-10 -translate-x-1/2 -translate-y-1/2" />
+                  </>
+                )}
+                {active && (
+                  <span className="absolute right-1.5 top-1.5 grid h-5 w-5 place-items-center rounded-full bg-ink text-cream">
+                    <Check className="h-3 w-3" />
+                  </span>
+                )}
+                {e.id === designEntry && (
+                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-ink shadow-sm">With design</span>
+                )}
+              </span>
+              <span className="block truncate px-2 py-1.5 text-xs font-semibold text-ink">{e.label}</span>
+            </button>
+          );
+        })}
+      </Slider>
+
       </>
       )}
 
-      {last && (
-      <form id="new-invite" onSubmit={create}>
-      <Step n="IV">Give it a name</Step>
-      <input autoFocus className="input mt-4 !rounded-2xl !py-3.5 !text-base" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
-      <p className="mt-2 text-xs text-ink-500">This also becomes your link, e.g. /i/our-celebration. You can change it later.</p>
+      {step >= 3 && (
+      // details steps: Enter moves on, and creates on the last one. All optional ("leave empty to keep the sample").
+      <form
+        id="new-invite"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (step === 3 && (!namesReady || !date)) return; // names and date are required (the browser shows which)
+          if (last && phoneError(contact.phone)) return setPhoneTouched(true); // fix the number first
+          if (last) create(e);
+          else go(step + 1);
+        }}
+        className="max-w-2xl"
+      >
+      <Step n={ROMAN[step]}>
+        {["", "", "", "Names & date", "With the blessings of", "Programme & venue", "Contact & thank-you"][step]}
+      </Step>
+      <p className="mt-1 text-xs text-ink-500">
+        {step === 3 ? "Both are needed: they go on the cover, the scratch card and the countdown." : "Optional: anything you leave empty keeps the sample text, and you can change it all later in the editor."}
+      </p>
+
+      {step === 3 && (
+        <div className="mt-4 space-y-4">
+          {couple ? (
+            <div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block">
+                  <span className="label">{eventType === "anniversary" ? "Wife's name" : "Bride's name"} *</span>
+                  <input autoFocus required className="input" maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" />
+                </label>
+                <label className="block">
+                  <span className="label">{eventType === "anniversary" ? "Husband's name" : "Groom's name"} *</span>
+                  <input required className="input" maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" />
+                </label>
+              </div>
+              <span className="mt-1 block text-xs text-ink-500">
+                Shown on the cover as &ldquo;{fullTitle || "Ayesha & Ahmed"}&rdquo; and used for your link. You can change it later.
+              </span>
+            </div>
+          ) : (
+            <label className="block">
+              <span className="label">Invitation name *</span>
+              <input autoFocus required className="input" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
+              <span className="mt-1 block text-xs text-ink-500">Shown on the cover and used for your link. You can change it later.</span>
+            </label>
+          )}
+          <label className="block">
+            <span className="label">Date &amp; time *</span>
+            <input type="datetime-local" required className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+            <span className="mt-1 block text-xs text-ink-500">Used on the cover, the scratch card and the countdown.</span>
+          </label>
+        </div>
+      )}
+
+      {step === 4 && (
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          {(COUPLE.includes(eventType) ? ["Bride's family", "Groom's family"] : ["Hosted by"]).map((label, i) => (
+            <label key={label} className="block">
+              <span className="label">{label}</span>
+              <textarea
+                rows={3}
+                className="input resize-none"
+                maxLength={300}
+                value={families[i].names}
+                onChange={(e) => setFamilies((f) => f.map((x, j) => (j === i ? { ...x, names: e.target.value } : x)))}
+                placeholder={"e.g. Mr. & Mrs. Khan\nGrandparents & family"}
+              />
+            </label>
+          ))}
+        </div>
+      )}
+
+      {step === 5 && (
+        <div className="mt-4 space-y-4">
+          <div>
+            <span className="label">Programme</span>
+            <div className="space-y-2">
+              {schedule.map((x, i) => (
+                <div key={i} className="flex gap-2">
+                  <input type="time" className="input !w-36 shrink-0" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
+                  <input className="input" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
+                  {schedule.length > 1 && (
+                    <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-10 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5" aria-label={`Remove item ${i + 1}`}>
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            {schedule.length < 12 && (
+              <button type="button" onClick={() => setSchedule((l) => [...l, { time: "", title: "" }])} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-ink underline underline-offset-2">
+                <Plus className="h-3.5 w-3.5" /> Add an item
+              </button>
+            )}
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="label">Venue name</span>
+              <input className="input" maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" />
+            </label>
+            <label className="block">
+              <span className="label">Address</span>
+              <input className="input" maxLength={500} value={venue.address} onChange={(e) => setVenue((v) => ({ ...v, address: e.target.value }))} placeholder="Street, area, city" />
+              <span className="mt-1 block text-xs text-ink-500">Tip: you can paste the exact Google Maps link here instead, and guests will open that spot directly.</span>
+            </label>
+          </div>
+        </div>
+      )}
+
+      {step === 6 && (
+        <div className="mt-4 space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="block">
+              <span className="label">Contact name</span>
+              <input className="input" maxLength={80} value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Usman (brother)" />
+            </label>
+            <label className="block">
+              <span className="label">Phone / WhatsApp</span>
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className={`input ${phoneTouched && phoneError(contact.phone) ? "!border-red-400" : ""}`}
+                maxLength={20}
+                value={contact.phone}
+                onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value.replace(PHONE_CHARS, "") }))}
+                onBlur={() => setPhoneTouched(true)}
+                aria-invalid={phoneTouched && !!phoneError(contact.phone)}
+                aria-describedby="phone-help"
+                placeholder="e.g. 0300 1234567"
+              />
+              <span id="phone-help" className={`mt-1 block text-xs ${phoneTouched && phoneError(contact.phone) ? "text-red-600" : "text-ink-500"}`}>
+                {(phoneTouched && phoneError(contact.phone)) || "Guests can call or WhatsApp this number."}
+              </span>
+            </label>
+          </div>
+          <label className="block">
+            <span className="label">Thank-you message</span>
+            <textarea rows={3} className="input resize-none" maxLength={400} value={closing} onChange={(e) => setClosing(e.target.value)} placeholder={DEFAULT_THANKS} />
+          </label>
+        </div>
+      )}
 
       {error && <p className="mt-4 rounded-2xl bg-red-50 px-4 py-2.5 text-sm text-red-700">{error}</p>}
       </form>
@@ -306,16 +577,21 @@ export default function NewInvitationPage() {
               <ArrowLeft className="h-4 w-4" /> Back
             </button>
           ) : (
-            <span className="w-[5.5rem]" aria-hidden />
+            // step 1: back to the dashboard
+            <Link href="/dashboard" className="btn-secondary !px-4">
+              <ArrowLeft className="h-4 w-4" /> Back
+            </Link>
           )}
           <p className="flex-1 text-center text-xs font-semibold uppercase tracking-[0.18em] text-ink-500">
             Step {step + 1} of {STEPS.length}
           </p>
-          {/* the last step submits the name form (Enter in the field does the same) */}
+          {/* the details steps submit their form (Enter in a field does the same) */}
+          {/* key: a different element for "submit", so the click on step 3's Next can't also submit step 4 */}
           <button
-            type={last ? "submit" : "button"}
-            form={last ? "new-invite" : undefined}
-            onClick={last ? undefined : () => go(step + 1)}
+            key={step >= 3 ? "submit" : "next"}
+            type={step >= 3 ? "submit" : "button"}
+            form={step >= 3 ? "new-invite" : undefined}
+            onClick={step >= 3 ? undefined : () => go(step + 1)}
             disabled={busy}
             className="btn-primary !px-6"
           >
