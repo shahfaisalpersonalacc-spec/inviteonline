@@ -50,12 +50,12 @@ export const TEMPLATES = [
     heroLayout: "photo-top",
     theme: {
       primary: "#8f1219", secondary: "#b08d57", background: "#ffffff", surface: "#fbf6f1", text: "#2b1a1a",
-      fontHeading: "Italiana", fontBody: "Montserrat", animation: "petals",
+      fontHeading: "Italiana", fontBody: "Cormorant Garamond", animation: "petals",
       entryStyle: "burgundy-dove", sealColor: "#8f1219", sealIcon: "rose", bgType: "color", bgValue: "",
     },
     design: {
       bands: "alternate", band: "#8f1219", bandHeading: "#ffffff", bandText: "#f6dede", bandCard: "#fffaf5", bandCardText: "#2b1a1a", divider: "torn", decor: "crimson",
-      heading: "display", heroNames: "stagger", bodyWeight: 300, buttons: "square", numerals: "heading",
+      heading: "display", heroNames: "stagger", buttons: "square", numerals: "heading",
     },
   },
   {
