@@ -49,6 +49,7 @@ export default function EditorPage() {
   const [inv, setInv] = useState(null);
   const [tab, setTab] = useState("content");
   const [status, setStatus] = useState("saved"); // saved | unsaved | saving | error
+  const [savedAt, setSavedAt] = useState(0); // bumps after each autosave (the link preview card reloads)
   const [selected, setSelected] = useState(null);
   const [targetSection, setTargetSection] = useState("");
   const [showTip, setShowTip] = useState(justCreated); // first visit after creating: point out where editing starts
@@ -96,6 +97,7 @@ export default function EditorPage() {
     try {
       await api(`/invitations/${id}`, { method: "PUT", body: pick(latest.current) });
       retries.current = 0;
+      setSavedAt(Date.now());
       setStatus(pending.current ? "unsaved" : "saved");
     } catch (e) {
       setStatus("error");
@@ -420,7 +422,7 @@ export default function EditorPage() {
             {tab === "stickers" && (
               <StickersPanel sections={inv.sections} targetSection={targetSection} setTargetSection={setTargetSection} onAdd={addSticker} count={inv.stickers.length} />
             )}
-            {tab === "settings" && <SettingsPanel inv={inv} set={set} saveNow={saveNow} onDelete={() => setConfirmDelete(true)} />}
+            {tab === "settings" && <SettingsPanel inv={inv} set={set} saveNow={saveNow} savedAt={savedAt} onDelete={() => setConfirmDelete(true)} />}
           </div>
         </aside>
 

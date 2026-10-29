@@ -12,7 +12,7 @@ import { musicTrack } from "@/data/music";
 
 const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
 
-export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
+export default function SettingsPanel({ inv, set, saveNow, savedAt, onDelete }) {
   const toast = useToast();
   const [slug, setSlug] = useState(inv.slug);
   const [slugState, setSlugState] = useState("same"); // same | checking | ok | taken | invalid
@@ -106,7 +106,8 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
 
       <section className="space-y-4">
         <h3 className="text-sm font-bold text-ink">Link preview (WhatsApp, Facebook…)</h3>
-        <ImageInput label="Preview image" hint="Shown when your link is shared. Defaults to the cover photo." value={inv.coverImage} onChange={(v) => set({ coverImage: v })} />
+        <LinkPreview inv={inv} savedAt={savedAt} />
+        <ImageInput label="Preview image" hint="Optional. Without it, the cover photo is used, or a card made from your names and date." value={inv.coverImage} onChange={(v) => set({ coverImage: v })} />
         <TextArea label="Preview description" rows={2} maxLength={300} value={inv.description} onChange={(v) => set({ description: v })} placeholder="Join us to celebrate…" />
       </section>
 
@@ -143,6 +144,32 @@ export default function SettingsPanel({ inv, set, saveNow, onDelete }) {
           <Trash2 className="h-3.5 w-3.5" /> Delete invitation
         </button>
       </section>
+    </div>
+  );
+}
+
+// What a shared link looks like: the same image and text the public page gives WhatsApp (see app/i/[slug]).
+function LinkPreview({ inv, savedAt }) {
+  const hero = inv.sections?.find((x) => x.type === "hero")?.data || {};
+  // the generated card reads the saved invitation, so it's reloaded after each save
+  const image = inv.coverImage || hero.image || `/i/${encodeURIComponent(inv.slug)}/preview-image?v=${savedAt || 0}`;
+  const [failed, setFailed] = useState("");
+  const description = inv.description || hero.tagline || "You're invited! Open to see all the details.";
+  return (
+    <div className="overflow-hidden rounded-xl bg-[#e7f6dd] p-1.5 ring-1 ring-ink/10">
+      <div className="overflow-hidden rounded-lg bg-white/70">
+        {failed === image ? (
+          <p className="grid aspect-[1200/630] place-items-center px-4 text-center text-xs text-ink-500">The preview image appears once the invitation is published.</p>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt="Link preview image" onError={() => setFailed(image)} className="aspect-[1200/630] w-full bg-ink/5 object-cover" />
+        )}
+        <div className="px-3 py-2">
+          <p className="truncate text-[13px] font-semibold text-ink">{inv.title}</p>
+          <p className="line-clamp-2 text-xs text-ink-500">{description}</p>
+          <p className="mt-0.5 truncate text-[11px] text-ink-500/80">{new URL(inviteUrl(inv.slug)).host}</p>
+        </div>
+      </div>
     </div>
   );
 }
