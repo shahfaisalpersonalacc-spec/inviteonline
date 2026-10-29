@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import PublicInvitation from "./PublicInvitation";
 import { fetchInvite, heroOf } from "./invite-data";
@@ -15,14 +16,21 @@ export async function generateMetadata({ params }) {
   if (!data?.invitation) return { title: "Invitation" };
   const inv = data.invitation;
   const hero = heroOf(inv);
-  // no photo: a card made for this invitation (names and date in its colours), see preview-image/route.js
-  const image = previewImage(inv.coverImage || hero.image) || `/i/${encodeURIComponent(slug)}/preview-image`;
-  const sized = image.includes("w_1200,h_630") || !(inv.coverImage || hero.image);
+  const photo = previewImage(inv.coverImage || hero.image);
+  // no photo: a card made for this invitation (names and date in its colours), see preview-image/route.js.
+  // Its full address uses the domain this page was opened on, so WhatsApp can fetch it even when
+  // NEXT_PUBLIC_SITE_URL still says localhost.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") || h.get("host");
+  const proto = h.get("x-forwarded-proto")?.split(",")[0] || (/^(localhost|127\.)/.test(host || "") ? "http" : "https");
+  const card = `${host ? `${proto}://${host}` : ""}/i/${encodeURIComponent(slug)}/preview-image`;
+  const image = photo || card;
+  const sized = !photo || photo.includes("w_1200,h_630");
   const description = inv.description || hero.tagline || "You're invited! Open to see all the details.";
   return {
     title: { absolute: inv.title },
     description,
-    openGraph: { title: inv.title, description, type: "website", images: [{ url: image, ...(sized ? { width: 1200, height: 630 } : {}) }] },
+    openGraph: { title: inv.title, description, type: "website", images: [{ url: image, ...(sized ? { width: 1200, height: 630 } : {}), ...(photo ? {} : { type: "image/png" }) }] },
     twitter: { card: "summary_large_image", title: inv.title, description, images: [image] },
     robots: { index: false },
   };

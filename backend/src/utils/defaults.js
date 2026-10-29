@@ -69,7 +69,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
       type: 'quote',
       data: isIslamic
         ? { arabic: 'وَخَلَقْنَاكُمْ أَزْوَاجًا', text: 'And We created you in pairs.', source: 'Surah An-Naba 78:8' }
-        : { arabic: '', text: 'Where there is love, there is life.', source: 'Mahatma Gandhi' },
+        : { arabic: '', text: 'Where there is love, there is life.', source: '' },
     },
     { type: 'scratch', data: { heading: 'Save the date', text: 'Scratch the gold foil to reveal the date', date } },
     { type: 'countdown', data: { heading: 'Counting down to the big day', target: date } },
@@ -109,7 +109,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
 
   // switched off: ready in the editor whenever the owner wants them
   const hidden = [
-    !isCouple && { type: 'quote', data: { arabic: '', text: 'Where there is love, there is life.', source: 'Mahatma Gandhi' } },
+    !isCouple && { type: 'quote', data: { arabic: '', text: 'Where there is love, there is life.', source: '' } },
     isCouple && {
       type: 'hosts',
       data: { heading: eventType === 'anniversary' ? 'The Couple' : 'The Happy Couple', people: p.hosts || [
