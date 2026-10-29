@@ -7,6 +7,7 @@ import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
+import EditorTip from "@/components/editor/EditorTip";
 import DeleteInvitationDialog from "@/components/site/DeleteInvitationDialog";
 import InvitationRenderer from "@/components/invite/InvitationRenderer";
 import ShareSheet from "@/components/invite/ShareSheet";
@@ -50,6 +51,7 @@ export default function EditorPage() {
   const [status, setStatus] = useState("saved"); // saved | unsaved | saving | error
   const [selected, setSelected] = useState(null);
   const [targetSection, setTargetSection] = useState("");
+  const [showTip, setShowTip] = useState(justCreated); // first visit after creating: point out where editing starts
   const [mobileView, setMobileView] = useState(justCreated ? "preview" : "edit"); // edit | preview (phones open a new invitation on its preview)
   const [device, setDevice] = useState("phone"); // phone | desktop
   const [shareOpen, setShareOpen] = useState(false);
@@ -344,6 +346,7 @@ export default function EditorPage() {
             <button
               key={v}
               role="tab"
+              data-tip={v === "edit" ? "edit" : undefined}
               aria-selected={mobileView === v}
               aria-label={label}
               onClick={() => {
@@ -374,7 +377,7 @@ export default function EditorPage() {
       <div className="flex min-h-0 flex-1">
         {/* Panel */}
         <aside className={`${mobileView === "edit" ? "flex" : "hidden"} w-full min-w-0 flex-col border-r border-ink/10 bg-white lg:flex lg:w-[420px] lg:shrink-0`}>
-          <nav className="grid shrink-0 grid-cols-4 border-b border-ink/[0.06]">
+          <nav data-tip="tabs" className="grid shrink-0 grid-cols-4 border-b border-ink/[0.06]">
             {TABS.map((t) => (
               <button
                 key={t.id}
@@ -462,6 +465,15 @@ export default function EditorPage() {
       </div>
 
       <ShareSheet open={shareOpen} onClose={() => setShareOpen(false)} url={inviteUrl(inv.slug)} title={inv.title} />
+      {showTip && (
+        <EditorTip
+          onClose={() => setShowTip(false)}
+          onEdit={() => {
+            setMobileView("edit");
+            setShowTip(false);
+          }}
+        />
+      )}
       <DeleteInvitationDialog open={confirmDelete} title={inv.title} onClose={() => setConfirmDelete(false)} onConfirm={removeInvitation} />
     </div>
   );
