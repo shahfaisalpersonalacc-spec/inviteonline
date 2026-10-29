@@ -302,6 +302,16 @@ html.auth-pending::after {
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.6); opacity: 0; }
 }
 
+/* Phones zoom in on any field whose text is under 16px when it's tapped. Fields use 16px on small
+   screens so they don't (pinch-zoom still works; only the automatic jump is avoided). */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ---------- Accessibility ---------- */
 /* Visible keyboard focus everywhere (mouse clicks don't show it). */
 /* Ink, not the brand red: a red ring around a field reads like an error. */
