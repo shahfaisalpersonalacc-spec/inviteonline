@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const Invitation = require('../models/Invitation');
 const Rsvp = require('../models/Rsvp');
 const Wish = require('../models/Wish');
-const User = require('../models/User');
 const HttpError = require('../utils/HttpError');
 const { isValidSlug, uniqueSlug, slugify } = require('../utils/slug');
 const { buildDefaultSections, themeFor, monogramFrom, newId } = require('../utils/defaults');
@@ -57,7 +56,6 @@ const stickerSchema = z.object({
 });
 
 const schemas = {
-  remove: z.object({ password: z.string().min(1, 'Enter your password to delete this invitation') }),
   create: z.object({
     title: z.string().trim().min(1).max(120),
     eventType: z.enum(EVENT_TYPES).default('wedding'),
@@ -185,8 +183,6 @@ async function update(req, res) {
 
 async function remove(req, res) {
   const inv = await loadOwned(req);
-  const user = await User.findById(req.user._id).select('+password');
-  if (!(await user.comparePassword(req.body.password))) throw new HttpError(400, 'That password is incorrect. The invitation was not deleted.');
   await Promise.all([Rsvp.deleteMany({ invitation: inv._id }), Wish.deleteMany({ invitation: inv._id }), inv.deleteOne()]);
   res.json({ message: 'Invitation deleted' });
 }

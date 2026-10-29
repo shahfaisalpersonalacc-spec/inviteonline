@@ -69,9 +69,9 @@ export default function DashboardPage() {
     }
   }
 
-  // throws on a wrong password, so the dialog stays open and shows why
-  async function remove(password) {
-    await api(`/invitations/${toDelete._id}`, { method: "DELETE", body: { password } });
+  // throws on failure, so the dialog stays open and shows why
+  async function remove() {
+    await api(`/invitations/${toDelete._id}`, { method: "DELETE" });
     setItems((list) => list.filter((i) => i._id !== toDelete._id));
     setToDelete(null);
     toast("Invitation deleted");

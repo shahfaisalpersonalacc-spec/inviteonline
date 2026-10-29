@@ -292,9 +292,9 @@ export default function EditorPage() {
     [set]
   );
 
-  // throws on a wrong password, so the dialog stays open and shows why
-  async function removeInvitation(password) {
-    await api(`/invitations/${id}`, { method: "DELETE", body: { password } });
+  // throws on failure, so the dialog stays open and shows why
+  async function removeInvitation() {
+    await api(`/invitations/${id}`, { method: "DELETE" });
     clearTimeout(timer.current); // no autosave to a deleted invitation
     retryRef.current = null;
     toast("Invitation deleted");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ChevronDown, ImagePlus } from "lucide-react";
+import { ChevronDown, ImagePlus, Trash2 } from "lucide-react";
 import { uploadFile } from "@/lib/api";
 import Spinner from "@/components/ui/Spinner";
 import { Card, FramedCard, Img, Ornament, Placeholder, Reveal, SectionHeading, Shell } from "../primitives";
@@ -63,19 +63,26 @@ const twoNames = (title = "") => {
   return parts.length === 2 ? parts : null;
 };
 
-// Editor only: a pill on the cover that uploads the cover photo right there.
-function CoverPhotoPill() {
+// Editor only: on the cover, add a photo there and then; with a photo, change or remove it.
+function CoverPhotoPill({ hasPhoto = false }) {
   const { onHeroPhoto } = useInvite();
   const input = useRef(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const cls = "absolute left-1/2 top-4 z-[30] inline-flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-lg backdrop-blur transition hover:bg-black/70";
-  if (!onHeroPhoto) return <p className={cls}>Add a cover photo in Content → Cover</p>;
+  const pill = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-black/55 px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-lg backdrop-blur transition hover:bg-black/70";
+  const wrap = "absolute left-1/2 top-4 z-[30] flex -translate-x-1/2 items-center gap-2";
+  if (!onHeroPhoto) return hasPhoto ? null : <p className={`${wrap} ${pill}`}>Add a cover photo in Content → Cover</p>;
   return (
-    <>
-      <button type="button" className={cls} onClick={() => input.current?.click()} disabled={busy}>
-        {busy ? <Spinner className="h-3.5 w-3.5" /> : <ImagePlus className="h-3.5 w-3.5" />} {busy ? "Uploading…" : error || "Add a cover photo"}
+    <div className={wrap}>
+      <button type="button" className={pill} onClick={() => input.current?.click()} disabled={busy}>
+        {busy ? <Spinner className="h-3.5 w-3.5" /> : <ImagePlus className="h-3.5 w-3.5" />}{" "}
+        {busy ? "Uploading…" : error || (hasPhoto ? "Change photo" : "Add a cover photo")}
       </button>
+      {hasPhoto && !busy && (
+        <button type="button" className={pill} onClick={() => onHeroPhoto("")} aria-label="Remove the cover photo">
+          <Trash2 className="h-3.5 w-3.5" /> Remove
+        </button>
+      )}
       <input
         ref={input}
         type="file"
@@ -96,7 +103,7 @@ function CoverPhotoPill() {
           }
         }}
       />
-    </>
+    </div>
   );
 }
 
@@ -114,12 +121,17 @@ function PhotoTopHero({ data, photo, minH, overlay, theme, mode, design }) {
           className="absolute inset-0 grid place-items-center"
           style={{ background: "radial-gradient(120% 80% at 50% 18%, color-mix(in srgb, var(--inv-primary) 78%, white), var(--inv-primary) 55%, color-mix(in srgb, var(--inv-primary) 70%, black))" }}
         >
-          <span className="-mt-[30%] select-none opacity-15" style={{ fontFamily: "var(--inv-font-heading)", fontSize: "clamp(6rem, 40cqw, 16rem)" }} aria-hidden>
+          <span
+            className="-mt-[30%] max-w-full select-none whitespace-nowrap px-[4cqw] opacity-15"
+            // script faces are wide: about 60cqw shared by the letters ("H&W" ~20cqw each), capped at 16rem
+            style={{ fontFamily: "var(--inv-font-heading)", fontSize: `clamp(3.5rem, ${Math.min(40, 60 / Math.max(1, (theme.monogram || "").length))}cqw, 16rem)`, lineHeight: 1.2 }}
+            aria-hidden
+          >
             {theme.monogram}
           </span>
         </div>
       )}
-      {mode === "editor" && !photo && <CoverPhotoPill />}
+      {mode === "editor" && <CoverPhotoPill hasPhoto={!!photo} />}
       <div
         className="absolute inset-0"
         style={{ background: `linear-gradient(to bottom, rgba(0,0,0,${overlay * 0.3}) 0%, transparent 28%, rgba(0,0,0,${overlay * 0.45}) 60%, rgba(0,0,0,${Math.min(0.92, overlay * 1.2)}) 100%)` }}
@@ -177,6 +189,7 @@ function MonumentDate({ names, date }) {
 
 // Watercolour flowers across the top corners and along the bottom, names in script between.
 function FloralHero({ data, photo, minH, theme, design }) {
+  const { mode } = useInvite();
   const palette = FLORA[design?.decor] ? design.decor : "blush";
   const names = twoNames(data.title);
   const stack = design?.heroDate === "stack" && names && data.date;
@@ -185,6 +198,7 @@ function FloralHero({ data, photo, minH, theme, design }) {
       className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden px-6 text-center`}
       style={{ paddingTop: "clamp(120px, 34cqw, 290px)", paddingBottom: "clamp(108px, 28cqw, 260px)" }}
     >
+      {mode === "editor" && <CoverPhotoPill hasPhoto={!!photo} />}
       <div className="pointer-events-none absolute -left-[5%] -top-[3%]" style={{ width: "min(54cqw, 400px)" }} aria-hidden>
         <FloralCorner name={palette} className="block w-full" seed={4} />
       </div>
@@ -240,6 +254,7 @@ export function Hero({ data }) {
       className={`relative flex ${minH} flex-col items-center justify-center overflow-hidden ${bg ? "px-4" : "px-6"} pb-14 pt-12 text-center @3xl:py-16`}
       style={design?.toran ? { paddingTop: "clamp(120px, 30cqw, 220px)" } : undefined}
     >
+      {mode === "editor" && <CoverPhotoPill hasPhoto={!!photo} />}
       {!bg && !full && <HeroDecor design={design} theme={theme} layout={layout} />}
       {full && (
         <>
