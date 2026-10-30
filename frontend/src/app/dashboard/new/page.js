@@ -19,8 +19,8 @@ const STEPS = ["Occasion", "Design", "Look & entrance", "Names", "Families", "Pr
 const COUPLE = ["wedding", "nikah", "walima", "mehndi", "engagement", "anniversary"];
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
-// <input type="datetime-local"> value -> ISO (local time as the owner typed it)
-const toIso = (v) => (v ? new Date(v).toISOString() : undefined);
+// <input type="date"> value "2026-12-20" -> ISO, at the start of that day in the owner's time zone
+const toIso = (v) => (v ? new Date(`${v}T00:00`).toISOString() : undefined);
 // <input type="time"> value "18:30" -> "6:30 PM" (how times are shown on the invitation)
 const to12h = (v) => {
   if (!v) return "";
@@ -109,7 +109,7 @@ function Slider({ children }) {
 function Step({ n, children }) {
   return (
     <h2 className="mt-4 flex items-baseline gap-4">
-      <span className="font-serif text-2xl italic text-brand-600">{n}.</span>
+      <span className="at-gold-text font-serif text-2xl italic">{n}.</span>
       <span className="font-serif text-2xl text-ink sm:text-[1.7rem]">{children}</span>
     </h2>
   );
@@ -132,7 +132,7 @@ export default function NewInvitationPage() {
   const fullTitle = couple ? [bride.trim(), groom.trim()].filter(Boolean).join(" & ") : title.trim();
   const namesReady = couple ? !!(bride.trim() && groom.trim()) : !!title.trim();
   // the owner's details (all optional; anything left empty keeps the sample content)
-  const [date, setDate] = useState(draft.date ?? "");
+  const [date, setDate] = useState((draft.date ?? "").slice(0, 10));
   const [families, setFamilies] = useState(draft.families ?? [
     { title: "", names: "" },
     { title: "", names: "" },
@@ -202,7 +202,7 @@ export default function NewInvitationPage() {
     // depends on the page padding); a step that needs more room scrolls inside its own area.
     <>
     <div className="fixed inset-x-0 top-16 z-10" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
-    <div className="mx-auto flex h-full max-w-4xl flex-col px-4 pt-3 sm:px-6 sm:pt-6">
+    <div className="mx-auto flex h-full max-w-5xl flex-col px-4 pt-3 sm:px-6 sm:pt-6">
       {busy && <LogoLoader />}
       <p className="eyebrow hidden sm:flex">
         <span className="h-px w-8 bg-brand-600/40" /> New invitation
@@ -214,7 +214,7 @@ export default function NewInvitationPage() {
       <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 sm:[@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
       {/* progress: finished steps can be revisited */}
-      <ol className="mt-3 flex shrink-0 items-center gap-1.5 border-y border-ink/10 py-2.5 sm:mt-4 sm:gap-3 sm:py-3 lg:gap-2" aria-label="Steps">
+      <ol className="at-glass mt-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 sm:mt-4 sm:gap-3 sm:px-3 lg:gap-2" aria-label="Steps">
         {STEPS.map((label, i) => {
           const done = i < step;
           const current = i === step;
@@ -228,21 +228,29 @@ export default function NewInvitationPage() {
                 className="flex shrink-0 items-center gap-2 text-left disabled:cursor-default"
               >
                 <span
-                  className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition ${
-                    current ? "bg-ink text-cream" : done ? "bg-gold/25 text-ink" : "bg-ink/[0.06] text-ink-500"
+                  className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition-all duration-300 ${
+                    current
+                      ? "bg-ink text-cream shadow-[0_0_0_4px_rgba(233,205,132,.45)]"
+                      : done
+                        ? "bg-gradient-to-br from-[#f38a74] to-[#e8544a] text-white shadow-[0_6px_14px_-6px_rgba(232,84,74,.8)]"
+                        : "bg-white text-ink-500 ring-1 ring-ink/10"
                   }`}
                 >
-                  {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                  {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : i + 1}
                 </span>
                 <span className={`hidden whitespace-nowrap text-[13px] font-semibold lg:block ${current ? "text-ink" : "text-ink-500"}`}>{label}</span>
               </button>
-              {i < STEPS.length - 1 && <span className={`h-px flex-1 ${done ? "bg-ink/40" : "bg-ink/10"}`} aria-hidden />}
+              {i < STEPS.length - 1 && (
+                <span className="h-0.5 min-w-3 flex-1 overflow-hidden rounded-full bg-ink/10" aria-hidden>
+                  <span className={`block h-full bg-gradient-to-r from-[#e8544a] to-[#d9ae55] transition-all duration-500 ${done ? "w-full" : "w-0"}`} />
+                </span>
+              )}
             </li>
           );
         })}
       </ol>
 
-      <div ref={body} className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-4">
+      <div ref={body} key={step} className="at-rise min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-4">
       {step === 0 && (
       <>
       <Step n="I">Choose the occasion</Step>
@@ -261,9 +269,9 @@ export default function NewInvitationPage() {
                 setTemplate(designsFor(id)[0].id);
                 setEntry(null); // the new design's own entrance
               }}
-              className={`relative flex flex-col items-center gap-1.5 rounded-2xl border bg-white px-1.5 py-2.5 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-3 min-[420px]:text-left ${active ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] hover:border-ink/25"}`}
+              className={`relative flex flex-col items-center gap-1.5 rounded-2xl border px-1.5 py-2.5 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-3 min-[420px]:text-left ${active ? "border-ink bg-white shadow-[0_18px_40px_-24px_rgba(28,26,61,.6),0_0_0_4px_rgba(233,205,132,.3)]" : "border-white/80 bg-white/60 backdrop-blur hover:-translate-y-0.5 hover:border-[#d9b45e]/60 hover:bg-white/90"}`}
             >
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl min-[420px]:h-10 min-[420px]:w-10 ${active ? "bg-ink text-gold" : "bg-brand-50 text-brand-600"}`}>
+              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl min-[420px]:h-10 min-[420px]:w-10 ${active ? "bg-ink text-gold dark:text-[#a87a2a]" : "bg-brand-50 text-brand-600"}`}>
                 <Icon className="h-5 w-5" strokeWidth={1.7} />
               </span>
               {/* the full name, never cut off: small phones stack the icon above it, wider cards sit side by side */}
@@ -438,7 +446,7 @@ export default function NewInvitationPage() {
           if (last) create(e);
           else go(step + 1);
         }}
-        className="max-w-2xl"
+        className="at-glass mt-4 rounded-3xl px-4 pb-5 pt-1 sm:mt-5 sm:px-7 sm:pb-7"
       >
       <Step n={ROMAN[step]}>
         {["", "", "", "Names & date", "With the blessings of", "Programme & venue", "Contact & thank-you"][step]}
@@ -473,8 +481,8 @@ export default function NewInvitationPage() {
             </label>
           )}
           <label className="block">
-            <span className="label">Date &amp; time *</span>
-            <input type="datetime-local" required className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+            <span className="label">Date *</span>
+            <input type="date" required className="input" value={date} onChange={(e) => setDate(e.target.value)} />
             <span className="mt-1 block text-xs text-ink-500">Used on the cover, the scratch card and the countdown.</span>
           </label>
         </div>
@@ -577,8 +585,11 @@ export default function NewInvitationPage() {
     </div>
     </div>
       {/* fixed to the bottom of the screen: back, where you are, next (create on the last step) */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-cream/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
-        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-4 sm:px-6">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/80 bg-[#fbf6ee]/80 pb-[env(safe-area-inset-bottom)] dark:bg-[#15142a]/85 shadow-[0_-20px_40px_-30px_rgba(70,45,20,.35)] backdrop-blur-xl">
+        <span className="absolute inset-x-0 -top-px h-0.5 bg-ink/5" aria-hidden>
+          <span className="block h-full bg-gradient-to-r from-[#d9ae55] via-[#e8544a] to-[#d23d52] transition-all duration-500" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+        </span>
+        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:px-6">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="btn-secondary !px-4">
               <ArrowLeft className="h-4 w-4" /> Back

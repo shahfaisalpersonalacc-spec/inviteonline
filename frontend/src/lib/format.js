@@ -80,3 +80,7 @@ export function timeAgo(v) {
   }
   return "";
 }
+
+// Counts in a few characters so they fit small tiles: 999, 1.2K, 600K, 3.2M.
+const compact = new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 });
+export const formatCount = (n) => compact.format(n || 0);

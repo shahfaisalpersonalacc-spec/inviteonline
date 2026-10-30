@@ -34,7 +34,7 @@ export default function TemplatePreview({ template, eventType, className = "" })
   }, []);
 
   return (
-    <div ref={ref} className={`relative overflow-hidden ${className}`} style={{ aspectRatio: "9 / 16", background: template.theme.background }}>
+    <div ref={ref} className={`at-light relative overflow-hidden ${className}`} style={{ aspectRatio: "9 / 16", background: template.theme.background }}>
       {visible && width > 0 && (
         <div className="pointer-events-none absolute left-0 top-0 origin-top-left select-none" style={{ width: 390, transform: `scale(${width / 390})` }} aria-hidden inert>
           <InvitationRenderer invitation={invitation} mode="demo" showChrome={false} showFooter={false} />

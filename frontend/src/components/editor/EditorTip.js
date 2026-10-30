@@ -70,10 +70,10 @@ export default function EditorTip({ onClose, onEdit }) {
         className="absolute max-h-[calc(100dvh-90px)] overflow-y-auto rounded-[1.75rem] bg-white shadow-[0_30px_80px_-20px_rgba(20,18,40,.55)] ring-1 ring-ink/5"
         style={{ top: cardTop, left: cardLeft, width: cardW }}
       >
-        <span className="absolute -top-2 h-4 w-4 rotate-45 bg-[#fff1ec]" style={{ left: rect ? Math.min(Math.max(20, rect.left + rect.width / 2 - cardLeft - 8), cardW - 28) : 24 }} aria-hidden />
+        <span className="absolute -top-2 h-4 w-4 rotate-45 bg-[#fff1ec] dark:bg-[#2c2540]" style={{ left: rect ? Math.min(Math.max(20, rect.left + rect.width / 2 - cardLeft - 8), cardW - 28) : 24 }} aria-hidden />
 
         {/* header: a soft blush band with confetti, the seal and the title */}
-        <div className="relative overflow-hidden rounded-t-[1.75rem] bg-gradient-to-br from-[#fff1ec] via-[#fff8f1] to-[#fdf0d9] px-5 pb-4 pt-5">
+        <div className="relative overflow-hidden rounded-t-[1.75rem] bg-gradient-to-br from-[#fff1ec] via-[#fff8f1] to-[#fdf0d9] px-5 dark:from-[#2c2540] dark:via-[#211e37] dark:to-[#33291f] pb-4 pt-5">
           {[["8%", "18%", "#e8544a", 6], ["86%", "14%", "#f5c451", 7], ["72%", "62%", "#1c1a3d", 4], ["18%", "74%", "#f5c451", 5], ["94%", "48%", "#e8544a", 4]].map(([l, t, c, sz], i) => (
             <span key={i} className="absolute rounded-full opacity-70" style={{ left: l, top: t, width: sz, height: sz, background: c }} aria-hidden />
           ))}

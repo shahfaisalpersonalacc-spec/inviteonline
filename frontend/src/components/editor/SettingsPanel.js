@@ -156,7 +156,7 @@ function LinkPreview({ inv, savedAt }) {
   const [failed, setFailed] = useState("");
   const description = inv.description || hero.tagline || "You're invited! Open to see all the details.";
   return (
-    <div className="overflow-hidden rounded-xl bg-[#e7f6dd] p-1.5 ring-1 ring-ink/10">
+    <div className="overflow-hidden rounded-xl bg-[#e7f6dd] p-1.5 ring-1 ring-ink/10 dark:bg-[#0b3b33]">
       <div className="overflow-hidden rounded-lg bg-white/70">
         {failed === image ? (
           <p className="grid aspect-[1200/630] place-items-center px-4 text-center text-xs text-ink-500">The preview image appears once the invitation is published.</p>

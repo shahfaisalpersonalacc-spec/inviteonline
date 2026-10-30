@@ -5,7 +5,6 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, inviteUrl } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
-import Spinner, { FullPageSpinner } from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
 import EditorTip from "@/components/editor/EditorTip";
 import DeleteInvitationDialog from "@/components/site/DeleteInvitationDialog";
@@ -305,22 +304,28 @@ export default function EditorPage() {
     router.replace("/dashboard");
   }
 
-  if (!inv) return justCreated ? <LogoLoader /> : <FullPageSpinner />;
+  if (!inv) return justCreated ? <LogoLoader /> : <EditorSkeleton />;
 
   const selectedSticker = inv.stickers.find((s) => s.id === selected);
   const statusLabel = { saved: "All changes saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Not saved" }[status];
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-[#f1ece4]">
-      {/* Top bar */}
-      <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-ink/10 bg-white px-3 sm:px-4">
-        <Link href="/dashboard" className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold text-ink-500 hover:bg-ink/5 hover:text-ink" aria-label="Back to dashboard">
+    <div className="atelier relative flex h-[100dvh] flex-col">
+      {/* Top bar: floating frosted glass */}
+      <header className="at-glass-strong relative z-30 flex h-14 shrink-0 items-center gap-2 !rounded-none !border-x-0 !border-t-0 px-2 sm:px-3 lg:mx-2 lg:mt-2 lg:!rounded-full lg:!border">
+        <Link href="/dashboard" className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold text-ink-500 transition hover:bg-white hover:text-ink" aria-label="Back to dashboard">
           <ArrowLeft className="h-4 w-4" />
           <span className="hidden sm:inline">Dashboard</span>
         </Link>
         <div className="min-w-0 flex-1">
           <p className="truncate font-serif text-[1.05rem] leading-tight text-ink">{inv.title}</p>
-          <p className={`text-[11px] ${status === "error" ? "text-red-600" : "text-ink-500"}`}>
+          <p className={`flex items-center gap-1.5 text-[11px] ${status === "error" ? "text-red-600" : "text-ink-500"}`}>
+            <span
+              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
+                status === "saved" ? "bg-emerald-500" : status === "error" ? "bg-red-500" : "animate-pulse bg-gold-600"
+              }`}
+              aria-hidden
+            />
             {statusLabel}
             {status === "error" && (
               <button className="ml-1 underline" onClick={flush}>
@@ -329,12 +334,13 @@ export default function EditorPage() {
             )}
           </p>
         </div>
-        <div className="hidden items-center gap-1 rounded-full bg-ink/[0.06] p-1 lg:flex">
+        <div className="relative hidden grid-cols-2 rounded-full bg-ink/[0.06] p-1 lg:grid">
+          <span className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-full bg-white shadow ring-1 ring-gold-600/25 transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]" style={{ transform: device === "desktop" ? "translateX(100%)" : "none" }} aria-hidden />
           {[
             ["phone", Smartphone],
             ["desktop", Monitor],
           ].map(([d, Icon]) => (
-            <button key={d} onClick={() => setDevice(d)} className={`rounded-full px-3 py-1.5 ${device === d ? "bg-white text-ink shadow" : "text-ink-500"}`} aria-label={`${d} preview`}>
+            <button key={d} onClick={() => setDevice(d)} className={`relative rounded-full px-3 py-1.5 transition ${device === d ? "text-ink" : "text-ink-500 hover:text-ink"}`} aria-label={`${d} preview`}>
               <Icon className="h-4 w-4" />
             </button>
           ))}
@@ -356,7 +362,7 @@ export default function EditorPage() {
                 // phones: the preview opens where you were editing (once it's on screen)
                 if (v === "preview" && tab === "content" && openSection) setTimeout(() => focusSection(openSection), 50);
               }}
-              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold sm:px-3.5 ${mobileView === v ? "bg-ink text-cream shadow" : "text-ink-500"}`}
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-semibold transition sm:px-3.5 ${mobileView === v ? "bg-ink text-cream shadow-[0_8px_16px_-8px_rgba(28,26,61,.8)]" : "text-ink-500"}`}
             >
               <Icon className="h-4 w-4" />
               <span className="hidden sm:inline">{label}</span>
@@ -376,22 +382,29 @@ export default function EditorPage() {
         </button>
       </header>
 
-      <div className="flex min-h-0 flex-1">
-        {/* Panel */}
-        <aside className={`${mobileView === "edit" ? "flex" : "hidden"} w-full min-w-0 flex-col border-r border-ink/10 bg-white lg:flex lg:w-[420px] lg:shrink-0`}>
-          <nav data-tip="tabs" className="grid shrink-0 grid-cols-4 border-b border-ink/[0.06]">
+      <div className="relative z-10 flex min-h-0 flex-1 lg:gap-2 lg:p-2">
+        {/* Panel (phones: edge to edge; laptops: a card beside the preview) */}
+        <aside className={`${mobileView === "edit" ? "flex" : "hidden"} at-glass-strong w-full min-w-0 flex-col overflow-hidden !rounded-none !border-0 lg:flex lg:!rounded-[1.75rem] lg:!border lg:w-[420px] lg:shrink-0`}>
+          <nav data-tip="tabs" className="relative m-2 mb-0 grid shrink-0 grid-cols-4 rounded-2xl bg-ink/[0.045] p-1">
+            {/* the white tile slides to the open tab */}
+            <span
+              className="absolute inset-y-1 left-1 w-[calc(25%-0.125rem)] rounded-xl bg-white shadow-[0_8px_18px_-10px_rgba(70,45,20,.6)] ring-1 ring-gold-600/25 transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)]"
+              style={{ transform: `translateX(${TABS.findIndex((t) => t.id === tab) * 100}%)` }}
+              aria-hidden
+            />
             {TABS.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex flex-col items-center gap-0.5 border-b-2 py-2.5 text-[11px] font-semibold transition ${tab === t.id ? "border-ink text-ink" : "border-transparent text-ink-500 hover:text-ink"}`}
+                aria-pressed={tab === t.id}
+                className={`relative flex flex-col items-center gap-0.5 rounded-xl py-2 text-[11px] font-semibold transition ${tab === t.id ? "text-ink" : "text-ink-500 hover:text-ink"}`}
               >
-                <t.Icon className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                <t.Icon className={`h-[18px] w-[18px] transition ${tab === t.id ? "text-gold-600" : ""}`} strokeWidth={1.8} />
                 {t.label}
               </button>
             ))}
           </nav>
-          <div ref={panelRef} className="min-h-0 flex-1 overflow-y-auto p-4 pb-8 lg:pb-6">
+          <div ref={panelRef} key={tab} className="at-rise min-h-0 flex-1 overflow-y-auto p-4 pb-8 lg:pb-6">
             {tab === "content" && (
               <SectionsPanel
                 sections={inv.sections}
@@ -427,10 +440,12 @@ export default function EditorPage() {
         </aside>
 
         {/* Preview */}
-        <main className={`${mobileView === "preview" ? "flex" : "hidden"} relative min-w-0 flex-1 justify-center lg:flex lg:p-6`}>
+        <main className={`${mobileView === "preview" ? "flex" : "hidden"} relative min-w-0 flex-1 justify-center overflow-hidden lg:flex lg:rounded-[1.75rem] lg:p-4`}>
           <div
-            className={`relative flex h-full w-full flex-col overflow-hidden bg-white lg:shadow-2xl ${
-              device === "phone" ? "lg:max-w-[400px] lg:rounded-[2.2rem] lg:border-[10px] lg:border-ink" : "lg:max-w-[1100px] lg:rounded-2xl"
+            className={`at-light relative flex h-full w-full flex-col overflow-hidden bg-white ${
+              device === "phone"
+                ? "lg:max-w-[400px] lg:rounded-[2.4rem] lg:border-[10px] lg:border-ink lg:shadow-[0_50px_90px_-40px_rgba(28,26,61,.7),0_0_0_1px_rgba(233,205,132,.4),0_0_60px_-10px_rgba(233,205,132,.45)]"
+                : "lg:max-w-[1100px] lg:rounded-2xl lg:ring-1 lg:ring-white/80"
             }`}
           >
             <div ref={previewRef} className="no-scrollbar relative min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
@@ -477,6 +492,34 @@ export default function EditorPage() {
         />
       )}
       <DeleteInvitationDialog open={confirmDelete} title={inv.title} onClose={() => setConfirmDelete(false)} onConfirm={removeInvitation} />
+    </div>
+  );
+}
+
+// While the invitation loads: shimmering placeholders in the editor's shape (top bar, panel, phone).
+function EditorSkeleton() {
+  return (
+    <div className="atelier relative flex h-[100dvh] flex-col" aria-busy="true" aria-label="Loading the editor">
+      <div className="at-glass-strong relative z-10 mx-2 mt-2 flex h-14 shrink-0 items-center gap-3 rounded-full px-3">
+        <div className="at-skel h-8 w-8 rounded-full" />
+        <div className="flex-1 space-y-1.5">
+          <div className="at-skel h-3.5 w-40" />
+          <div className="at-skel h-2.5 w-24" />
+        </div>
+        <div className="at-skel hidden h-9 w-24 rounded-full sm:block" />
+        <div className="at-skel h-9 w-20 rounded-full" />
+      </div>
+      <div className="relative z-10 flex min-h-0 flex-1 gap-2 p-2">
+        <div className="at-glass-strong flex w-full flex-col gap-3 rounded-[1.75rem] p-3 lg:w-[420px] lg:shrink-0">
+          <div className="at-skel h-14 rounded-2xl" />
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="at-skel h-16 rounded-2xl" />
+          ))}
+        </div>
+        <div className="hidden flex-1 items-center justify-center lg:flex">
+          <div className="at-skel h-[88%] w-[min(380px,100%)] rounded-[2.4rem]" />
+        </div>
+      </div>
     </div>
   );
 }

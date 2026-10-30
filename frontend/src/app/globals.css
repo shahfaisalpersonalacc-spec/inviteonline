@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* `dark:` follows the class ThemeToggle sets on <html>, not the device setting directly */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
@@ -310,6 +313,264 @@ html.auth-pending::after {
   textarea {
     font-size: 16px !important;
   }
+}
+
+/* ---------- Champagne Atelier: the app's look ----------
+   Dashboard, wizard, editor, guests, profile and sign-in pages sit inside `.atelier` (the landing page
+   doesn't), so these rules restyle the shared buttons, fields and panels only there:
+   ivory and champagne gold, frosted glass over a clean soft white. */
+@property --at-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes at-spin { to { --at-angle: 360deg; } }
+@keyframes at-rise {
+  from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes at-pop {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes at-float {
+  0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+  50% { transform: translateY(-10px) rotate(var(--r, 0deg)); }
+}
+@keyframes at-ping {
+  0% { transform: scale(1); opacity: 0.7; }
+  80%, 100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes at-toast-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+.atelier {
+  --at-gold: #c9a24a;
+  --at-gold-deep: #a87a2a;
+  --at-foil: linear-gradient(110deg, #a8782a 0%, #d9b45e 22%, #fff0c4 40%, #e2bf6b 55%, #b8862f 75%, #e9cd84 100%);
+  --at-glass: rgba(255, 255, 255, 0.6);
+  --at-glass-strong: rgba(255, 255, 255, 0.82);
+  --at-edge: rgba(255, 255, 255, 0.8);
+  --at-shadow: 0 1px 0 rgba(255, 255, 255, 0.95) inset, 0 0 0 1px rgba(201, 162, 74, 0.12), 0 30px 60px -42px rgba(70, 45, 20, 0.45);
+  background: #faf9f7;
+}
+
+/* frosted glass */
+.at-glass,
+.atelier .panel,
+.atelier .card {
+  background: var(--at-glass);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
+  backdrop-filter: blur(18px) saturate(1.5);
+  border: 1px solid var(--at-edge);
+  box-shadow: var(--at-shadow);
+}
+.at-glass-strong {
+  background: var(--at-glass-strong);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  backdrop-filter: blur(22px) saturate(1.6);
+  border: 1px solid var(--at-edge);
+  box-shadow: var(--at-shadow);
+}
+
+/* a gold light that runs round the edge on hover (always on with .at-ring-on) */
+.at-ring { position: relative; }
+.at-ring::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--at-angle), transparent 0 55%, #e9cd84 70%, #fff4d6 78%, #c9a24a 86%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  animation: at-spin 3.6s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+.at-ring:hover::after,
+.at-ring:focus-within::after,
+.at-ring-on::after { opacity: 1; }
+
+/* headings' italic words in the brand coral; gold text (still, no shimmer) */
+.atelier .display em { color: var(--color-brand-600); }
+.at-gold-text {
+  background: var(--at-foil);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.atelier .eyebrow { color: var(--at-gold-deep); }
+
+/* entrance: children rise in one after another (set --i on each) */
+.at-rise { animation: at-rise 0.75s var(--ease-out-soft) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.at-pop { animation: at-pop 0.45s var(--ease-out-soft) both; }
+.at-float { animation: at-float 6s ease-in-out infinite; }
+
+/* loading placeholders */
+.at-skel {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0.85) 50%, rgba(255, 255, 255, 0) 80%) rgba(160, 130, 80, 0.1);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+  border-radius: 14px;
+}
+
+/* buttons */
+.atelier :is(.btn-primary, .btn-coral, .btn-secondary, .btn-danger) { overflow: hidden; isolation: isolate; }
+/* (a button placed with fixed/absolute/sticky keeps that; these rules sit outside Tailwind's layers, so they'd win) */
+.atelier :is(.btn-primary, .btn-coral, .btn-secondary, .btn-danger):not(.fixed, .absolute, .sticky) { position: relative; }
+.atelier .btn-primary {
+  background: linear-gradient(135deg, #2e2b5c 0%, #1c1a3d 55%, #2a2552 100%);
+  color: #fff8f1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 0 1px rgba(233, 205, 132, 0.3), 0 16px 30px -16px rgba(28, 26, 61, 0.85);
+}
+.atelier .btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(233, 205, 132, 0.65), 0 18px 34px -14px rgba(28, 26, 61, 0.9), 0 0 24px -6px rgba(233, 205, 132, 0.55); }
+.atelier .btn-coral {
+  background: linear-gradient(135deg, #f38a74 0%, #e8544a 45%, #d23d52 100%);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 16px 30px -14px rgba(232, 84, 74, 0.75);
+}
+.atelier .btn-coral:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 18px 36px -12px rgba(232, 84, 74, 0.85), 0 0 26px -6px rgba(243, 138, 116, 0.7); }
+.atelier .btn-secondary {
+  background: rgba(255, 255, 255, 0.66);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-color: rgba(28, 26, 61, 0.1);
+  box-shadow: inset 0 1px 0 #fff, 0 10px 24px -18px rgba(70, 45, 20, 0.5);
+}
+.atelier .btn-secondary:hover { border-color: rgba(201, 162, 74, 0.6); background: rgba(255, 255, 255, 0.92); box-shadow: inset 0 1px 0 #fff, 0 0 0 3px rgba(233, 205, 132, 0.25); }
+.atelier .btn-ghost:hover { background: rgba(255, 255, 255, 0.6); }
+
+/* fields */
+.atelier .input {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(28, 26, 61, 0.11);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 2px rgba(28, 26, 61, 0.05);
+}
+.atelier .input:hover { border-color: rgba(201, 162, 74, 0.45); }
+.atelier .input:focus {
+  background: #fff;
+  border-color: var(--at-gold);
+  box-shadow: 0 0 0 4px rgba(233, 205, 132, 0.32), 0 12px 26px -18px rgba(168, 122, 42, 0.7);
+  --tw-ring-shadow: 0 0 #0000;
+}
+/* the gold glow is the focus ring here; the browser's outline on top made it look doubled */
+.atelier .input:focus-visible { outline: none; }
+.atelier .label { color: #8a7258; }
+
+/* ---------- Dark mode (app pages only) ----------
+   <html class="dark"> (set before paint in app/layout.js, switched by ThemeToggle) re-colours `.atelier`:
+   ink becomes the light text colour and cream the deep night, so the pages' own classes follow. White
+   surfaces become raised night glass. An invitation shown inside (`.at-light`) keeps its own colours. */
+html.dark .atelier {
+  --color-ink: #efe9df;
+  --color-ink-700: #ffffff;
+  --color-ink-500: #aba7c0;
+  --color-cream: #15142a;
+  --color-cream-200: #26243f;
+  --color-paper: #1b1a31;
+  --color-night: #0b0a17;
+  --color-brand-600: #f2897c;
+  --color-brand-700: #f5a197;
+  --color-gold-600: #d9b45e;
+  --color-brand-50: #3a2030;
+  --color-brand-100: #4a2535;
+  --at-surface: 32 30 58; /* rgb of a raised card */
+  --at-glass: rgba(34, 32, 61, 0.6);
+  --at-glass-strong: rgba(27, 25, 49, 0.9);
+  --at-edge: rgba(255, 255, 255, 0.08);
+  --at-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 0 0 1px rgba(217, 180, 94, 0.1), 0 30px 60px -36px rgba(0, 0, 0, 0.85);
+  color-scheme: dark;
+  color: var(--color-ink);
+  background: radial-gradient(ellipse 90% 55% at 50% -12%, rgba(217, 180, 94, 0.09), transparent 70%) #0f0e1d;
+  background-attachment: fixed;
+}
+html.dark body:has(.atelier) { background: #0f0e1d; }
+
+/* the invitation preview keeps the light palette */
+html.dark .atelier .at-light {
+  --color-ink: #1c1a3d;
+  --color-ink-700: #2e2b5c;
+  --color-ink-500: #6b6880;
+  --color-cream: #fff8f1;
+  --color-cream-200: #f6ece0;
+  --color-paper: #fbf3e8;
+  --color-night: #15132e;
+  --color-brand-600: #c93a31;
+  --color-brand-700: #af3129;
+  --color-gold-600: #c9a24a;
+  --color-brand-50: #fef4f2;
+  --color-brand-100: #fde6e3;
+  color-scheme: light;
+  color: var(--color-ink);
+}
+
+/* white and grey utilities, re-coloured outside the preview */
+@scope (html.dark .atelier) to (.at-light) {
+  .bg-white { background-color: rgb(var(--at-surface)); }
+  .bg-white\/95, .bg-white\/90, .bg-white\/85 { background-color: rgb(var(--at-surface) / 0.94); }
+  .bg-white\/80, .bg-white\/75, .bg-white\/70 { background-color: rgb(var(--at-surface) / 0.8); }
+  .bg-white\/60, .bg-white\/40, .bg-white\/30, .bg-white\/20 { background-color: rgb(var(--at-surface) / 0.55); }
+  .hover\:bg-white:hover, .hover\:bg-white\/90:hover, .hover\:bg-white\/80:hover { background-color: rgb(46 43 80); }
+  .hover\:bg-white\/60:hover, .hover\:bg-white\/55:hover { background-color: rgb(255 255 255 / 0.06); }
+  .border-white, .border-white\/80 { border-color: rgb(255 255 255 / 0.08); }
+  .ring-white\/80 { --tw-ring-color: rgb(255 255 255 / 0.08); }
+  .text-zinc-900, .text-zinc-800 { color: var(--color-ink); }
+  .text-zinc-500 { color: var(--color-ink-500); }
+  .text-zinc-400 { color: #7f7b97; }
+  .border-zinc-200 { border-color: rgb(255 255 255 / 0.1); }
+  .bg-zinc-50, .bg-zinc-50\/60 { background-color: rgb(255 255 255 / 0.03); }
+  .bg-zinc-100 { background-color: rgb(255 255 255 / 0.06); }
+  .bg-zinc-300 { background-color: rgb(255 255 255 / 0.2); }
+  .bg-zinc-400 { background-color: rgb(255 255 255 / 0.32); }
+  .hover\:bg-zinc-100:hover, .hover\:bg-zinc-200:hover { background-color: rgb(255 255 255 / 0.09); }
+  .text-red-600, .text-red-700 { color: #f87171; }
+  .bg-red-50, .hover\:bg-red-50:hover { background-color: rgb(239 68 68 / 0.12); }
+  .bg-red-50\/50 { background-color: rgb(239 68 68 / 0.08); }
+  .bg-red-100, .hover\:bg-red-100:hover { background-color: rgb(239 68 68 / 0.2); }
+  .border-red-100 { border-color: rgb(239 68 68 / 0.25); }
+  .bg-emerald-50 { background-color: rgb(16 185 129 / 0.14); }
+  .bg-emerald-100, .hover\:bg-emerald-100:hover { background-color: rgb(16 185 129 / 0.22); }
+  .text-emerald-700, .text-emerald-600, .text-green-600 { color: #6ee7b7; }
+  .bg-amber-50 { background-color: rgb(245 158 11 / 0.14); }
+  .text-amber-700, .text-amber-600 { color: #fcd34d; }
+  :scope .eyebrow { color: var(--color-gold-600); }
+  :scope .label { color: #c2a77d; }
+
+  .at-skel { background: linear-gradient(90deg, rgba(255, 255, 255, 0) 20%, rgba(255, 255, 255, 0.07) 50%, rgba(255, 255, 255, 0) 80%) rgba(255, 255, 255, 0.05); background-size: 200% 100%; }
+
+  /* buttons: the ink button turns champagne, the others go glassy */
+  :scope .btn-primary {
+    background: linear-gradient(135deg, #fff3d6 0%, #ecd6a3 55%, #f6e3b8 100%);
+    color: #1c1a3d;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(233, 205, 132, 0.4), 0 16px 30px -16px rgba(0, 0, 0, 0.9);
+  }
+  :scope .btn-primary:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 0 0 1px rgba(233, 205, 132, 0.8), 0 18px 34px -14px rgba(0, 0, 0, 0.9), 0 0 26px -6px rgba(233, 205, 132, 0.5); }
+  :scope .btn-secondary {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--color-ink);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 24px -18px rgba(0, 0, 0, 0.8);
+  }
+  :scope .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(217, 180, 94, 0.55); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 0 3px rgba(217, 180, 94, 0.18); }
+  :scope .btn-ghost:hover { background: rgba(255, 255, 255, 0.06); }
+
+  /* fields */
+  :scope .input {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: var(--color-ink);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+  :scope .input::placeholder { color: #7f7b97; }
+  :scope .input:hover { border-color: rgba(217, 180, 94, 0.45); }
+  :scope .input:focus { background: rgb(var(--at-surface)); border-color: var(--at-gold); box-shadow: 0 0 0 4px rgba(217, 180, 94, 0.22); }
+  :scope select.input option { background: #1b1931; color: #efe9df; }
+
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible { outline-color: #e9cd84; }
 }
 
 /* ---------- Accessibility ---------- */

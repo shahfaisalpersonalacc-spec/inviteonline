@@ -76,7 +76,11 @@ function withEventDate(section, date) {
   if (!date) return d;
   if (section.type === "countdown") return { ...d, target: date };
   if (section.type === "scratch") return { ...d, date };
-  if (section.type === "event" && (d.items || []).length === 1) return { ...d, items: [{ ...d.items[0], date, time: formatTime(date) }] };
+  if (section.type === "event" && (d.items || []).length === 1) {
+    // a cover date picked without a time (midnight) keeps the event's own time
+    const time = formatTime(date);
+    return { ...d, items: [{ ...d.items[0], date, time: time === "12:00 AM" ? d.items[0].time : time }] };
+  }
   return d;
 }
 
