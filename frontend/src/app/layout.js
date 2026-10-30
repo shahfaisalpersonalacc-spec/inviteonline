@@ -6,6 +6,10 @@ import { ToastProvider } from "@/components/ui/Toast";
 // Runs before the page paints: a saved choice (ThemeToggle) wins, otherwise the device's own
 // light/dark setting. Pages inside `.atelier` (the home page and the app) have a dark look.
 const themeScript = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
+// Also before paint: on the landing page with a saved session, cover it (.auth-pending in globals.css)
+// until DashboardRedirect knows whether to go to the dashboard. It lives here, not in the page, because
+// React doesn't run a <script> that a page renders in the browser (and warns about it).
+const authPendingScript = `try{if(location.pathname==="/"&&localStorage.getItem("inviteonline_token"))document.documentElement.classList.add("auth-pending")}catch(e){}`;
 
 const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["latin"], weight: ["400", "500", "600", "700"], style: ["normal", "italic"] });
@@ -30,11 +34,11 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    // suppressHydrationWarning: the landing page's inline script may add "auth-pending" here before React loads
-    // (and the theme script adds "dark")
+    // suppressHydrationWarning: the scripts below may add "dark" and "auth-pending" here before React loads
     <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${cormorant.variable} ${greatVibes.variable} ${fraunces.variable} antialiased`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: authPendingScript }} />
       </head>
       <body className="min-h-screen font-sans">
         <a href="#main" className="skip-link">

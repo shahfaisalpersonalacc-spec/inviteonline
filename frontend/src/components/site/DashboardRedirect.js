@@ -20,7 +20,7 @@ export default function DashboardRedirect() {
     // not logged in after all (e.g. an expired session): uncover the landing page
     if (!loading && !user) document.documentElement.classList.remove("auth-pending");
   }, [loading, user, router]);
-  // leaving for the dashboard: drop the cover set by the inline script in app/page.js
+  // leaving for the dashboard: drop the cover set by authPendingScript in app/layout.js
   // (only once the URL has changed: React's dev mode also unmounts once on the spot, which mustn't uncover)
   useEffect(
     () => () =>

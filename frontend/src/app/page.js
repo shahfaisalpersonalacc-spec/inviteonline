@@ -104,9 +104,7 @@ function SeeBadge() {
 export default function Home() {
   return (
     <div className="atelier relative min-h-screen">
-      {/* runs before the page paints: with a saved session, cover the landing page (see .auth-pending
-          in globals.css) until DashboardRedirect knows whether to go to the dashboard */}
-      <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("inviteonline_token"))document.documentElement.classList.add("auth-pending")}catch(e){}` }} />
+      {/* with a saved session the page starts covered (authPendingScript in app/layout.js) */}
       <DashboardRedirect />
       {/* a soft gold dawn at the top of the page (under the navbar too), coral to the left */}
       <div
