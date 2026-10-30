@@ -25,7 +25,7 @@ const COLUMNS = [
 
 export default function Footer() {
   return (
-    <footer className="grain grain-dark relative overflow-hidden bg-night text-cream">
+    <footer className="at-light grain grain-dark relative mx-3 mb-3 overflow-hidden rounded-[2.5rem] bg-night text-cream ring-1 ring-white/[0.06] sm:mx-4 sm:mb-4">
       <div className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
         <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>

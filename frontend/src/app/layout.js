@@ -4,7 +4,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
 
 // Runs before the page paints: a saved choice (ThemeToggle) wins, otherwise the device's own
-// light/dark setting. Only the app's pages (`.atelier`) have a dark look.
+// light/dark setting. Pages inside `.atelier` (the home page and the app) have a dark look.
 const themeScript = `try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&matchMedia("(prefers-color-scheme: dark)").matches))document.documentElement.classList.add("dark")}catch(e){}`;
 
 const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });

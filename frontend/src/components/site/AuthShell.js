@@ -15,7 +15,8 @@ export default function AuthShell({ title, subtitle, children, footer }) {
   return (
     <div className="atelier relative min-h-screen overflow-hidden">
       <div className="relative z-10 grid min-h-screen lg:grid-cols-[1fr_1.05fr]">
-        <div className="flex flex-col px-4 py-4 sm:px-10 sm:py-7">
+        {/* phones: tighter spacing so the whole form fits on one screen */}
+        <div className="flex flex-col px-4 py-3 sm:px-10 sm:py-7">
           <div className="flex items-center justify-between">
             <Logo size={32} />
             <div className="flex items-center gap-2">
@@ -25,14 +26,14 @@ export default function AuthShell({ title, subtitle, children, footer }) {
               </Link>
             </div>
           </div>
-          <main id="main" className="flex flex-1 items-center justify-center py-8 sm:py-12">
-            <div className="at-glass-strong at-ring at-rise w-full max-w-[440px] rounded-[2rem] px-5 py-7 sm:px-9 sm:py-10">
-              <h1 className="display text-[2.4rem] leading-[1.04] sm:text-[2.9rem]">
+          <main id="main" className="flex flex-1 items-center justify-center py-4 sm:py-12">
+            <div className="at-glass-strong at-ring at-rise w-full max-w-[440px] rounded-[2rem] px-5 py-5 sm:px-9 sm:py-10">
+              <h1 className="display text-[2rem] leading-[1.04] sm:text-[2.9rem]">
                 {words.join(" ")} <em>{lastWord}</em>
               </h1>
-              {subtitle && <p className="mt-3 leading-relaxed text-ink/65">{subtitle}</p>}
-              <div className="mt-8">{children}</div>
-              {footer && <div className="mt-8 border-t border-gold-600/20 pt-6 text-center text-sm text-ink-500">{footer}</div>}
+              {subtitle && <p className="mt-2 text-[15px] leading-relaxed text-ink/65 sm:mt-3 sm:text-base">{subtitle}</p>}
+              <div className="mt-5 sm:mt-8">{children}</div>
+              {footer && <div className="mt-5 border-t border-gold-600/20 pt-4 text-center sm:mt-8 sm:pt-6 text-sm text-ink-500">{footer}</div>}
             </div>
           </main>
         </div>

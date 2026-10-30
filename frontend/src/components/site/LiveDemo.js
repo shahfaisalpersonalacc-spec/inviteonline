@@ -25,13 +25,29 @@ const PRESET_FOR = {
   "door-mural": "sage",
 };
 
-export function PhoneFrame({ children, className = "" }) {
+// A titanium phone: fixed colours, so it's the same device in light and dark. `small` for the gallery.
+export function PhoneFrame({ children, className = "", small = false }) {
   return (
-    // `isolate` seals the phone's inner z-indexes (entrance, notch, buttons) inside it,
+    // `isolate` seals the phone's inner z-indexes (entrance, island, buttons) inside it,
     // so they can never paint over the page's sticky navbar.
-    <div className={`relative isolate rounded-[2.8rem] bg-ink p-[10px] shadow-[0_40px_80px_-30px_rgba(28,26,61,.55)] ${className}`}>
-      <div className="absolute left-1/2 top-[14px] z-[80] h-[22px] w-[34%] -translate-x-1/2 rounded-full bg-ink" />
-      <div className="relative h-full w-full overflow-hidden rounded-[2.2rem] bg-white">{children}</div>
+    <div
+      className={`at-light relative isolate bg-[linear-gradient(145deg,#4a4760_0%,#17162b_26%,#0b0a15_62%,#3a3752_100%)] shadow-[0_40px_80px_-30px_rgba(10,8,30,.65),inset_0_0_0_1px_rgba(255,255,255,.16)] ${
+        small ? "rounded-[2rem] p-[5px]" : "rounded-[2.9rem] p-[9px]"
+      } ${className}`}
+    >
+      {/* side buttons */}
+      <span className={`absolute -left-[3px] w-[3px] rounded-l-sm bg-[#2c2a42] ${small ? "top-[20%] h-8" : "top-[19%] h-14"}`} aria-hidden="true" />
+      <span className={`absolute -right-[3px] w-[3px] rounded-r-sm bg-[#2c2a42] ${small ? "top-[26%] h-12" : "top-[25%] h-20"}`} aria-hidden="true" />
+      <div className={`relative h-full w-full overflow-hidden bg-white ring-1 ring-black/70 ${small ? "rounded-[1.7rem]" : "rounded-[2.4rem]"}`}>
+        {children}
+        {/* the glass: a faint diagonal reflection */}
+        <div className="pointer-events-none absolute inset-0 z-[85] bg-[linear-gradient(118deg,rgba(255,255,255,.16)_0%,rgba(255,255,255,0)_30%)]" aria-hidden="true" />
+      </div>
+      {/* dynamic island */}
+      <div
+        className={`absolute left-1/2 z-[90] -translate-x-1/2 rounded-full bg-black shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)] ${small ? "top-[11px] h-[13px] w-[30%]" : "top-[17px] h-[24px] w-[31%]"}`}
+        aria-hidden="true"
+      />
     </div>
   );
 }

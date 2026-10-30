@@ -57,7 +57,7 @@ export default function RegisterPage() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-3 sm:space-y-4">
         <div>
           <label className="label" htmlFor="name">Full name</label>
           <input id="name" required minLength={2} autoComplete="name" className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your name" />

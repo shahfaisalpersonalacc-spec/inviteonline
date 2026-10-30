@@ -1,20 +1,14 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useDarkMode } from "@/lib/theme";
 
-// The theme lives on <html class="dark">, first set before paint by the script in app/layout.js.
 const root = () => document.documentElement;
-const subscribe = (onChange) => {
-  const mo = new MutationObserver(onChange);
-  mo.observe(root(), { attributes: true, attributeFilter: ["class"] });
-  return () => mo.disconnect();
-};
-const isDark = () => root().classList.contains("dark");
 
 // Sun / moon button. Tapping it saves the choice on this device; until then the theme follows the device.
 export default function ThemeToggle({ className = "" }) {
-  const dark = useSyncExternalStore(subscribe, isDark, () => false);
+  const dark = useDarkMode();
 
   // no saved choice yet: keep following the device when its setting changes
   useEffect(() => {

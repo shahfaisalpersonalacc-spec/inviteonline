@@ -46,7 +46,7 @@ export default function Navbar() {
       {/* Floating capsule: transparent at the top of the page, a frosted bar once you scroll */}
       <nav
         className={`mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full pl-3 pr-2 transition-all duration-300 sm:h-[3.75rem] sm:pl-5 ${
-          scrolled || open ? "border border-ink/10 bg-cream/85 shadow-[0_12px_32px_-20px_rgba(28,26,61,.45)] backdrop-blur-xl" : "border border-transparent"
+          scrolled || open ? "at-glass-strong" : "border border-transparent"
         }`}
       >
         <Logo size={32} />
@@ -85,7 +85,7 @@ export default function Navbar() {
       </nav>
 
       {open && (
-        <div id="mobile-menu" className="grain animate-float-up fixed inset-x-0 bottom-0 top-[4.5rem] z-[-1] flex flex-col overflow-y-auto bg-cream px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 md:hidden">
+        <div id="mobile-menu" className="animate-float-up fixed inset-x-0 bottom-0 top-[4.5rem] z-[-1] flex flex-col overflow-y-auto bg-cream px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 md:hidden">
           <p className="eyebrow">Menu</p>
           <ul className="mt-4 border-t border-ink/10">
             {LINKS.map((l, i) => (
@@ -105,7 +105,7 @@ export default function Navbar() {
               </Link>
             ) : (
               <>
-                <Link href="/register" onClick={() => setOpen(false)} className="btn-primary !py-3.5 !text-base">
+                <Link href="/login" onClick={() => setOpen(false)} className="btn-primary !py-3.5 !text-base">
                   Create your invitation <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link href="/login" onClick={() => setOpen(false)} className="btn-secondary !py-3.5 !text-base">

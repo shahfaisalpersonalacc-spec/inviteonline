@@ -180,6 +180,7 @@ html.auth-pending::after {
   z-index: 99;
   background: var(--color-cream);
 }
+html.dark.auth-pending::after { background: #0f0e1d; }
 
 /* FullPageSpinner: the seal breathes, the caption's dots count up */
 @keyframes loader-breathe {
@@ -461,10 +462,11 @@ html.auth-pending::after {
 .atelier .input:focus-visible { outline: none; }
 .atelier .label { color: #8a7258; }
 
-/* ---------- Dark mode (app pages only) ----------
+/* ---------- Dark mode (home page and app) ----------
    <html class="dark"> (set before paint in app/layout.js, switched by ThemeToggle) re-colours `.atelier`:
    ink becomes the light text colour and cream the deep night, so the pages' own classes follow. White
-   surfaces become raised night glass. An invitation shown inside (`.at-light`) keeps its own colours. */
+   surfaces become raised night glass. `.at-light` keeps the original palette inside it: invitations, and
+   the home page's evening panels, which are dark in both themes. */
 html.dark .atelier {
   --color-ink: #efe9df;
   --color-ink-700: #ffffff;
@@ -505,7 +507,10 @@ html.dark .atelier .at-light {
   --color-brand-50: #fef4f2;
   --color-brand-100: #fde6e3;
   color-scheme: light;
-  color: var(--color-ink);
+}
+/* in a layer, so a text colour class on the element itself (a night panel's cream) still wins */
+@layer base {
+  html.dark .atelier .at-light { color: var(--color-ink); }
 }
 
 /* white and grey utilities, re-coloured outside the preview */

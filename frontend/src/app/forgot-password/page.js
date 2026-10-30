@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <AuthShell title="Set a new password" subtitle={`If an account exists for ${email}, we've emailed it a 6-digit code. It expires in 10 minutes.`} footer={back}>
-        <form onSubmit={reset} className="space-y-4">
+        <form onSubmit={reset} className="space-y-3 sm:space-y-4">
           <div>
             <label className="label">Code</label>
             <OtpInput value={code} onChange={setCode} />
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthShell title="Forgot your password?" subtitle="Enter your account email and we'll send you a code to reset it." footer={back}>
-      <form onSubmit={requestCode} className="space-y-4">
+      <form onSubmit={requestCode} className="space-y-3 sm:space-y-4">
         <div>
           <label className="label" htmlFor="email">Email</label>
           <input id="email" type="email" required autoComplete="email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
