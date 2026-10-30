@@ -6,6 +6,7 @@ import { useEffect, useState, useRef } from "react";
 import { LayoutGrid, LogOut, Plus, UserRound } from "lucide-react";
 import Logo from "@/components/ui/Logo";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import Avatar from "@/components/ui/Avatar";
 import { useAuth } from "@/lib/auth-context";
 
 export default function DashboardLayout({ children }) {
@@ -60,7 +61,7 @@ export default function DashboardLayout({ children }) {
               {/* the avatar sits in a slowly turning gold ring */}
               <button onClick={() => setMenu((m) => !m)} className="relative grid h-10 w-10 place-items-center rounded-full" aria-label="Account menu" aria-expanded={menu}>
                 <span className="absolute inset-0 animate-[spin_6s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,#f3d58c,#c9a24a,#fff1c9,#a87a2a,#f3d58c)] motion-reduce:animate-none" aria-hidden />
-                <span className="relative grid h-[34px] w-[34px] place-items-center rounded-full bg-ink font-serif text-lg text-gold dark:text-[#a87a2a]">{user.name?.[0]?.toUpperCase() || "U"}</span>
+                <Avatar user={user} className="relative h-[34px] w-[34px] text-lg" />
               </button>
               {menu && (
                 <>

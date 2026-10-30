@@ -148,6 +148,19 @@ describe('auth', () => {
     expect((await request(app).get('/api/auth/me').set(auth)).body.user.name).toBe('Test User');
   });
 
+  test('a profile photo can be set, kept across a name change, and removed', async () => {
+    const { token } = await register(request, app);
+    const auth = { Authorization: `Bearer ${token}` };
+    const put = (body) => request(app).put('/api/auth/profile').set(auth).send(body);
+    const url = 'https://res.cloudinary.com/demo/image/upload/me.jpg';
+
+    expect((await put({ avatar: 'javascript:alert(1)' })).status).toBe(400);
+    expect((await put({ avatar: url })).body.user.avatar).toBe(url);
+    expect((await put({ name: 'New Name' })).body.user.avatar).toBe(url);
+    expect((await request(app).get('/api/auth/me').set(auth)).body.user.avatar).toBe(url);
+    expect((await put({ avatar: '' })).body.user.avatar).toBe('');
+  });
+
   test('parallel wrong guesses still use up the code', async () => {
     const creds = newCredentials();
     await request(app).post('/api/auth/register').send(creds).expect(201);

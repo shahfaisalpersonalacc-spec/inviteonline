@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
     // No default on purpose: accounts created before email verification existed have no
     // value and must keep working. Only an explicit `false` means "not verified yet".
     emailVerified: { type: Boolean },
+    avatar: { type: String }, // profile photo URL (uploaded via /uploads/image)
     otpHash: { type: String, select: false },
     otpPurpose: { type: String, enum: ['verify', 'reset', 'change'], select: false },
     otpExpires: { type: Date, select: false },
@@ -32,7 +33,7 @@ userSchema.methods.comparePassword = function (plain) {
 };
 
 userSchema.methods.toPublic = function () {
-  return { id: this._id, name: this.name, email: this.email, createdAt: this.createdAt };
+  return { id: this._id, name: this.name, email: this.email, avatar: this.avatar || '', createdAt: this.createdAt };
 };
 
 module.exports = mongoose.model('User', userSchema);

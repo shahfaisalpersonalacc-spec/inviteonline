@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, ShieldCheck, Sparkles, UserRound } from "lucide-react";
-import { api, setToken } from "@/lib/api";
+import { Camera, KeyRound, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { api, setToken, uploadFile } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/components/ui/Toast";
 import PasswordInput from "@/components/ui/PasswordInput";
 import OtpInput from "@/components/ui/OtpInput";
 import ResendCode from "@/components/ui/ResendCode";
 import Spinner from "@/components/ui/Spinner";
+import Avatar from "@/components/ui/Avatar";
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
@@ -26,11 +27,25 @@ export default function ProfilePage() {
       const d = await api("/auth/profile", { method: "PUT", body });
       if (d.token) setToken(d.token);
       setUser(d.user);
-      toast(kind === "pw" ? "Password updated" : "Profile saved");
+      toast(kind === "pw" ? "Password updated" : kind === "photo" ? "Profile photo updated" : "Profile saved");
       if (kind === "pw") cancelChange();
     } catch (e) {
       toast(e.message, "error");
     } finally {
+      setBusy("");
+    }
+  }
+
+  async function changePhoto(file) {
+    if (!file) return;
+    setBusy("photo");
+    try {
+      let { url } = await uploadFile("image", file);
+      // Cloudinary: a small square crop centred on the face, not the full-size upload
+      url = url.replace("/image/upload/", "/image/upload/c_fill,g_face,w_320,h_320,q_auto,f_auto/");
+      await save({ avatar: url }, "photo");
+    } catch (e) {
+      toast(e.message, "error");
       setBusy("");
     }
   }
@@ -73,10 +88,37 @@ export default function ProfilePage() {
           <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-br from-[#fbd9cf] via-[#fbefd8] to-[#ece0f8] dark:from-[#3b2233] dark:via-[#2e2838] dark:to-[#2a2447]" aria-hidden />
           <div className="relative mx-auto mt-6 grid h-24 w-24 place-items-center rounded-full">
             <span className="absolute inset-0 animate-[spin_8s_linear_infinite] rounded-full bg-[conic-gradient(from_0deg,#f3d58c,#c9a24a,#fff1c9,#a87a2a,#f3d58c)] motion-reduce:animate-none" aria-hidden />
-            <span className="relative grid h-[5.25rem] w-[5.25rem] place-items-center rounded-full bg-ink font-serif text-4xl text-gold dark:text-[#a87a2a]">{user.name?.[0]?.toUpperCase() || "U"}</span>
+            <Avatar user={user} className="relative h-[5.25rem] w-[5.25rem] text-4xl" />
+            {busy === "photo" && (
+              <span className="absolute inset-[6px] grid place-items-center rounded-full bg-ink/60 text-white">
+                <Spinner />
+              </span>
+            )}
+            <label
+              className="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full bg-gradient-to-br from-[#f38a74] to-[#e8544a] text-white shadow-[0_8px_16px_-6px_rgba(232,84,74,.7)] ring-4 ring-[#fbf8f3] transition hover:scale-110 focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-gold-600 dark:ring-[#1d1b35]"
+              title="Change photo"
+            >
+              <Camera className="h-4 w-4" />
+              <input
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                aria-label="Change profile photo"
+                disabled={busy === "photo"}
+                onChange={(e) => {
+                  changePhoto(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </label>
           </div>
           <p className="relative mt-4 truncate font-serif text-2xl text-ink">{user.name}</p>
           <p className="relative truncate text-sm text-ink-500">{user.email}</p>
+          {user.avatar && (
+            <button type="button" onClick={() => save({ avatar: "" }, "photo")} disabled={busy === "photo"} className="relative mx-auto mt-1 block text-xs font-semibold text-ink-500 underline decoration-ink/25 underline-offset-4 transition hover:text-red-600">
+              Remove photo
+            </button>
+          )}
           <span className="relative mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-[#8a7258] ring-1 ring-gold-600/25">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Verified email
           </span>

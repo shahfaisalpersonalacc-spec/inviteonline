@@ -18,6 +18,8 @@ const schemas = {
   reset: z.object({ email, code, password }),
   profile: z.object({
     name: z.string().trim().min(2).max(80).optional(),
+    // a web image link, or '' to remove the photo
+    avatar: z.union([z.literal(''), z.url({ protocol: /^https?$/ }).max(500)]).optional(),
     currentPassword: z.string().optional(),
     newPassword: password.optional(),
     code: code.optional(), // required with newPassword: the code from POST /password-code
@@ -127,7 +129,7 @@ async function requestPasswordCode(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const { name, currentPassword, newPassword, code: otp } = req.body;
+  const { name, avatar, currentPassword, newPassword, code: otp } = req.body;
   const user = await User.findById(req.user._id).select(`+password ${OTP_FIELDS}`);
   if (newPassword) {
     if (!currentPassword || !(await user.comparePassword(currentPassword))) {
@@ -138,7 +140,9 @@ async function updateProfile(req, res) {
     await consumeOtp(user, 'change', otp);
     user.password = newPassword;
   }
-  if (name) user.name = name; // only once every check above has passed
+  // only once every check above has passed
+  if (name) user.name = name;
+  if (avatar !== undefined) user.avatar = avatar || undefined;
   await user.save();
   // a password change ends older sessions, so this one gets a fresh token
   res.json({ user: user.toPublic(), ...(newPassword ? { token: signAuthToken(user._id) } : {}) });
