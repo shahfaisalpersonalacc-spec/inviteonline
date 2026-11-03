@@ -108,7 +108,7 @@ function Slider({ children }) {
 
 function Step({ n, children }) {
   return (
-    <h2 className="mt-4 flex items-baseline gap-4">
+    <h2 className="mt-2 flex items-baseline gap-4 sm:mt-4">
       <span className="at-gold-text font-serif text-2xl italic">{n}.</span>
       <span className="font-serif text-2xl text-ink sm:text-[1.7rem]">{children}</span>
     </h2>
@@ -214,7 +214,7 @@ export default function NewInvitationPage() {
       <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 sm:[@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
       {/* progress: finished steps can be revisited */}
-      <ol className="at-glass mt-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 sm:mt-4 sm:gap-3 sm:px-3 lg:gap-2" aria-label="Steps">
+      <ol className="at-glass mt-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:py-2 sm:mt-4 sm:gap-3 sm:px-3 lg:gap-2" aria-label="Steps">
         {STEPS.map((label, i) => {
           const done = i < step;
           const current = i === step;
@@ -228,7 +228,7 @@ export default function NewInvitationPage() {
                 className="flex shrink-0 items-center gap-2 text-left disabled:cursor-default"
               >
                 <span
-                  className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold transition-all duration-300 ${
+                  className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-bold sm:h-7 sm:w-7 transition-all duration-300 ${
                     current
                       ? "bg-ink text-cream shadow-[0_0_0_4px_rgba(233,205,132,.45)]"
                       : done
@@ -250,7 +250,7 @@ export default function NewInvitationPage() {
         })}
       </ol>
 
-      <div ref={body} key={step} className="at-rise min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-4">
+      <div ref={body} key={step} className="at-rise min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-2 sm:pb-4">
       {step === 0 && (
       <>
       <Step n="I">Choose the occasion</Step>
@@ -269,9 +269,9 @@ export default function NewInvitationPage() {
                 setTemplate(designsFor(id)[0].id);
                 setEntry(null); // the new design's own entrance
               }}
-              className={`relative flex flex-col items-center gap-1.5 rounded-2xl border px-1.5 py-2.5 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-3 min-[420px]:text-left ${active ? "border-ink bg-white shadow-[0_18px_40px_-24px_rgba(28,26,61,.6),0_0_0_4px_rgba(233,205,132,.3)]" : "border-white/80 bg-white/60 backdrop-blur hover:-translate-y-0.5 hover:border-[#d9b45e]/60 hover:bg-white/90"}`}
+              className={`relative flex flex-col items-center gap-1 rounded-2xl border px-1.5 py-2 text-center transition min-[420px]:flex-row min-[420px]:gap-3 min-[420px]:p-2.5 min-[420px]:text-left sm:p-3 ${active ? "border-ink bg-white shadow-[0_18px_40px_-24px_rgba(28,26,61,.6),0_0_0_4px_rgba(233,205,132,.3)]" : "border-white/80 bg-white/60 backdrop-blur hover:-translate-y-0.5 hover:border-[#d9b45e]/60 hover:bg-white/90"}`}
             >
-              <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl min-[420px]:h-10 min-[420px]:w-10 ${active ? "bg-ink text-gold dark:text-[#a87a2a]" : "bg-brand-50 text-brand-600"}`}>
+              <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl min-[420px]:h-10 min-[420px]:w-10 ${active ? "bg-ink text-gold dark:text-[#a87a2a]" : "bg-brand-50 text-brand-600"}`}>
                 <Icon className="h-5 w-5" strokeWidth={1.7} />
               </span>
               {/* the full name, never cut off: small phones stack the icon above it, wider cards sit side by side */}
@@ -368,33 +368,28 @@ export default function NewInvitationPage() {
       {step === 2 && (
       <>
       <Step n="III">Light or dark?</Step>
-      <div className="mt-3 grid max-w-md grid-cols-2 gap-3" role="radiogroup" aria-label="Invitation appearance">
+      {/* same switch as Appearance in the editor's Design panel */}
+      <div className="mt-3 grid max-w-md grid-cols-2 gap-1 rounded-2xl bg-ink/[0.06] p-1" role="radiogroup" aria-label="Invitation appearance">
         {[
-          ["light", "Light", "Soft, bright paper tones", Sun, "#fffaf3", "#1c1a3d"],
-          ["dark", "Dark", "Deep, glowing evening look", Moon, "#16141f", "#f3eadb"],
-        ].map(([v, label, hint, Icon, bg, fg]) => (
+          ["light", "Light", Sun],
+          ["dark", "Dark", Moon],
+        ].map(([v, label, Icon]) => (
           <button
             key={v}
             type="button"
             role="radio"
             aria-checked={mode === v}
             onClick={() => setMode(v)}
-            className={`flex items-center gap-3 rounded-2xl border p-3 text-left transition ${mode === v ? "border-ink shadow-[0_18px_40px_-24px_rgba(28,26,61,.6)]" : "border-ink/[0.07] bg-white hover:border-ink/25"}`}
+            className={`flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition ${mode === v ? "bg-white text-ink shadow" : "text-ink-500"}`}
           >
-            <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl" style={{ background: bg, color: fg, boxShadow: "inset 0 0 0 1px rgba(0,0,0,.08)" }}>
-              <Icon className="h-6 w-6" strokeWidth={1.6} />
-            </span>
-            <span>
-              <span className="block text-sm font-bold text-ink">{label}</span>
-              <span className="block text-xs text-ink-500">{hint}</span>
-            </span>
+            <Icon className="h-4 w-4" /> {label}
           </button>
         ))}
       </div>
       <p className="mt-2 text-xs text-ink-500">This is how guests will see your invitation. You can switch it any time in the editor.</p>
 
       <h3 className="mt-4 font-serif text-xl text-ink">Choose the entrance</h3>
-      <p className="mt-1 text-xs text-ink-500">What guests tap to open your invitation: an envelope with a wax seal, or a door that swings open.</p>
+      <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">What guests tap to open your invitation: an envelope with a wax seal, or a door that swings open.</p>
       <Slider>
         {ENTRY_STYLES.map((e) => {
           const active = entryStyle === e.id;
@@ -446,27 +441,27 @@ export default function NewInvitationPage() {
           if (last) create(e);
           else go(step + 1);
         }}
-        className="at-glass mt-4 rounded-3xl px-4 pb-5 pt-1 sm:mt-5 sm:px-7 sm:pb-7"
+        className="at-glass mt-2 rounded-3xl px-3.5 pb-3 pt-1 sm:mt-5 sm:px-7 sm:pb-7"
       >
       <Step n={ROMAN[step]}>
         {["", "", "", "Names & date", "With the blessings of", "Programme & venue", "Contact & thank-you"][step]}
       </Step>
-      <p className="mt-1 text-xs text-ink-500">
+      <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">
         {step === 3 ? "Both are needed: they go on the cover, the scratch card and the countdown." : "Optional: anything you leave empty keeps the sample text, and you can change it all later in the editor."}
       </p>
 
       {step === 3 && (
-        <div className="mt-4 space-y-4">
+        <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
           {couple ? (
             <div>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Wife's name" : "Bride's name"} *</span>
-                  <input autoFocus required className="input" maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" />
+                  <input autoFocus required className="input max-sm:py-2" maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" />
                 </label>
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Husband's name" : "Groom's name"} *</span>
-                  <input required className="input" maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" />
+                  <input required className="input max-sm:py-2" maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" />
                 </label>
               </div>
               <span className="mt-1 block text-xs text-ink-500">
@@ -476,26 +471,26 @@ export default function NewInvitationPage() {
           ) : (
             <label className="block">
               <span className="label">Invitation name *</span>
-              <input autoFocus required className="input" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
+              <input autoFocus required className="input max-sm:py-2" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
               <span className="mt-1 block text-xs text-ink-500">Shown on the cover and used for your link. You can change it later.</span>
             </label>
           )}
           <label className="block">
             <span className="label">Date *</span>
-            <input type="date" required className="input" value={date} onChange={(e) => setDate(e.target.value)} />
+            <input type="date" required className="input max-sm:py-2" value={date} onChange={(e) => setDate(e.target.value)} />
             <span className="mt-1 block text-xs text-ink-500">Used on the cover, the scratch card and the countdown.</span>
           </label>
         </div>
       )}
 
       {step === 4 && (
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-2 sm:gap-4">
           {(COUPLE.includes(eventType) ? ["Bride's family", "Groom's family"] : ["Hosted by"]).map((label, i) => (
             <label key={label} className="block">
               <span className="label">{label}</span>
               <textarea
                 rows={3}
-                className="input resize-none"
+                className="input max-sm:py-2 resize-none"
                 maxLength={300}
                 value={families[i].names}
                 onChange={(e) => setFamilies((f) => f.map((x, j) => (j === i ? { ...x, names: e.target.value } : x)))}
@@ -507,55 +502,59 @@ export default function NewInvitationPage() {
       )}
 
       {step === 5 && (
-        <div className="mt-4 space-y-4">
+        <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
           <div>
-            <span className="label">Programme</span>
-            <div className="space-y-2">
+            {/* "Add an item" sits beside the label, saving a line */}
+            <div className="mb-1.5 flex items-center justify-between gap-3">
+              <span className="label !mb-0">Programme</span>
+              {schedule.length < 12 && (
+                <button type="button" onClick={() => setSchedule((l) => [...l, { time: "", title: "" }])} className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline underline-offset-2">
+                  <Plus className="h-3.5 w-3.5" /> Add an item
+                </button>
+              )}
+            </div>
+            <div className="space-y-1.5 sm:space-y-2">
               {schedule.map((x, i) => (
                 <div key={i} className="flex gap-2">
-                  <input type="time" className="input !w-36 shrink-0" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
-                  <input className="input" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
+                  <input type="time" className="input max-sm:py-1.5 !w-36 shrink-0 max-sm:!w-[8.25rem] max-sm:pl-3 max-sm:pr-2" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
+                  <input className="input max-sm:py-1.5" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
                   {schedule.length > 1 && (
-                    <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-10 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5" aria-label={`Remove item ${i + 1}`}>
+                    <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-7 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5 sm:w-10" aria-label={`Remove item ${i + 1}`}>
                       <X className="h-4 w-4" />
                     </button>
                   )}
                 </div>
               ))}
             </div>
-            {schedule.length < 12 && (
-              <button type="button" onClick={() => setSchedule((l) => [...l, { time: "", title: "" }])} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-ink underline underline-offset-2">
-                <Plus className="h-3.5 w-3.5" /> Add an item
-              </button>
-            )}
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          {/* venue and address side by side (phones too, to save height); the tip sits under the address, full width on phones */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-4">
             <label className="block">
               <span className="label">Venue name</span>
-              <input className="input" maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" />
+              <input className="input max-sm:py-2" maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" />
             </label>
             <label className="block">
               <span className="label">Address</span>
-              <input className="input" maxLength={500} value={venue.address} onChange={(e) => setVenue((v) => ({ ...v, address: e.target.value }))} placeholder="Street, area, city" />
-              <span className="mt-1 block text-xs text-ink-500">Tip: you can paste the exact Google Maps link here instead, and guests will open that spot directly.</span>
+              <input className="input max-sm:py-2" maxLength={500} value={venue.address} onChange={(e) => setVenue((v) => ({ ...v, address: e.target.value }))} placeholder="Street, area, city" aria-describedby="address-tip" />
             </label>
+            <span id="address-tip" className="col-span-2 block text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal sm:col-span-1 sm:col-start-2">Tip: you can paste the exact Google Maps link here instead, and guests will open that spot directly.</span>
           </div>
         </div>
       )}
 
       {step === 6 && (
-        <div className="mt-4 space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
             <label className="block">
               <span className="label">Contact name</span>
-              <input className="input" maxLength={80} value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Usman (brother)" />
+              <input className="input max-sm:py-2" maxLength={80} value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Usman (brother)" />
             </label>
             <label className="block">
               <span className="label">Phone / WhatsApp</span>
               <input
                 type="tel"
                 autoComplete="tel"
-                className={`input ${phoneTouched && phoneError(contact.phone) ? "!border-red-400" : ""}`}
+                className={`input max-sm:py-2 ${phoneTouched && phoneError(contact.phone) ? "!border-red-400" : ""}`}
                 maxLength={10}
                 inputMode="numeric"
                 value={contact.phone}
@@ -572,7 +571,7 @@ export default function NewInvitationPage() {
           </div>
           <label className="block">
             <span className="label">Thank-you message</span>
-            <textarea rows={3} className="input resize-none" maxLength={400} value={closing} onChange={(e) => setClosing(e.target.value)} placeholder={DEFAULT_THANKS} />
+            <textarea rows={3} className="input max-sm:py-2 resize-none" maxLength={400} value={closing} onChange={(e) => setClosing(e.target.value)} placeholder={DEFAULT_THANKS} />
           </label>
         </div>
       )}
