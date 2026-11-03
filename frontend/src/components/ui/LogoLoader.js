@@ -15,11 +15,13 @@ export default function LogoLoader({ title = "Preparing your invitation", steps 
   }, [steps.length]);
 
   return (
-    <div role="status" aria-live="polite" className="fixed inset-0 z-[95] grid place-items-center bg-cream/95 backdrop-blur-sm">
+    // `atelier`: the editor shows this before its own themed wrapper exists, so it carries the app's
+    // light/dark palette itself
+    <div role="status" aria-live="polite" className="atelier fixed inset-0 z-[95] grid place-items-center bg-cream/95 backdrop-blur-sm">
       <div className="flex flex-col items-center px-6 text-center">
         <div className="relative h-36 w-36">
           {/* soft glow */}
-          <div className="absolute inset-4 rounded-full bg-brand-200/50 blur-2xl" />
+          <div className="absolute inset-4 rounded-full bg-brand-200/50 blur-2xl dark:bg-brand-600/15" />
           <svg viewBox="0 0 64 64" className="relative h-full w-full overflow-visible" aria-hidden="true">
             {/* back of the envelope and its open flap */}
             <path d="M8 30 L32 12 L56 30 Z" fill="#BE453D" className="origin-[32px_30px] animate-[ll-flap_2.4s_ease-in-out_infinite]" />
@@ -38,7 +40,7 @@ export default function LogoLoader({ title = "Preparing your invitation", steps 
             <path d="M53 2 L55.2 8.8 L62 11 L55.2 13.2 L53 20 L50.8 13.2 L44 11 L50.8 8.8 Z" fill="#F5C451" className="origin-[53px_11px] animate-[ll-twinkle_1.6s_ease-in-out_infinite]" />
             <circle cx="6" cy="16" r="2.2" fill="#E8544A" className="animate-[ll-pop_2.4s_ease-out_infinite]" />
             <circle cx="12" cy="7" r="1.6" fill="#F5C451" className="animate-[ll-pop_2.4s_ease-out_.4s_infinite]" />
-            <circle cx="60" cy="26" r="1.8" fill="#1C1A3D" className="animate-[ll-pop_2.4s_ease-out_.8s_infinite]" />
+            <circle cx="60" cy="26" r="1.8" fill="#1C1A3D" className="animate-[ll-pop_2.4s_ease-out_.8s_infinite] dark:fill-[#efe9df]" />
             <circle cx="3" cy="30" r="1.4" fill="#F5C451" className="animate-[ll-pop_2.4s_ease-out_1.2s_infinite]" />
             <circle cx="62" cy="40" r="1.4" fill="#E8544A" className="animate-[ll-pop_2.4s_ease-out_1.6s_infinite]" />
           </svg>
