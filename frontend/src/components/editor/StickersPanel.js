@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { STICKERS, STICKER_CATEGORIES } from "@/data/stickers";
 import { SECTION_META } from "@/data/sections";
+import { Select } from "./fields";
 
 export default function StickersPanel({ sections, targetSection, setTargetSection, onAdd, count }) {
   const [cat, setCat] = useState("all");
@@ -12,14 +13,7 @@ export default function StickersPanel({ sections, targetSection, setTargetSectio
   return (
     <div className="space-y-4">
       <div>
-        <label className="label">Add stickers to</label>
-        <select className="input" value={targetSection} onChange={(e) => setTargetSection(e.target.value)}>
-          {visible.map((s) => (
-            <option key={s.id} value={s.id}>
-              {SECTION_META[s.type]?.label}
-            </option>
-          ))}
-        </select>
+        <Select label="Add stickers to" value={targetSection} onChange={setTargetSection} options={visible.map((s) => ({ value: s.id, label: SECTION_META[s.type]?.label }))} />
         <p className="mt-1.5 text-xs text-ink-500">
           Tap a sticker to add it, then drag it on the preview. Use the blue handles to resize and rotate.{count > 0 && ` ${count} placed.`}
         </p>

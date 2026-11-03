@@ -41,8 +41,8 @@ const FORMS = {
   hero: ({ d, set }) => (
     <>
       <Text label="Main title / names" value={d.title} onChange={(v) => set({ title: v })} placeholder="Ayesha & Ahmed" maxLength={80} />
-      <Text label="Subtitle" value={d.subtitle} onChange={(v) => set({ subtitle: v })} placeholder="are getting married" />
-      <Text label="Small text above title" value={d.tagline} onChange={(v) => set({ tagline: v })} placeholder="Together with their families…" />
+      <TextArea label="Subtitle" rows={2} maxLength={200} value={d.subtitle} onChange={(v) => set({ subtitle: v })} placeholder="are getting married" />
+      <TextArea label="Small text above title" rows={2} maxLength={200} value={d.tagline} onChange={(v) => set({ tagline: v })} placeholder="Together with their families…" />
       <DateTime label="Event date" value={d.date} onChange={(v) => set({ date: v })} />
       <Select
         label="Layout"
@@ -109,8 +109,8 @@ const FORMS = {
               </>
             )}
             <Text label="Venue" value={e.venue} onChange={(v) => up({ venue: v })} />
-            <Text label="Address" value={e.address} onChange={(v) => up({ address: v })} />
-            <Text label="Note" value={e.note} onChange={(v) => up({ note: v })} placeholder="Dinner will be served" />
+            <TextArea label="Address" rows={2} maxLength={200} value={e.address} onChange={(v) => up({ address: v })} />
+            <TextArea label="Note" rows={2} maxLength={200} value={e.note} onChange={(v) => up({ note: v })} placeholder="Dinner will be served" />
           </>
         )}
       />
@@ -136,7 +136,7 @@ const FORMS = {
               <Text label="Time" value={x.time} onChange={(v) => up({ time: v })} placeholder="8:00 PM" maxLength={20} />
               <Text label="Title" value={x.title} onChange={(v) => up({ title: v })} />
             </div>
-            <Text label="Description" value={x.description} onChange={(v) => up({ description: v })} />
+            <TextArea label="Description" rows={2} maxLength={200} value={x.description} onChange={(v) => up({ description: v })} />
           </>
         )}
       />
@@ -259,7 +259,7 @@ const FORMS = {
   scratch: ({ d, set }) => (
     <>
       <Heading d={d} set={set} />
-      <Text label="Instruction" value={d.text} onChange={(v) => set({ text: v })} />
+      <TextArea label="Instruction" rows={2} maxLength={200} value={d.text} onChange={(v) => set({ text: v })} />
       <FromCover />
     </>
   ),

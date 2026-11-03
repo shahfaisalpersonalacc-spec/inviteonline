@@ -200,10 +200,24 @@ export default function DashboardPage() {
             <span className="h-px flex-1 bg-gradient-to-r from-gold-600/40 to-transparent" aria-hidden />
           </div>
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {/* first card: start another (phones have the round + button instead) */}
+            <Link
+              href="/dashboard/new"
+              style={{ "--i": 5 }}
+              className="at-rise group relative hidden min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-[1.75rem] border-2 border-dashed border-gold-600/35 bg-white/30 p-8 text-center transition duration-500 hover:border-gold-600/70 hover:bg-white/55 sm:flex"
+            >
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-[#fff1c9] to-[#d9ae55] text-[#6d4c12] shadow-[0_16px_30px_-16px_rgba(168,122,42,.8)] transition duration-500 group-hover:rotate-90 group-hover:scale-110">
+                <Plus className="h-7 w-7" />
+              </span>
+              <span>
+                <span className="block font-serif text-2xl text-ink">Start a new one</span>
+                <span className="mt-1 block text-sm text-ink-500">A wedding, a birthday, anything worth celebrating.</span>
+              </span>
+            </Link>
             {items.map((inv, i) => (
               <article
                 key={inv._id}
-                style={{ "--i": Math.min(i, 6) + 5 }}
+                style={{ "--i": Math.min(i, 6) + 6 }}
                 className="at-glass at-ring at-rise group flex flex-col overflow-hidden rounded-[1.75rem] transition duration-500 hover:-translate-y-1.5 hover:shadow-[0_40px_70px_-40px_rgba(70,45,20,.6)]"
               >
                 <Link href={`/dashboard/edit/${inv._id}`} className="relative m-2 mb-0 block aspect-[16/10] overflow-hidden rounded-[1.35rem]" aria-label={`Edit ${inv.title}`}>
@@ -264,20 +278,6 @@ export default function DashboardPage() {
                 </div>
               </article>
             ))}
-            {/* one more card: start another (phones have the round + button instead) */}
-            <Link
-              href="/dashboard/new"
-              style={{ "--i": Math.min(items.length, 6) + 5 }}
-              className="at-rise group relative hidden min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-[1.75rem] border-2 border-dashed border-gold-600/35 bg-white/30 p-8 text-center transition duration-500 hover:border-gold-600/70 hover:bg-white/55 sm:flex"
-            >
-              <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-[#fff1c9] to-[#d9ae55] text-[#6d4c12] shadow-[0_16px_30px_-16px_rgba(168,122,42,.8)] transition duration-500 group-hover:rotate-90 group-hover:scale-110">
-                <Plus className="h-7 w-7" />
-              </span>
-              <span>
-                <span className="block font-serif text-2xl text-ink">Start a new one</span>
-                <span className="mt-1 block text-sm text-ink-500">A wedding, a birthday, anything worth celebrating.</span>
-              </span>
-            </Link>
           </div>
         </>
       )}

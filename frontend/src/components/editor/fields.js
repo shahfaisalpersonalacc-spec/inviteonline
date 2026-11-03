@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useRef, useState } from "react";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ImagePlus, Music, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ImagePlus, Music, Plus, X } from "lucide-react";
 import { uploadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Spinner from "@/components/ui/Spinner";
@@ -69,13 +69,17 @@ export function Toggle({ label, checked, onChange, hint }) {
 export function Select({ label, value, onChange, options }) {
   return (
     <Field label={label}>
-      <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+      {/* own chevron: the browser's arrow sits tight against the edge */}
+      <div className="relative">
+        <select className="input cursor-pointer appearance-none pr-10" value={value} onChange={(e) => onChange(e.target.value)}>
+          {options.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-500" aria-hidden />
+      </div>
     </Field>
   );
 }
