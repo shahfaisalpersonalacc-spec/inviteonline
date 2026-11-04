@@ -5,7 +5,7 @@ import { ArrowDown, ArrowUp, ChevronDown, ChevronLeft, ChevronRight, ImagePlus, 
 import { uploadFile } from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
 import Spinner from "@/components/ui/Spinner";
-import { fromInputDate, toInputDate, toInputDateTime } from "@/lib/format";
+import { fromInputDate, toInputDate, toInputDateTime, todayInput } from "@/lib/format";
 
 export function Field({ label, hint, children }) {
   return (
@@ -39,6 +39,7 @@ export function DateTime({ label, hint, value, onChange, dateOnly = false }) {
       <input
         type={dateOnly ? "date" : "datetime-local"}
         className="input"
+        min={dateOnly ? todayInput() : `${todayInput()}T00:00`}
         value={dateOnly ? toInputDate(value) : toInputDateTime(value)}
         onChange={(e) => onChange(fromInputDate(e.target.value))}
       />

@@ -206,8 +206,8 @@ export default function DashboardLayout({ children }) {
       </header>
       <main id="main" className="relative z-10 mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 sm:pt-12">{children}</main>
       {pathname === "/dashboard" && (
-        <Link href="/dashboard/new" onClick={startFresh} className="btn-coral fixed bottom-5 right-5 z-30 !h-14 !w-14 !p-0 sm:hidden" aria-label="New invitation">
-          <Plus className="h-6 w-6" />
+        <Link href="/dashboard/new" onClick={startFresh} className="btn-coral fixed bottom-5 right-5 z-30 !h-10 !gap-1 !pl-3 !pr-4 !text-[13px] shadow-lg sm:hidden">
+          <Plus className="h-3.5 w-3.5" /> New invitation
         </Link>
       )}
     </div>

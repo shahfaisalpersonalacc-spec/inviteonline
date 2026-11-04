@@ -542,6 +542,8 @@ html.dark .atelier .at-light {
 /* in a layer, so a text colour class on the element itself (a night panel's cream) still wins */
 @layer base {
   html.dark .atelier .at-light { color: var(--color-ink); }
+  /* Tailwind v4 no longer gives buttons the hand cursor; bring it back everywhere */
+  button:not(:disabled), [role="button"], summary, select { cursor: pointer; }
 }
 
 /* white and grey utilities, re-coloured outside the preview */

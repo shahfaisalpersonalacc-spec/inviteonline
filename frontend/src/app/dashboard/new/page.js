@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronLeft, ChevronRight, Moon, Plus, Sun, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ChevronLeft, CircleAlert, ChevronRight, Moon, Plus, Sun, X } from "lucide-react";
 import { EVENT_TYPES } from "@/data/eventTypes";
 import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
-import { isLink } from "@/lib/format";
+import { isLink, todayInput } from "@/lib/format";
 import { DRAFT_KEY, readDraft } from "@/lib/draft";
 import Spinner from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
@@ -29,6 +29,13 @@ const to12h = (v) => {
 };
 // Phone: a 10-digit mobile number, digits only (e.g. 9876543210).
 const PHONE_CHARS = /\D/g;
+// The map link as a full web address: "https://…" as typed, or a bare one ("www.google.com", "maps.com/x",
+// "goo.gl/abc") with https:// put in front so it opens for guests. "" when it isn't a web address at all.
+const toLink = (v) => {
+  const s = String(v || "").trim();
+  if (isLink(s)) return s;
+  return /^[\w-]+(\.[\w-]+)*\.[a-z]{2,}(:\d+)?([/?#]\S*)?$/i.test(s) ? `https://${s}` : "";
+};
 const phoneError = (v) => (!v || v.length === 10 ? "" : "Enter a 10-digit mobile number, e.g. 9876543210.");
 // The design each occasion starts with (listed first, pre-selected); all others stay available.
 const DEFAULT_TEMPLATE = {
@@ -96,6 +103,17 @@ function Slider({ children }) {
   );
 }
 
+// A field's problem, said under it in words (in place of the browser's bubble), or its usual help line.
+function Hint({ id, error, children }) {
+  if (error)
+    return (
+      <span id={id} role="alert" className="at-pop mt-1 flex items-start gap-1.5 text-xs font-medium leading-snug text-red-600 dark:text-red-400">
+        <CircleAlert className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden /> {error}
+      </span>
+    );
+  return children ? <span id={id} className="mt-1 block text-xs text-ink-500">{children}</span> : null;
+}
+
 function Step({ children }) {
   return (
     <h2 className="mt-2 sm:mt-4">
@@ -120,7 +138,7 @@ export default function NewInvitationPage() {
   // couple events: "Bride & Groom" on the cover and in the link
   const fullTitle = couple ? [bride.trim(), groom.trim()].filter(Boolean).join(" & ") : title.trim();
   const namesReady = couple ? !!(bride.trim() && groom.trim()) : !!title.trim();
-  // the owner's details (all optional; anything left empty keeps the sample content)
+  // the owner's details (all required in the wizard)
   const [date, setDate] = useState((draft.date ?? "").slice(0, 10));
   const [families, setFamilies] = useState(draft.families ?? [
     { title: "", names: "" },
@@ -147,8 +165,50 @@ export default function NewInvitationPage() {
     } catch {}
   }, [step, eventType, theme, template, classic, mode, entry, title, bride, groom, date, families, schedule, venue, contact, closing]);
 
+  // What's missing or wrong on the current details step, as a message per field. Shown under the fields
+  // (instead of the browser's bubbles) once Next has been pressed, and updated as they're fixed.
+  const [checked, setChecked] = useState(false);
+  const errors = {};
+  if (step === 3) {
+    if (couple) {
+      const [b, g] = eventType === "anniversary" ? ["wife's", "husband's"] : ["bride's", "groom's"];
+      if (!bride.trim()) errors.bride = `Please enter the ${b} name.`;
+      if (!groom.trim()) errors.groom = `Please enter the ${g} name.`;
+    } else if (!title.trim()) errors.title = "Please give your invitation a name.";
+    if (!date) errors.date = "Please choose the date of your event.";
+    else if (date < todayInput()) errors.date = "This date has passed. Please pick today or a later date.";
+  }
+  if (step === 4) {
+    const who = couple ? ["the bride's family", "the groom's family"] : ["who is hosting"];
+    who.forEach((w, i) => {
+      if (!families[i].names.trim()) errors[`family${i}`] = `Please add ${w}.`;
+    });
+  }
+  if (step === 5) {
+    schedule.forEach((x, i) => {
+      if (!x.time && !x.title.trim()) errors[`row${i}`] = "Add a time and what happens, or remove this item.";
+      else if (!x.time) errors[`row${i}`] = "Please add a time.";
+      else if (!x.title.trim()) errors[`row${i}`] = "Please say what happens at this time.";
+    });
+    if (!venue.name.trim()) errors.venueName = "Please enter the venue name.";
+    if (!venue.mapUrl) errors.mapUrl = "Please paste the Google Maps link of the venue.";
+    else if (!toLink(venue.mapUrl)) errors.mapUrl = "That doesn't look like a link. Paste it like maps.app.goo.gl/… or www.google.com/maps/…";
+  }
+  if (step === 6) {
+    if (!contact.name.trim()) errors.contactName = "Please enter who guests can contact.";
+    if (!contact.phone) errors.phone = "Please enter a phone number.";
+    else if (phoneError(contact.phone)) errors.phone = phoneError(contact.phone);
+    if (!closing.trim()) errors.closing = "Please write a short thank-you message.";
+  }
+  const err = (k) => (checked ? errors[k] : "") || "";
+  // the phone number is also checked as soon as you leave the field (a short number, not an empty one)
+  const phoneErr = err("phone") || (phoneTouched && phoneError(contact.phone)) || "";
+  // the field's look when it has a problem
+  const bad = (k) => (err(k) ? " !border-red-400 !bg-red-50/40 dark:!bg-red-500/5" : "");
+
   const body = useRef(null);
   function go(n) {
+    setChecked(false);
     setStep(n);
     body.current?.scrollTo({ top: 0 });
   }
@@ -166,7 +226,7 @@ export default function NewInvitationPage() {
         families: families.map((f, i) => ({ title: f.title.trim() || famTitles[i] || "Family", names: f.names.trim() })).filter((f) => f.names),
         schedule: schedule.filter((x) => x.time || x.title.trim()).map((x) => ({ time: to12h(x.time), title: x.title.trim() })),
         // the wizard asks for a map link instead of a written address (the address can be added in the editor)
-        venue: { name: venue.name, mapUrl: isLink(venue.mapUrl) ? venue.mapUrl : "" },
+        venue: { name: venue.name, mapUrl: toLink(venue.mapUrl) },
         contact,
         closing: closing.trim() || undefined,
       };
@@ -420,13 +480,18 @@ export default function NewInvitationPage() {
       )}
 
       {step >= 3 && (
-      // details steps: Enter moves on, and creates on the last one. All optional ("leave empty to keep the sample").
+      // details steps: Enter moves on, and creates on the last one. Every field is required.
       <form
         id="new-invite"
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
-          if (step === 3 && (!namesReady || !date)) return; // names and date are required (the browser shows which)
-          if (last && phoneError(contact.phone)) return setPhoneTouched(true); // fix the number first
+          // something missing: show the messages and take the person to the first field that needs them
+          if (Object.keys(errors).length) {
+            setChecked(true);
+            setTimeout(() => document.querySelector('#new-invite [aria-invalid="true"]')?.focus(), 0);
+            return;
+          }
           if (last) create(e);
           else go(step + 1);
         }}
@@ -444,11 +509,13 @@ export default function NewInvitationPage() {
               <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Wife's name" : "Bride's name"} *</span>
-                  <input autoFocus required className="input max-sm:py-2" maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" />
+                  <input autoFocus required className={`input max-sm:py-2${bad("bride")}`} maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" aria-invalid={!!err("bride")} aria-describedby="bride-err" />
+                  <Hint id="bride-err" error={err("bride")} />
                 </label>
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Husband's name" : "Groom's name"} *</span>
-                  <input required className="input max-sm:py-2" maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" />
+                  <input required className={`input max-sm:py-2${bad("groom")}`} maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" aria-invalid={!!err("groom")} aria-describedby="groom-err" />
+                  <Hint id="groom-err" error={err("groom")} />
                 </label>
               </div>
               <span className="mt-1 block text-xs text-ink-500">
@@ -458,14 +525,14 @@ export default function NewInvitationPage() {
           ) : (
             <label className="block">
               <span className="label">Invitation name *</span>
-              <input autoFocus required className="input max-sm:py-2" maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" />
-              <span className="mt-1 block text-xs text-ink-500">Shown on the cover and used for your link. You can change it later.</span>
+              <input autoFocus required className={`input max-sm:py-2${bad("title")}`} maxLength={120} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Our Celebration" aria-invalid={!!err("title")} aria-describedby="title-help" />
+              <Hint id="title-help" error={err("title")}>Shown on the cover and used for your link. You can change it later.</Hint>
             </label>
           )}
           <label className="block">
             <span className="label">Date *</span>
-            <input type="date" required className="input max-sm:py-2" value={date} onChange={(e) => setDate(e.target.value)} />
-            <span className="mt-1 block text-xs text-ink-500">Used on the cover, the scratch card and the countdown.</span>
+            <input type="date" required min={todayInput()} className={`input max-sm:py-2${bad("date")}`} value={date} onChange={(e) => setDate(e.target.value)} aria-invalid={!!err("date")} aria-describedby="date-help" />
+            <Hint id="date-help" error={err("date")}>Used on the cover, the scratch card and the countdown.</Hint>
           </label>
         </div>
       )}
@@ -474,15 +541,19 @@ export default function NewInvitationPage() {
         <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-2 sm:gap-4">
           {(COUPLE.includes(eventType) ? ["Bride's family", "Groom's family"] : ["Hosted by"]).map((label, i) => (
             <label key={label} className="block">
-              <span className="label">{label}</span>
+              <span className="label">{label} *</span>
               <textarea
+                required
                 rows={3}
-                className="input max-sm:py-2 resize-none"
+                className={`input max-sm:py-2 resize-none${bad(`family${i}`)}`}
                 maxLength={300}
                 value={families[i].names}
                 onChange={(e) => setFamilies((f) => f.map((x, j) => (j === i ? { ...x, names: e.target.value } : x)))}
                 placeholder={"e.g. Mr. & Mrs. Khan\nGrandparents & family"}
+                aria-invalid={!!err(`family${i}`)}
+                aria-describedby={`family${i}-err`}
               />
+              <Hint id={`family${i}-err`} error={err(`family${i}`)} />
             </label>
           ))}
         </div>
@@ -493,7 +564,7 @@ export default function NewInvitationPage() {
           <div>
             {/* "Add an item" sits beside the label, saving a line */}
             <div className="mb-1.5 flex items-center justify-between gap-3">
-              <span className="label !mb-0">Programme</span>
+              <span className="label !mb-0">Programme *</span>
               {schedule.length < 12 && (
                 <button type="button" onClick={() => setSchedule((l) => [...l, { time: "", title: "" }])} className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline underline-offset-2">
                   <Plus className="h-3.5 w-3.5" /> Add an item
@@ -502,14 +573,17 @@ export default function NewInvitationPage() {
             </div>
             <div className="space-y-1 sm:space-y-2">
               {schedule.map((x, i) => (
-                <div key={i} className="flex gap-2">
-                  <input type="time" className="input max-sm:py-2 !w-36 shrink-0 max-sm:!w-[8.25rem] max-sm:pl-3 max-sm:pr-2" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
-                  <input className="input max-sm:py-2" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
-                  {schedule.length > 1 && (
-                    <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-7 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5 sm:w-10" aria-label={`Remove item ${i + 1}`}>
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
+                <div key={i}>
+                  <div className="flex gap-2">
+                    <input type="time" required className={`input max-sm:py-2 !w-36 shrink-0 max-sm:!w-[8.25rem] max-sm:pl-3 max-sm:pr-2${checked && !x.time ? bad(`row${i}`) : ""}`} value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} aria-invalid={checked && !x.time} aria-describedby={`row${i}-err`} />
+                    <input required className={`input max-sm:py-2${checked && !x.title.trim() ? bad(`row${i}`) : ""}`} maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} aria-invalid={checked && !x.title.trim()} aria-describedby={`row${i}-err`} />
+                    {schedule.length > 1 && (
+                      <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-7 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5 sm:w-10" aria-label={`Remove item ${i + 1}`}>
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  <Hint id={`row${i}-err`} error={err(`row${i}`)} />
                 </div>
               ))}
             </div>
@@ -517,14 +591,16 @@ export default function NewInvitationPage() {
           {/* phones: one under the other; wider screens: side by side, the help line under the map link */}
           <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1">
             <label className="block">
-              <span className="label">Venue name</span>
-              <input className="input max-sm:py-2" maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" />
+              <span className="label">Venue name *</span>
+              <input required className={`input max-sm:py-2${bad("venueName")}`} maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" aria-invalid={!!err("venueName")} aria-describedby="venue-err" />
+              <Hint id="venue-err" error={err("venueName")} />
             </label>
             <label className="block">
-              <span className="label">Map link</span>
-              <input type="url" className="input max-sm:py-2" maxLength={500} value={venue.mapUrl || ""} onChange={(e) => setVenue((v) => ({ ...v, mapUrl: e.target.value.trim() }))} placeholder="https://maps.app.goo.gl/…" aria-describedby="map-help" />
+              <span className="label">Map link *</span>
+              <input type="url" inputMode="url" required className={`input max-sm:py-2${bad("mapUrl")}`} maxLength={500} value={venue.mapUrl || ""} onChange={(e) => setVenue((v) => ({ ...v, mapUrl: e.target.value.trim() }))} placeholder="https://maps.app.goo.gl/…" aria-invalid={!!err("mapUrl")} aria-describedby="map-help" />
+              {err("mapUrl") && <Hint id="map-help" error={err("mapUrl")} />}
             </label>
-            <span id="map-help" className="-mt-2 block text-[11px] leading-snug text-ink-500 sm:col-start-2 sm:mt-0 sm:text-xs sm:leading-normal">Paste the exact Google Maps link (Share → Copy link) so guests open the right spot.</span>
+            {!err("mapUrl") && <span id="map-help" className="-mt-2 block text-[11px] leading-snug text-ink-500 sm:col-start-2 sm:mt-0 sm:text-xs sm:leading-normal">Paste the exact Google Maps link (Share → Copy link) so guests open the right spot.</span>}
           </div>
         </div>
       )}
@@ -533,32 +609,34 @@ export default function NewInvitationPage() {
         <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
             <label className="block">
-              <span className="label">Contact name</span>
-              <input className="input max-sm:py-2" maxLength={80} value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Usman (brother)" />
+              <span className="label">Contact name *</span>
+              <input required className={`input max-sm:py-2${bad("contactName")}`} maxLength={80} value={contact.name} onChange={(e) => setContact((c) => ({ ...c, name: e.target.value }))} placeholder="e.g. Usman (brother)" aria-invalid={!!err("contactName")} aria-describedby="contact-err" />
+              <Hint id="contact-err" error={err("contactName")} />
             </label>
             <label className="block">
-              <span className="label">Phone / WhatsApp</span>
+              <span className="label">Phone / WhatsApp *</span>
               <input
                 type="tel"
+                required
+                minLength={10}
                 autoComplete="tel"
-                className={`input max-sm:py-2 ${phoneTouched && phoneError(contact.phone) ? "!border-red-400" : ""}`}
+                className={`input max-sm:py-2${phoneErr ? " !border-red-400 !bg-red-50/40 dark:!bg-red-500/5" : ""}`}
                 maxLength={10}
                 inputMode="numeric"
                 value={contact.phone}
                 onChange={(e) => setContact((c) => ({ ...c, phone: e.target.value.replace(PHONE_CHARS, "") }))}
                 onBlur={() => setPhoneTouched(true)}
-                aria-invalid={phoneTouched && !!phoneError(contact.phone)}
+                aria-invalid={!!phoneErr}
                 aria-describedby="phone-help"
                 placeholder="e.g. 9876543210"
               />
-              <span id="phone-help" className={`mt-1 block text-xs ${phoneTouched && phoneError(contact.phone) ? "text-red-600" : "text-ink-500"}`}>
-                {(phoneTouched && phoneError(contact.phone)) || "Guests can call or WhatsApp this number."}
-              </span>
+              <Hint id="phone-help" error={phoneErr}>Guests can call or WhatsApp this number.</Hint>
             </label>
           </div>
           <label className="block">
-            <span className="label">Thank-you message</span>
-            <textarea rows={3} className="input max-sm:py-2 resize-none" maxLength={400} value={closing} onChange={(e) => setClosing(e.target.value)} placeholder={DEFAULT_THANKS} />
+            <span className="label">Thank-you message *</span>
+            <textarea required rows={3} className={`input max-sm:py-2 resize-none${bad("closing")}`} maxLength={400} value={closing} onChange={(e) => setClosing(e.target.value)} placeholder={DEFAULT_THANKS} aria-invalid={!!err("closing")} aria-describedby="closing-err" />
+            <Hint id="closing-err" error={err("closing")} />
           </label>
         </div>
       )}

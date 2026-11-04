@@ -26,7 +26,10 @@ export function toInputDate(v) {
   return toInputDateTime(v).slice(0, 10);
 }
 
-export const fromInputDate = (v) => (v ? new Date(v).toISOString() : "");
+// today as "2026-11-21": the earliest day a date picker offers (an invitation is for an event still to come)
+export const todayInput = () => toInputDate(new Date());
+
+export const fromInputDate =(v) => (v ? new Date(v).toISOString() : "");
 
 export function mapEmbedUrl(query) {
   return query ? `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed` : "";
