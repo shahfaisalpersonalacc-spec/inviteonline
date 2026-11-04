@@ -71,6 +71,19 @@ export default function EditorPage() {
   const syncLock = useRef({ pane: "", until: 0 }); // the pane being scrolled by code, ignored for a moment
   const lastSynced = useRef("");
 
+  // The editor is pinned to the screen (fixed) and scrolls only inside its panes. iPhone Safari still
+  // scrolls the page itself when the keyboard opens and sometimes leaves it there, which pushes the top
+  // bar up under the status bar: put it back once a field loses focus or the keyboard closes.
+  useEffect(() => {
+    const reset = () => setTimeout(() => window.scrollY && window.scrollTo(0, 0), 60);
+    document.addEventListener("focusout", reset);
+    window.visualViewport?.addEventListener("resize", reset);
+    return () => {
+      document.removeEventListener("focusout", reset);
+      window.visualViewport?.removeEventListener("resize", reset);
+    };
+  }, []);
+
   useEffect(() => {
     api(`/invitations/${id}`)
       .then((d) => {
@@ -310,7 +323,7 @@ export default function EditorPage() {
   const statusLabel = { saved: "All changes saved", unsaved: "Unsaved changes…", saving: "Saving…", error: "Not saved" }[status];
 
   return (
-    <div className="atelier relative flex h-[100dvh] flex-col">
+    <div className="atelier fixed inset-0 flex flex-col">
       {/* Top bar: floating frosted glass */}
       <header className="at-glass-strong relative z-30 flex h-14 shrink-0 items-center gap-2 !rounded-none !border-x-0 !border-t-0 px-2 sm:px-3 lg:mx-2 lg:mt-2 lg:!rounded-full lg:!border">
         <Link href="/dashboard" className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-semibold text-ink-500 transition hover:bg-white hover:text-ink" aria-label="Back to dashboard">
@@ -499,7 +512,7 @@ export default function EditorPage() {
 // While the invitation loads: shimmering placeholders in the editor's shape (top bar, panel, phone).
 function EditorSkeleton() {
   return (
-    <div className="atelier relative flex h-[100dvh] flex-col" aria-busy="true" aria-label="Loading the editor">
+    <div className="atelier fixed inset-0 flex flex-col" aria-busy="true" aria-label="Loading the editor">
       <div className="at-glass-strong relative z-10 mx-2 mt-2 flex h-14 shrink-0 items-center gap-3 rounded-full px-3">
         <div className="at-skel h-8 w-8 rounded-full" />
         <div className="flex-1 space-y-1.5">

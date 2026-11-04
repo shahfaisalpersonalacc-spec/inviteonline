@@ -306,6 +306,25 @@ html.dark.auth-pending::after { background: #0f0e1d; }
   100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.6); opacity: 0; }
 }
 
+/* iPhone Safari gives date/time fields a built-in minimum width and ignores width: 100%, so they spill
+   off the screen. Only there (-webkit-touch-callout is iOS-only): drop the native sizing, keep the
+   value left-aligned, and keep the empty field as tall as a filled one. */
+@supports (-webkit-touch-callout: none) {
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="time"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+  }
+  input::-webkit-date-and-time-value {
+    min-height: 1.5em;
+    text-align: left;
+  }
+}
+
 /* Phones zoom in on any field whose text is under 16px when it's tapped. Fields use 16px on small
    screens so they don't (pinch-zoom still works; only the automatic jump is avoided). */
 @media (max-width: 767px) {
