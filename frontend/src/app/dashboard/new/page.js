@@ -8,6 +8,7 @@ import { EVENT_TYPES } from "@/data/eventTypes";
 import { ENTRY_STYLES, THEMES } from "@/data/themes";
 import { api } from "@/lib/api";
 import { isLink } from "@/lib/format";
+import { DRAFT_KEY, readDraft } from "@/lib/draft";
 import Spinner from "@/components/ui/Spinner";
 import LogoLoader from "@/components/ui/LogoLoader";
 import { defaultMusicFor } from "@/data/music";
@@ -17,7 +18,6 @@ import { getTemplate, templateTheme, templatesFor } from "@/data/templates";
 
 const STEPS = ["Occasion", "Design", "Look & entrance", "Names", "Families", "Programme", "Contact"];
 const COUPLE = ["wedding", "nikah", "walima", "mehndi", "engagement", "anniversary"];
-const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII"];
 
 // <input type="date"> value "2026-12-20" -> ISO, at the start of that day in the owner's time zone
 const toIso = (v) => (v ? new Date(`${v}T00:00`).toISOString() : undefined);
@@ -55,16 +55,6 @@ const PROGRAMMES = {
 };
 const programmeFor = (eventType) =>
   (PROGRAMMES[eventType] || [["19:00", "Guests arrive"], ["20:00", "Main event"], ["21:30", "Dinner"]]).map(([time, title]) => ({ time, title }));
-// The wizard keeps a draft in this tab (sessionStorage), so a reload returns to the same step with
-// everything filled in. It's cleared once the invitation is created.
-const DRAFT_KEY = "new-invitation-draft";
-function readDraft() {
-  try {
-    return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || "{}") || {};
-  } catch {
-    return {};
-  }
-}
 const DEFAULT_THANKS = "Your presence is the greatest gift. We look forward to celebrating with you!";
 
 // A horizontal slider: swipe on touch screens, arrow buttons on the sides.
@@ -106,11 +96,10 @@ function Slider({ children }) {
   );
 }
 
-function Step({ n, children }) {
+function Step({ children }) {
   return (
-    <h2 className="mt-2 flex items-baseline gap-4 sm:mt-4">
-      <span className="at-gold-text font-serif text-2xl italic">{n}.</span>
-      <span className="font-serif text-2xl text-ink sm:text-[1.7rem]">{children}</span>
+    <h2 className="mt-2 sm:mt-4">
+      <span className="font-serif text-[1.4rem] text-ink sm:text-[1.7rem]">{children}</span>
     </h2>
   );
 }
@@ -139,7 +128,7 @@ export default function NewInvitationPage() {
   ]);
   // a ready-made programme for the occasion, which the owner can adjust
   const [schedule, setSchedule] = useState(() => draft.schedule ?? programmeFor("wedding"));
-  const [venue, setVenue] = useState(draft.venue ?? { name: "", address: "" });
+  const [venue, setVenue] = useState(draft.venue ?? { name: "", mapUrl: "" });
   const [contact, setContact] = useState(draft.contact ?? { name: "", phone: "" });
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [closing, setClosing] = useState(draft.closing ?? DEFAULT_THANKS);
@@ -176,8 +165,8 @@ export default function NewInvitationPage() {
         date: toIso(date),
         families: families.map((f, i) => ({ title: f.title.trim() || famTitles[i] || "Family", names: f.names.trim() })).filter((f) => f.names),
         schedule: schedule.filter((x) => x.time || x.title.trim()).map((x) => ({ time: to12h(x.time), title: x.title.trim() })),
-        // a pasted map link becomes the venue's map link, not its written address
-        venue: isLink(venue.address) ? { name: venue.name, address: "", mapUrl: venue.address.trim() } : venue,
+        // the wizard asks for a map link instead of a written address (the address can be added in the editor)
+        venue: { name: venue.name, mapUrl: isLink(venue.mapUrl) ? venue.mapUrl : "" },
         contact,
         closing: closing.trim() || undefined,
       };
@@ -201,7 +190,7 @@ export default function NewInvitationPage() {
     // The wizard fills the screen between the 4rem header and the 4rem bottom bar (fixed, so it never
     // depends on the page padding); a step that needs more room scrolls inside its own area.
     <>
-    <div className="fixed inset-x-0 top-16 z-10" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
+    <div className="fixed inset-x-0 top-16 z-10 bottom-[calc(3.5rem+env(safe-area-inset-bottom))] sm:bottom-[calc(4rem+env(safe-area-inset-bottom))]">
     <div className="mx-auto flex h-full max-w-5xl flex-col px-4 pt-3 sm:px-6 sm:pt-6">
       {busy && <LogoLoader />}
       <p className="eyebrow hidden sm:flex">
@@ -214,7 +203,7 @@ export default function NewInvitationPage() {
       <p className="mt-2 hidden max-w-xl text-sm leading-relaxed text-ink/65 sm:[@media(min-height:800px)]:block">We&apos;ll prepare it with elegant sample content you can change in the editor.</p>
 
       {/* progress: finished steps can be revisited */}
-      <ol className="at-glass mt-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1.5 sm:py-2 sm:mt-4 sm:gap-3 sm:px-3 lg:gap-2" aria-label="Steps">
+      <ol className="at-glass mt-3 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 sm:py-2 sm:mt-4 sm:gap-3 sm:px-3 lg:gap-2" aria-label="Steps">
         {STEPS.map((label, i) => {
           const done = i < step;
           const current = i === step;
@@ -250,10 +239,10 @@ export default function NewInvitationPage() {
         })}
       </ol>
 
-      <div ref={body} key={step} className="at-rise min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-2 sm:pb-4">
+      <div ref={body} key={step} className="at-rise at-still-phone min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-1 pb-2 sm:pb-4">
       {step === 0 && (
       <>
-      <Step n="I">Choose the occasion</Step>
+      <Step>Choose the occasion</Step>
       <div className="mt-3 grid grid-cols-3 gap-2 min-[420px]:grid-cols-2 sm:grid-cols-3 sm:gap-2.5 lg:grid-cols-4">
         {EVENT_TYPES.map(({ id, label, hint, Icon, theme: t }) => {
           const active = eventType === id;
@@ -289,7 +278,7 @@ export default function NewInvitationPage() {
 
       {step === 1 && (
       <>
-      <Step n="II">Choose a design</Step>
+      <Step>Choose a design</Step>
       {!classic ? (
         <>
           {/* card width follows the screen height (9:16 previews), so the step fits without scrolling */}
@@ -367,7 +356,7 @@ export default function NewInvitationPage() {
 
       {step === 2 && (
       <>
-      <Step n="III">Light or dark?</Step>
+      <Step>Light or dark?</Step>
       {/* same switch as Appearance in the editor's Design panel */}
       <div className="mt-3 grid max-w-md grid-cols-2 gap-1 rounded-2xl bg-ink/[0.06] p-1" role="radiogroup" aria-label="Invitation appearance">
         {[
@@ -441,14 +430,12 @@ export default function NewInvitationPage() {
           if (last) create(e);
           else go(step + 1);
         }}
-        className="at-glass mt-2 rounded-3xl px-3.5 pb-3 pt-1 sm:mt-5 sm:px-7 sm:pb-7"
+        className="sm:at-glass sm:mt-5 sm:rounded-3xl sm:px-7 sm:pb-7 sm:pt-1"
       >
-      <Step n={ROMAN[step]}>
+      <Step>
         {["", "", "", "Names & date", "With the blessings of", "Programme & venue", "Contact & thank-you"][step]}
       </Step>
-      <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">
-        {step === 3 ? "Both are needed: they go on the cover, the scratch card and the countdown." : "Optional: anything you leave empty keeps the sample text, and you can change it all later in the editor."}
-      </p>
+      {step === 3 && <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">Both are needed: they go on the cover, the scratch card and the countdown.</p>}
 
       {step === 3 && (
         <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
@@ -502,7 +489,7 @@ export default function NewInvitationPage() {
       )}
 
       {step === 5 && (
-        <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
+        <div className="mt-2 space-y-2.5 sm:mt-4 sm:space-y-4">
           <div>
             {/* "Add an item" sits beside the label, saving a line */}
             <div className="mb-1.5 flex items-center justify-between gap-3">
@@ -513,11 +500,11 @@ export default function NewInvitationPage() {
                 </button>
               )}
             </div>
-            <div className="space-y-1.5 sm:space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               {schedule.map((x, i) => (
                 <div key={i} className="flex gap-2">
-                  <input type="time" className="input max-sm:py-1.5 !w-36 shrink-0 max-sm:!w-[8.25rem] max-sm:pl-3 max-sm:pr-2" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
-                  <input className="input max-sm:py-1.5" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
+                  <input type="time" className="input max-sm:py-2 !w-36 shrink-0 max-sm:!w-[8.25rem] max-sm:pl-3 max-sm:pr-2" value={x.time} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, time: e.target.value } : y)))} aria-label={`Time ${i + 1}`} />
+                  <input className="input max-sm:py-2" maxLength={80} value={x.title} onChange={(e) => setSchedule((l) => l.map((y, j) => (j === i ? { ...y, title: e.target.value } : y)))} placeholder={["Guests arrive", "Main ceremony", "Dinner"][i] || "What happens"} aria-label={`What happens ${i + 1}`} />
                   {schedule.length > 1 && (
                     <button type="button" onClick={() => setSchedule((l) => l.filter((_, j) => j !== i))} className="grid w-7 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5 sm:w-10" aria-label={`Remove item ${i + 1}`}>
                       <X className="h-4 w-4" />
@@ -527,17 +514,17 @@ export default function NewInvitationPage() {
               ))}
             </div>
           </div>
-          {/* venue and address side by side (phones too, to save height); the tip sits under the address, full width on phones */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-4">
+          {/* phones: one under the other; wider screens: side by side, the help line under the map link */}
+          <div className="grid gap-2.5 sm:grid-cols-2 sm:gap-x-4 sm:gap-y-1">
             <label className="block">
               <span className="label">Venue name</span>
               <input className="input max-sm:py-2" maxLength={120} value={venue.name} onChange={(e) => setVenue((v) => ({ ...v, name: e.target.value }))} placeholder="e.g. Pearl Continental" />
             </label>
             <label className="block">
-              <span className="label">Address</span>
-              <input className="input max-sm:py-2" maxLength={500} value={venue.address} onChange={(e) => setVenue((v) => ({ ...v, address: e.target.value }))} placeholder="Street, area, city" aria-describedby="address-tip" />
+              <span className="label">Map link</span>
+              <input type="url" className="input max-sm:py-2" maxLength={500} value={venue.mapUrl || ""} onChange={(e) => setVenue((v) => ({ ...v, mapUrl: e.target.value.trim() }))} placeholder="https://maps.app.goo.gl/…" aria-describedby="map-help" />
             </label>
-            <span id="address-tip" className="col-span-2 block text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal sm:col-span-1 sm:col-start-2">Tip: you can paste the exact Google Maps link here instead, and guests will open that spot directly.</span>
+            <span id="map-help" className="-mt-2 block text-[11px] leading-snug text-ink-500 sm:col-start-2 sm:mt-0 sm:text-xs sm:leading-normal">Paste the exact Google Maps link (Share → Copy link) so guests open the right spot.</span>
           </div>
         </div>
       )}
@@ -588,7 +575,7 @@ export default function NewInvitationPage() {
         <span className="absolute inset-x-0 -top-px h-0.5 bg-ink/5" aria-hidden>
           <span className="block h-full bg-gradient-to-r from-[#d9ae55] via-[#e8544a] to-[#d23d52] transition-all duration-500" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
         </span>
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-5xl sm:h-16 items-center gap-3 px-4 sm:px-6">
           {step > 0 ? (
             <button type="button" onClick={() => go(step - 1)} className="btn-secondary !px-4">
               <ArrowLeft className="h-4 w-4" /> Back

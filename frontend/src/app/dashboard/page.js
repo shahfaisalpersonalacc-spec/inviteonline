@@ -15,6 +15,7 @@ import { PHOTO_DOORS } from "@/components/invite/entry/PhotoDoorEntry";
 import { eventTypeLabel } from "@/data/eventTypes";
 import { THEMES } from "@/data/themes";
 import { formatCount, timeAgo } from "@/lib/format";
+import { startFresh } from "@/lib/draft";
 import { shade } from "@/lib/color";
 
 // The card shows the invitation's entrance: its door photo, or a mini envelope. (coverImage is
@@ -159,10 +160,10 @@ export default function DashboardPage() {
           );
           const cls = "at-glass at-rise group relative flex flex-col gap-2.5 rounded-3xl p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-5";
           return items[0] ? (
-            // Totals span every invitation; the guests page is per invitation, so open the latest one (list is newest-edited first).
+            // Totals span every invitation, so they open the guests page's "All invitations" view (just the one, if that's all there is).
             <Link
               key={label}
-              href={`/dashboard/${items[0]._id}/guests${tab === "wishes" ? "?tab=wishes" : ""}`}
+              href={`/dashboard/${items.length > 1 ? "all" : items[0]._id}/guests${tab === "wishes" ? "?tab=wishes" : ""}`}
               aria-label={`${label}: ${totals[key]}. See them on the guests page`}
               style={{ "--i": i + 1 }}
               className={`${cls} at-ring transition duration-300 hover:-translate-y-1`}
@@ -188,7 +189,7 @@ export default function DashboardPage() {
             Your first invitation <em>awaits.</em>
           </h2>
           <p className="relative mt-3 max-w-sm leading-relaxed text-ink/65">Pick an event and an entrance, make it yours and share one link with everyone.</p>
-          <Link href="/dashboard/new" className="btn-coral relative mt-8 !px-7 !py-3">
+          <Link href="/dashboard/new" onClick={startFresh} className="btn-coral relative mt-8 !px-7 !py-3">
             <Plus className="h-4 w-4" /> Create my first invitation
           </Link>
         </div>
@@ -203,6 +204,7 @@ export default function DashboardPage() {
             {/* first card: start another (phones have the round + button instead) */}
             <Link
               href="/dashboard/new"
+              onClick={startFresh}
               style={{ "--i": 5 }}
               className="at-rise group relative hidden min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-[1.75rem] border-2 border-dashed border-gold-600/35 bg-white/30 p-8 text-center transition duration-500 hover:border-gold-600/70 hover:bg-white/55 sm:flex"
             >

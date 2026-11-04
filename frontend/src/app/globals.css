@@ -365,6 +365,16 @@ html.dark.auth-pending::after { background: #0f0e1d; }
   border: 1px solid var(--at-edge);
   box-shadow: var(--at-shadow);
 }
+/* glass from tablet width up only (phones show the content straight on the page) */
+@media (min-width: 640px) {
+  .sm\:at-glass {
+    background: var(--at-glass);
+    -webkit-backdrop-filter: blur(18px) saturate(1.5);
+    backdrop-filter: blur(18px) saturate(1.5);
+    border: 1px solid var(--at-edge);
+    box-shadow: var(--at-shadow);
+  }
+}
 .at-glass-strong {
   background: var(--at-glass-strong);
   -webkit-backdrop-filter: blur(22px) saturate(1.6);
@@ -407,6 +417,8 @@ html.dark.auth-pending::after { background: #0f0e1d; }
 
 /* entrance: children rise in one after another (set --i on each) */
 .at-rise { animation: at-rise 0.75s var(--ease-out-soft) both; animation-delay: calc(var(--i, 0) * 70ms); }
+/* phones: shown at once, no rise-in (the new-invitation wizard's steps) */
+@media (max-width: 639px) { .at-rise.at-still-phone { animation: none; } }
 .at-pop { animation: at-pop 0.45s var(--ease-out-soft) both; }
 .at-float { animation: at-float 6s ease-in-out infinite; }
 

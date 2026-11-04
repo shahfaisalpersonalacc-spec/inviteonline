@@ -20,7 +20,7 @@ function SortableSection({ s, isOpen, onToggleOpen, onUpdate, onRemove, onEditin
       // working in a field: show this section in the preview
       onFocusCapture={onEditing}
       style={{ transform: CSS.Transform.toString(transform), transition, zIndex: isDragging ? 20 : undefined, position: "relative" }}
-      className={`rounded-2xl border bg-white transition-shadow ${
+      className={`scroll-mt-2 rounded-2xl border bg-white transition-shadow ${
         isDragging ? "border-ink/30 shadow-[0_20px_40px_-16px_rgba(28,26,61,.45)]" : isOpen ? "border-ink/25 shadow-[0_14px_30px_-20px_rgba(28,26,61,.5)]" : "border-ink/[0.08]"
       }`}
     >
@@ -115,7 +115,11 @@ export default function SectionsPanel({ sections, onChange, onFocusSection, open
                 onToggleOpen={() => {
                   const opening = open !== s.id;
                   setOpen(opening ? s.id : null);
-                  if (opening) onFocusSection?.(s.id);
+                  if (opening) {
+                    onFocusSection?.(s.id);
+                    // once it has opened, bring the card to the top of the panel
+                    setTimeout(() => document.querySelector(`[data-panel-section="${s.id}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" }), 30);
+                  }
                 }}
                 onUpdate={(patch) => update(s.id, patch)}
                 onRemove={() => remove(s.id)}
