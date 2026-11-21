@@ -27,7 +27,8 @@ const schemas = {
   passwordCode: z.object({ currentPassword: z.string().min(1) }),
 };
 
-const clientUrl = () => (process.env.CLIENT_URL || 'http://localhost:3000').replace(/\/$/, '');
+// CLIENT_URL can list several sites (comma-separated, for CORS); links in emails use the first, the main one
+const clientUrl = () => (process.env.CLIENT_URL || 'http://localhost:3000').split(',')[0].trim().replace(/\/$/, '');
 
 // Issues and emails a code, unless one for the same purpose went out within the resend cooldown
 // (then the earlier code stays valid and nothing is sent). Always saves the user.
