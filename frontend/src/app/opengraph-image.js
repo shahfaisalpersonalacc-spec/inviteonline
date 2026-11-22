@@ -38,7 +38,7 @@ export default async function Image() {
         <div style={{ fontFamily: serif, fontSize: 96, lineHeight: 1.02, marginTop: 40, maxWidth: 900 }}>{HEADLINE}</div>
         <div style={{ fontSize: 30, marginTop: 36, color: "rgba(251,246,238,.72)" }}>{LINE}</div>
         <div style={{ display: "flex", gap: 16, marginTop: 44 }}>
-          {["Wax-seal envelope", "RSVP & wishes", "Share on WhatsApp"].map((t) => (
+          {["Opening palace doors", "RSVP & wishes", "Share on WhatsApp"].map((t) => (
             <div key={t} style={{ fontSize: 24, padding: "10px 22px", borderRadius: 999, border: "2px solid rgba(233,205,132,.45)", color: "#e9cd84" }}>{t}</div>
           ))}
         </div>

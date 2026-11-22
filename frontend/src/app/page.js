@@ -14,7 +14,7 @@ import { EVENT_TYPES } from "@/data/eventTypes";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const FEATURES = [
-  { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and seven real photographed doors that open onto a decorated wedding venue." },
+  { Icon: Stamp, title: "Doors & wax-sealed envelopes", text: "Seven real photographed doors that open onto a decorated wedding venue, and six wax-sealed envelopes." },
   { Icon: Ticket, title: "Scratch to reveal", text: "A gold-foil card hides the date until guests scratch it away." },
   { Icon: Palette, title: "Couture themes", text: "Twelve palettes with paired fonts, in light or evening dark." },
   { Icon: Feather, title: "Your story", text: "The couple, the families, a verse and a timeline of moments." },
@@ -22,7 +22,7 @@ const FEATURES = [
   { Icon: MapPin, title: "Venues & directions", text: "Each event with its own map, directions and add-to-calendar." },
   { Icon: ListChecks, title: "RSVP & guest list", text: "Guests reply in seconds. Track headcount and export to Excel." },
   { Icon: MailOpen, title: "Guestbook wishes", text: "Family and friends leave messages right on your page." },
-  { Icon: Music, title: "Background music", text: "Your song begins the moment the envelope opens." },
+  { Icon: Music, title: "Background music", text: "Your song begins the moment the doors open." },
   { Icon: Gift, title: "Gifts, gracefully", text: "Share bank or wallet details with one-tap copy, if you wish." },
   { Icon: Lock, title: "Private if you like", text: "Protect the page with a password, or share it openly." },
   { Icon: QrCode, title: "QR for printed cards", text: "Download a QR code that opens your invitation from paper." },
@@ -37,7 +37,7 @@ const ORBS = [
 ];
 
 const STEPS = [
-  { title: "Choose your entrance", text: "Pick the occasion, a theme, light or dark, and the envelope or doors guests will open." },
+  { title: "Choose your entrance", text: "Pick the occasion, a theme, light or dark, and the doors or envelope guests will open." },
   { title: "Make it yours", text: "Add names, photos, events, music and stickers. Every change previews live as you type." },
   { title: "Share one link", text: "Send it on WhatsApp, Instagram or anywhere. Guests need no app and no account." },
 ];
@@ -165,7 +165,7 @@ export default function Home() {
                 </em>
               </h1>
               <p className="at-rise mx-auto mt-8 max-w-[34rem] text-[1.08rem] leading-relaxed text-ink/70 sm:text-lg lg:mx-0" style={{ "--i": 2 }}>
-                Guests tap a wax seal, the envelope opens, and your whole celebration unfolds: events, photos, RSVPs and wishes, on one link you share anywhere.
+                Guests open a pair of palace doors or a wax-sealed envelope, and your whole celebration unfolds: events, photos, RSVPs and wishes, on one link you share anywhere.
               </p>
               <div className="at-rise mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start" style={{ "--i": 3 }}>
                 <Link href="/login" className="btn-coral w-full !px-7 !py-4 !text-base sm:w-auto">
@@ -258,7 +258,7 @@ export default function Home() {
               <div className="grid items-end gap-8 lg:grid-cols-[1.2fr_.8fr]">
                 <Chapter n="I" label="The first impression" title={<>Twelve ways to be <em className="!text-gold">opened.</em></>} light />
                 <p className="max-w-md text-[1.05rem] leading-relaxed text-cream/65 lg:pb-3">
-                  Every guest begins with something to open: a wax-sealed envelope, a gatefold card or a pair of real palace doors. Tap any of them to try it.
+                  Every guest begins with something to open: a pair of real palace doors, a wax-sealed envelope or a gatefold card. Tap any of them to try it.
                 </p>
               </div>
               <div className="mt-10 sm:mt-16">
@@ -310,7 +310,7 @@ export default function Home() {
                 {[
                   [Ticket, "Scratch-to-reveal date", "Gold foil that clears under a fingertip"],
                   [Stamp, "Doors & envelopes that open", "With a seal in your colours and monogram"],
-                  [Music, "Music on opening", "Starts as the envelope lifts"],
+                  [Music, "Music on opening", "Starts as the doors swing open"],
                   [Feather, "Your story as a timeline", "From the first meeting to the big day"],
                 ].map(([Icon, t, d], i) => (
                   <li key={t} className="flex items-center gap-4 px-3 py-4">

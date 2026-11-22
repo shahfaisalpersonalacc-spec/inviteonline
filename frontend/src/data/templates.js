@@ -25,7 +25,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#a8764b", secondary: "#e7b9bb", background: "#fcf8f4", surface: "#fffdfa", text: "#5a4a45",
       fontHeading: "Pinyon Script", fontBody: "Cormorant Garamond", animation: "petals",
-      entryStyle: "ivory-gatefold", sealColor: "#c9a24a", sealIcon: "monogram", bgType: "color", bgValue: "",
+      entryStyle: "door-pastel", sealColor: "#c9a24a", sealIcon: "monogram", bgType: "color", bgValue: "",
     },
     design: { bands: "plain", divider: "none", decor: "blush", heading: "script", foil: true },
   },
@@ -38,7 +38,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#5e1221", secondary: "#c99f72", background: "#f7efe6", surface: "#fffaf4", text: "#3b1b20",
       fontHeading: "Cormorant Garamond", fontBody: "Montserrat", animation: "petals",
-      entryStyle: "burgundy-dove", sealColor: "#c9a24a", sealIcon: "dove", bgType: "color", bgValue: "",
+      entryStyle: "door-royal", sealColor: "#c9a24a", sealIcon: "dove", bgType: "color", bgValue: "",
     },
     design: { bands: "alternate", divider: "torn", decor: "bordeaux", heading: "serif" },
   },
@@ -51,7 +51,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#8f1219", secondary: "#b08d57", background: "#ffffff", surface: "#fbf6f1", text: "#2b1a1a",
       fontHeading: "Italiana", fontBody: "Cormorant Garamond", animation: "petals",
-      entryStyle: "burgundy-dove", sealColor: "#8f1219", sealIcon: "rose", bgType: "color", bgValue: "",
+      entryStyle: "door-lattice", sealColor: "#8f1219", sealIcon: "rose", bgType: "color", bgValue: "",
     },
     design: {
       bands: "alternate", band: "#8f1219", bandHeading: "#ffffff", bandText: "#f6dede", bandCard: "#fffaf5", bandCardText: "#2b1a1a", divider: "torn", decor: "crimson",
@@ -67,7 +67,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#6b1028", secondary: "#e9a5c0", background: "#fbf6f3", surface: "#ffffff", text: "#3a1620",
       fontHeading: "Pinyon Script", fontBody: "Cormorant Garamond", animation: "petals",
-      entryStyle: "burgundy-dove", sealColor: "#a3313f", sealIcon: "rose", bgType: "color", bgValue: "",
+      entryStyle: "door-castle", sealColor: "#a3313f", sealIcon: "rose", bgType: "color", bgValue: "",
     },
     design: { bands: "alternate", divider: "floral", decor: "peony", heading: "caps" },
   },
@@ -80,7 +80,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#5d6a35", secondary: "#ef8d6f", background: "#fbf9f2", surface: "#ffffff", text: "#4b5033",
       fontHeading: "Alex Brush", fontBody: "Cormorant Garamond", animation: "petals",
-      entryStyle: "sage-botanical", sealColor: "#b8646e", sealIcon: "monogram", bgType: "color", bgValue: "",
+      entryStyle: "door-mural", sealColor: "#b8646e", sealIcon: "monogram", bgType: "color", bgValue: "",
     },
     design: { bands: "plain", divider: "none", decor: "ranunculus", heading: "script", heroDate: "stack" },
   },
@@ -93,7 +93,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#5f6f52", secondary: "#bfc9ad", background: "#f7f5ef", surface: "#fffefa", text: "#3d4237",
       fontHeading: "Pinyon Script", fontBody: "Lora", animation: "none",
-      entryStyle: "linen-monogram", sealColor: "#5f6f52", sealIcon: "monogram", bgType: "color", bgValue: "",
+      entryStyle: "door-castle", sealColor: "#5f6f52", sealIcon: "monogram", bgType: "color", bgValue: "",
     },
     design: { bands: "soft", divider: "torn", decor: null, heading: "serif" },
   },
@@ -132,7 +132,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#4a76a8", secondary: "#f2bfc4", background: "#f3f8fc", surface: "#ffffff", text: "#2e4058",
       fontHeading: "Dancing Script", fontBody: "Quicksand", animation: "stars",
-      entryStyle: "linen-monogram", sealColor: "#4a76a8", sealIcon: "heart", bgType: "color", bgValue: "",
+      entryStyle: "door-pastel", sealColor: "#4a76a8", sealIcon: "heart", bgType: "color", bgValue: "",
     },
     design: { bands: "soft", divider: "cloud", decor: "sky", heading: "script" },
   },
@@ -145,7 +145,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#d63c74", secondary: "#ffc93c", background: "#fffaf3", surface: "#ffffff", text: "#2d2340",
       fontHeading: "Pacifico", fontBody: "Poppins", animation: "confetti",
-      entryStyle: "midnight-gold", sealColor: "#d63c74", sealIcon: "heart", bgType: "color", bgValue: "",
+      entryStyle: "door-garden", sealColor: "#d63c74", sealIcon: "heart", bgType: "color", bgValue: "",
     },
     design: { bands: "soft", divider: "wave", decor: "balloons", heading: "script" },
   },
@@ -158,7 +158,7 @@ export const TEMPLATES = [
     theme: {
       primary: "#1f1f24", secondary: "#b8a27a", background: "#fbfaf6", surface: "#ffffff", text: "#2b2b2f",
       fontHeading: "Playfair Display", fontBody: "Montserrat", animation: "none",
-      entryStyle: "linen-monogram", sealColor: "#1c1a3d", sealIcon: "crest", bgType: "color", bgValue: "",
+      entryStyle: "door-lattice", sealColor: "#1c1a3d", sealIcon: "crest", bgType: "color", bgValue: "",
     },
     design: { bands: "plain", divider: "line", decor: "deco", heading: "caps" },
   },

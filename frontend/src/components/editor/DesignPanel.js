@@ -21,7 +21,7 @@ function Group({ title, children, action }) {
 
 export default function DesignPanel({ theme, onChange, onPreviewEntry, eventType, onApplyTemplate }) {
   const set = (patch) => onChange({ ...theme, ...patch });
-  const entry = ENTRY_STYLES.find((e) => e.id === theme.entryStyle) || ENTRY_STYLES[3];
+  const entry = ENTRY_STYLES.find((e) => e.id === theme.entryStyle) || ENTRY_STYLES.find((e) => e.id === "door-royal");
   const isDoor = entry.kind === "door";
 
   return (
@@ -93,7 +93,7 @@ export default function DesignPanel({ theme, onChange, onPreviewEntry, eventType
           </button>
         }
       >
-        <Toggle label="Show an entrance screen" hint="Guests open an envelope or doors first. It also starts your music." checked={theme.envelope !== false} onChange={(v) => set({ envelope: v })} />
+        <Toggle label="Show an entrance screen" hint="Guests open doors or an envelope first. It also starts your music." checked={theme.envelope !== false} onChange={(v) => set({ envelope: v })} />
         {theme.envelope !== false && (
           <div className="mt-4 grid grid-cols-2 gap-2">
             {ENTRY_STYLES.map((s) => (

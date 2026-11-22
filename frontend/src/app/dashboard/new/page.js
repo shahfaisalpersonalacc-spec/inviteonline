@@ -156,7 +156,7 @@ export default function NewInvitationPage() {
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(draft.step ?? 0); // 0 occasion · 1 design · 2 light/dark · 3 name
   const last = step === STEPS.length - 1;
-  const designEntry = (template && getTemplate(template)?.theme.entryStyle) || THEMES[theme]?.entryStyle || "burgundy-dove";
+  const designEntry = (template && getTemplate(template)?.theme.entryStyle) || THEMES[theme]?.entryStyle || "door-royal";
   const entryStyle = entry || designEntry;
 
   useEffect(() => {
@@ -438,7 +438,7 @@ export default function NewInvitationPage() {
       <p className="mt-2 text-xs text-ink-500">This is how guests will see your invitation. You can switch it any time in the editor.</p>
 
       <h3 className="mt-4 font-serif text-xl text-ink">Choose the entrance</h3>
-      <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">What guests tap to open your invitation: an envelope with a wax seal, or a door that swings open.</p>
+      <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">What guests tap to open your invitation: a door that swings open, or an envelope with a wax seal.</p>
       <Slider>
         {ENTRY_STYLES.map((e) => {
           const active = entryStyle === e.id;

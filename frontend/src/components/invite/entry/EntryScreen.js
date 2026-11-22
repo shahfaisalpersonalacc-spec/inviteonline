@@ -16,7 +16,7 @@ const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 export default function EntryScreen({ theme = {}, title, subtitle, date, onStart, onOpened, contained = false }) {
   const mounted = useMounted();
   const [leaving, setLeaving] = useState(false);
-  const styleId = theme.entryStyle || "linen-monogram";
+  const styleId = theme.entryStyle || "door-royal";
   // retired door ids are no longer listed but still map to a photo door
   const kind = ENTRY_STYLES.find((s) => s.id === styleId)?.kind || (PHOTO_DOORS[styleId] ? "door" : "envelope");
   const seal = { color: theme.sealColor, icon: theme.sealIcon, monogram: theme.monogram };

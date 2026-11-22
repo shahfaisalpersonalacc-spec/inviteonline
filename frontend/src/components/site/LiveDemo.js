@@ -70,7 +70,7 @@ function useFitScale(ref, width) {
 }
 
 // Interactive phone: tap the envelope/door, then scroll the invitation inside.
-export default function LiveDemo({ initialStyle = "burgundy-dove", showPicker = true }) {
+export default function LiveDemo({ initialStyle = "door-royal", showPicker = true }) {
   const fit = useRef(null);
   const scale = useFitScale(fit, PHONE.w);
   const [style, setStyle] = useState(initialStyle);
