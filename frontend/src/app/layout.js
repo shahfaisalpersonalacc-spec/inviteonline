@@ -2,6 +2,7 @@ import { Plus_Jakarta_Sans, Cormorant_Garamond, Great_Vibes, Fraunces } from "ne
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
+import { KEYWORDS, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/seo";
 
 // Runs before the page paints: a saved choice (ThemeToggle) wins, otherwise the device's own
 // light/dark setting. Pages inside `.atelier` (the home page and the app) have a dark look.
@@ -17,13 +18,18 @@ const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["
 const fraunces = Fraunces({ variable: "--font-fraunces", subsets: ["latin"], style: ["normal", "italic"] });
 const greatVibes = Great_Vibes({ variable: "--font-great-vibes", subsets: ["latin"], weight: "400" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-
 export const metadata = {
-  metadataBase: new URL(siteUrl),
-  title: { default: "InviteOnline — Invitations they'll love to open", template: "%s · InviteOnline" },
-  description:
-    "Create a breathtaking online invitation with a wax-sealed envelope or garden-door entrance, scratch-to-reveal date, photos, music and RSVP. Share one link anywhere.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: SITE_TITLE, template: `%s · ${SITE_NAME}` },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: KEYWORDS,
+  category: "lifestyle",
+  openGraph: { type: "website", siteName: SITE_NAME, locale: "en_IN", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+  // phone numbers in invitations stay plain text unless we link them ourselves
+  formatDetection: { telephone: false },
 };
 
 export const viewport = {

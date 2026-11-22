@@ -11,6 +11,7 @@ import { EntranceGallery, ScratchDemo } from "@/components/site/Showcases";
 import TemplateGallery from "@/components/site/TemplateGallery";
 import WaxSeal from "@/components/invite/entry/WaxSeal";
 import { EVENT_TYPES } from "@/data/eventTypes";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/seo";
 
 const FEATURES = [
   { Icon: Stamp, title: "Wax-sealed entrances", text: "Six envelopes and seven real photographed doors that open onto a decorated wedding venue." },
@@ -49,7 +50,34 @@ const FAQ = [
   { q: "Will it look good on every phone?", a: "Every invitation is designed mobile-first and adapts to any screen, from small phones to desktops." },
   { q: "Can I keep my invitation private?", a: "Yes. Add a password in settings and only guests who know it can view the page." },
   { q: "Can I download my RSVP list?", a: "Yes. Export every response to a CSV file that opens in Excel or Google Sheets." },
+  {
+    q: "Which events can I make an invitation for?",
+    a: "Weddings, nikah, walima, mehndi and dholki, engagements, birthdays, baby showers, anniversaries, graduations, parties and corporate events.",
+  },
+  { q: "How do I send my invitation?", a: "Copy your link and share it on WhatsApp, Instagram, SMS or email. It opens with a preview card showing your names and date." },
 ];
+
+// The home page as search engines and AI assistants should read it (canonical address, plus structured data below).
+export const metadata = { alternates: { canonical: "/" }, openGraph: { url: "/" } };
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": `${SITE_URL}/#org`, name: SITE_NAME, url: SITE_URL, logo: `${SITE_URL}/icon.svg` },
+    { "@type": "WebSite", "@id": `${SITE_URL}/#website`, name: SITE_NAME, url: SITE_URL, description: SITE_DESCRIPTION, publisher: { "@id": `${SITE_URL}/#org` }, inLanguage: "en-IN" },
+    {
+      "@type": "WebApplication",
+      name: SITE_NAME,
+      url: SITE_URL,
+      description: SITE_DESCRIPTION,
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Any (works in the browser)",
+      featureList: FEATURES.map((f) => `${f.title}: ${f.text}`),
+      publisher: { "@id": `${SITE_URL}/#org` },
+    },
+    { "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+  ],
+};
 
 // Section opener used throughout the page: roman numeral, label, headline. `light` is for the night panels.
 function Chapter({ n, label, title, children, light = false, className = "" }) {
@@ -104,6 +132,7 @@ function SeeBadge() {
 export default function Home() {
   return (
     <div className="atelier relative min-h-screen">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD).replace(/</g, "\\u003c") }} />
       {/* with a saved session the page starts covered (authPendingScript in app/layout.js) */}
       <DashboardRedirect />
       {/* a soft gold dawn at the top of the page (under the navbar too), coral to the left */}

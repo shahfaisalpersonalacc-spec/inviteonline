@@ -1,0 +1,39 @@
+# InviteOnline
+
+> InviteOnline (https://inviteonline.in) is a website for making beautiful online invitations (e-invites) for weddings, nikah, walima, mehndi, engagements, birthdays, baby showers, anniversaries, parties and corporate events. You design the invitation in the browser, then share one link on WhatsApp, Instagram, SMS or email. Guests open it on any phone without an app or an account, RSVP in seconds and leave wishes. It is free to start.
+
+## What it does
+
+- Opening entrance: guests tap a wax seal and an envelope opens, or garden doors swing open onto the venue.
+- Scratch to reveal: a gold-foil card hides the date until guests scratch it away.
+- Designs: ready-made templates and colour themes with paired fonts, in light or dark.
+- Your story: the couple or hosts, the families, a verse or quote, and a timeline of moments.
+- Photos: cover photo, portraits, a gallery with lightbox, and decorative stickers.
+- Events and venues: a programme with times, each venue with its Google Maps link, directions and add-to-calendar.
+- Countdown to the day.
+- RSVP and guest list: guests reply with attendance and party size; the host sees replies live and can export them to Excel/CSV.
+- Guestbook: family and friends leave wishes on the invitation.
+- Background music that starts when the invitation opens.
+- Gifts: optional bank or wallet details with one-tap copy.
+- Privacy: an optional password so only invited guests can open the page. Invitation pages are not indexed by search engines.
+- Link preview: shared links show a card with the names and date.
+
+## How it works
+
+1. Create a free account and pick the occasion (wedding, nikah, birthday and more).
+2. Choose a design and add names, date, families, programme, venue and contact.
+3. Edit everything with a live preview, then copy your link and share it.
+4. Changes appear instantly on the same link, so nothing needs to be resent.
+
+## Good to know
+
+- Who it suits: couples and families planning a wedding or nikah (including Indian and Pakistani celebrations: mehndi, dholki, baraat, walima), and anyone hosting a birthday, baby shower, anniversary, party or company event.
+- Guests need no app and no account; it works in any phone or computer browser.
+- Built mobile-first; invitations adapt to every screen size.
+
+## Links
+
+- [Home](https://inviteonline.in/): features, designs, how it works and FAQ
+- [Create a free account](https://inviteonline.in/register)
+- [Log in](https://inviteonline.in/login)
+- [Sitemap](https://inviteonline.in/sitemap.xml)
