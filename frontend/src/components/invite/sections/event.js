@@ -41,6 +41,8 @@ const PANEL = { background: "linear-gradient(150deg, color-mix(in srgb, var(--in
 function EventTicket({ e }) {
   const where = [e.venue, e.address].filter(Boolean).join(", ");
   const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
+  // an exact map link opens directly; otherwise Google Maps searches for the venue and address
+  const directions = (isLink(e.mapUrl) && e.mapUrl) || (where ? mapLink(where) : "");
   return (
     <Card className="flex h-full flex-col !p-0">
       <div className="relative overflow-hidden rounded-t-[1.75rem] px-6 pb-8 pt-8 text-center" style={PANEL}>
@@ -49,6 +51,8 @@ function EventTicket({ e }) {
         <h3 className="relative break-words text-[2.3rem] leading-tight" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
           {e.name}
         </h3>
+        {/* whose function it is, when the card has more than one couple */}
+        {e.couple && <p className="relative mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] opacity-75">{e.couple}</p>}
         <DateBlock date={e.date} />
       </div>
       {/* perforation */}
@@ -66,10 +70,10 @@ function EventTicket({ e }) {
           </Row>
         )}
         {e.note && <p className="italic opacity-75">{e.note}</p>}
-        {(where || cal) && (
-          <div className={`mt-auto grid gap-2 pt-3 ${where && cal ? "grid-cols-2" : "grid-cols-1"}`}>
-            {where && (
-              <ThemeButton href={mapLink(where)} className="!px-2 !py-2.5 !text-xs">
+        {(directions || cal) && (
+          <div className={`mt-auto grid gap-2 pt-3 ${directions && cal ? "grid-cols-2" : "grid-cols-1"}`}>
+            {directions && (
+              <ThemeButton href={directions} className="!px-2 !py-2.5 !text-xs">
                 <Navigation className="h-3.5 w-3.5 shrink-0" /> Directions
               </ThemeButton>
             )}
@@ -97,6 +101,8 @@ const GRID = {
 function SingleEvent({ e }) {
   const where = [e.venue, e.address].filter(Boolean).join(", ");
   const cal = googleCalendarLink({ title: e.name, date: e.date, location: where });
+  // an exact map link opens directly; otherwise Google Maps searches for the venue and address
+  const directions = (isLink(e.mapUrl) && e.mapUrl) || (where ? mapLink(where) : "");
   return (
     <Reveal className="mx-auto max-w-4xl">
       <Card className="!p-0 overflow-hidden">
@@ -109,6 +115,7 @@ function SingleEvent({ e }) {
             <h3 className="relative break-words text-[2.4rem] leading-tight @3xl:text-[3rem]" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
               {e.name}
             </h3>
+            {e.couple && <p className="relative mt-1 text-[11px] font-semibold uppercase tracking-[0.22em] opacity-75">{e.couple}</p>}
             {e.date && (
               <div className="relative mt-6 flex items-center gap-2.5 @sm:gap-5">
                 <span className="text-right text-[10px] font-semibold uppercase tracking-[0.16em] opacity-75 @sm:text-[11px] @sm:tracking-[0.3em]">{formatDate(e.date, { weekday: "long" })}</span>
@@ -134,8 +141,8 @@ function SingleEvent({ e }) {
             )}
             {e.note && <p className="italic opacity-75">{e.note}</p>}
             <div className="mt-2 flex flex-wrap justify-center gap-2 @3xl:justify-start">
-              {where && (
-                <ThemeButton href={mapLink(where)} className="!px-5 !py-2.5 !text-xs">
+              {directions && (
+                <ThemeButton href={directions} className="!px-5 !py-2.5 !text-xs">
                   <Navigation className="h-3.5 w-3.5" /> Directions
                 </ThemeButton>
               )}

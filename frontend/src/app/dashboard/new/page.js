@@ -63,6 +63,25 @@ const PROGRAMMES = {
 const programmeFor = (eventType) =>
   (PROGRAMMES[eventType] || [["19:00", "Guests arrive"], ["20:00", "Main event"], ["21:30", "Dinner"]]).map(([time, title]) => ({ time, title }));
 const DEFAULT_THANKS = "Your presence is the greatest gift. We look forward to celebrating with you!";
+// Wedding occasions can put several functions on one card (e.g. Nikah and Walima): each gets its own
+// date, time and venue. With one function, the single programme and venue below are used as before.
+const FUNCTIONS = ["Mehndi", "Barat", "Nikah", "Walima"];
+const FIRST_FUNCTION = { wedding: "Barat", nikah: "Nikah", walima: "Walima", mehndi: "Mehndi" };
+const MAX_FUNCTIONS = 8;
+// couple: "" = for every couple, or the index of the couple it's for (families with more than one wedding)
+const blankFunction = (name) => ({ name, date: "", time: "", venue: "", mapUrl: "", couple: "" });
+// A family with more than one wedding (e.g. a brother and a sister) can put up to 3 couples on one card.
+const MAX_COUPLES = 3;
+const coupleName = (c) => [c.bride.trim(), c.groom.trim()].filter(Boolean).join(" & ");
+const functionsFor = (eventType) => (FIRST_FUNCTION[eventType] ? [blankFunction(FIRST_FUNCTION[eventType])] : []);
+// "2026-12-20" moved by n days, as an <input type="date"> value ("" stays "")
+const shiftDate = (d, n) => {
+  if (!d) return "";
+  const x = new Date(`${d}T00:00`);
+  x.setDate(x.getDate() + n);
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;
+};
+const ORDINAL = ["First", "Second", "Third"];
 
 // A horizontal slider: swipe on touch screens, arrow buttons on the sides.
 // Each arrow shows only when there is more to see on that side.
@@ -135,11 +154,19 @@ export default function NewInvitationPage() {
   const [bride, setBride] = useState(draft.bride ?? "");
   const [groom, setGroom] = useState(draft.groom ?? "");
   const couple = COUPLE.includes(eventType);
-  // couple events: "Bride & Groom" on the cover and in the link
-  const fullTitle = couple ? [bride.trim(), groom.trim()].filter(Boolean).join(" & ") : title.trim();
-  const namesReady = couple ? !!(bride.trim() && groom.trim()) : !!title.trim();
-  // the owner's details (all required in the wizard)
+  // wedding occasions: more couples after the first, all on one card
+  const [moreCouples, setMoreCouples] = useState(draft.moreCouples ?? []);
   const [date, setDate] = useState((draft.date ?? "").slice(0, 10));
+  // each couple has its own wedding date (the first couple's is `date`)
+  const couples = [{ bride, groom, date }, ...(FIRST_FUNCTION[eventType] ? moreCouples : [])];
+  // the cover, scratch card and countdown show the earliest wedding date
+  const coverDate = couples.map((c) => c.date || "").filter(Boolean).sort()[0] || date;
+  // couple events: "Bride & Groom" on the cover and in the link ("Ayesha & Ahmed · Sara & Hamza" for two)
+  const fullTitle = couple ? couples.map(coupleName).filter(Boolean).join(" · ") : title.trim();
+  // the whole title must fit in 120 characters, so each name gets a share of it
+  const nameMax = couples.length > 1 ? Math.floor((120 - (6 * couples.length - 3)) / (2 * couples.length)) : 55;
+  // the owner's details (all required in the wizard)
+  // families: two per couple, in order: [couple 1 bride's, couple 1 groom's, couple 2 bride's, …]
   const [families, setFamilies] = useState(draft.families ?? [
     { title: "", names: "" },
     { title: "", names: "" },
@@ -147,6 +174,44 @@ export default function NewInvitationPage() {
   // a ready-made programme for the occasion, which the owner can adjust
   const [schedule, setSchedule] = useState(() => draft.schedule ?? programmeFor("wedding"));
   const [venue, setVenue] = useState(draft.venue ?? { name: "", mapUrl: "" });
+  const [functions, setFunctions] = useState(() => draft.functions ?? functionsFor(draft.eventType ?? "wedding"));
+  // wedding occasions always list their functions as cards (one or more); others keep the programme and venue
+  const multi = !!FIRST_FUNCTION[eventType] && functions.length >= 1;
+  // several weddings: the functions are set up from the couples' dates and sides until the owner changes them
+  const [functionsTouched, setFunctionsTouched] = useState(draft.functionsTouched ?? false);
+  const editFunctions = (fn) => {
+    setFunctionsTouched(true);
+    setFunctions(fn);
+  };
+  const upFunction = (i, patch) => editFunctions((l) => l.map((f, j) => (j === i ? { ...f, ...patch } : f)));
+  const addFunction = (name) => editFunctions((l) => [...l, blankFunction(name)]);
+  // The usual functions of a family with several weddings: a joint Mehndi the evening before the first
+  // wedding, then each couple's Barat on their wedding date and Walima the day after.
+  const usualFunctions = () => {
+    const first = couples.map((c) => c.date).filter(Boolean).sort()[0] || "";
+    const mehndi = shiftDate(first, -1);
+    const list = [{ ...blankFunction("Mehndi"), date: mehndi >= todayInput() ? mehndi : "" }];
+    couples.forEach((c, k) => {
+      list.push({ ...blankFunction("Barat"), couple: String(k), date: c.date }, { ...blankFunction("Walima"), couple: String(k), date: shiftDate(c.date, 1) });
+    });
+    return list.sort((a, b) => (a.date || "9").localeCompare(b.date || "9"));
+  };
+  const upCouple = (i, patch) => setMoreCouples((l) => l.map((c, j) => (j === i ? { ...c, ...patch } : c)));
+  // removing a couple: its functions become "for every couple", later couples' functions follow their new place
+  const removeCouple = (i) => {
+    const k = i + 1;
+    setMoreCouples((l) => l.filter((_, j) => j !== i));
+    setFamilies((l) => l.filter((_, j) => j !== 2 * k && j !== 2 * k + 1)); // its two families go too
+    setFunctionsTouched(false); // the functions are set up again for the couples left
+    setFunctions((l) => l.map((f) => (f.couple === "" || f.couple == null ? f : +f.couple === k ? { ...f, couple: "" } : +f.couple > k ? { ...f, couple: String(+f.couple - 1) } : f)));
+  };
+  // "How many weddings?": add empty couples, or remove from the end
+  const setWeddings = (n) => {
+    if (n > couples.length) {
+      setMoreCouples((l) => [...l, ...Array.from({ length: n - couples.length }, () => ({ bride: "", groom: "", date: "" }))]);
+      setFunctionsTouched(false);
+    } else for (let i = couples.length - 2; i >= n - 1; i--) removeCouple(i);
+  };
   const [contact, setContact] = useState(draft.contact ?? { name: "", phone: "" });
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [closing, setClosing] = useState(draft.closing ?? DEFAULT_THANKS);
@@ -161,9 +226,9 @@ export default function NewInvitationPage() {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, eventType, theme, template, classic, mode, entry, title, bride, groom, date, families, schedule, venue, contact, closing }));
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({ step, eventType, theme, template, classic, mode, entry, title, bride, groom, moreCouples, date, families, schedule, venue, functions, functionsTouched, contact, closing }));
     } catch {}
-  }, [step, eventType, theme, template, classic, mode, entry, title, bride, groom, date, families, schedule, venue, contact, closing]);
+  }, [step, eventType, theme, template, classic, mode, entry, title, bride, groom, moreCouples, date, families, schedule, venue, functions, functionsTouched, contact, closing]);
 
   // What's missing or wrong on the current details step, as a message per field. Shown under the fields
   // (instead of the browser's bubbles) once Next has been pressed, and updated as they're fixed.
@@ -174,17 +239,66 @@ export default function NewInvitationPage() {
       const [b, g] = eventType === "anniversary" ? ["wife's", "husband's"] : ["bride's", "groom's"];
       if (!bride.trim()) errors.bride = `Please enter the ${b} name.`;
       if (!groom.trim()) errors.groom = `Please enter the ${g} name.`;
+      couples.slice(1).forEach((c, i) => {
+        if (!c.bride.trim()) errors[`c${i}bride`] = "Please enter the bride's name.";
+        if (!c.groom.trim()) errors[`c${i}groom`] = "Please enter the groom's name.";
+        if (!c.date) errors[`c${i}date`] = "Please choose this couple's wedding date.";
+        else if (c.date < todayInput()) errors[`c${i}date`] = "This date has passed. Please pick today or a later date.";
+      });
+      if (couples.length > 1) {
+        const long = `With ${couples.length} couples, please keep each name to ${nameMax} letters.`;
+        couples.forEach((c, i) => {
+          const [kb, kg] = i ? [`c${i - 1}bride`, `c${i - 1}groom`] : ["bride", "groom"];
+          if (c.bride.trim().length > nameMax) errors[kb] = long;
+          if (c.groom.trim().length > nameMax) errors[kg] = long;
+        });
+      }
     } else if (!title.trim()) errors.title = "Please give your invitation a name.";
     if (!date) errors.date = "Please choose the date of your event.";
     else if (date < todayInput()) errors.date = "This date has passed. Please pick today or a later date.";
   }
-  if (step === 4) {
-    const who = couple ? ["the bride's family", "the groom's family"] : ["who is hosting"];
-    who.forEach((w, i) => {
-      if (!families[i].names.trim()) errors[`family${i}`] = `Please add ${w}.`;
+  // the family boxes and how each is titled on the card: one couple = bride's and groom's family;
+  // several = each couple's own two families, named ("Ayesha's family", "Ahmed's family") and kept with that couple
+  const familySlots = !couple
+    ? [{ label: "Hosted by", i: 0 }]
+    : couples.length === 1
+      ? [{ label: "Bride's family", i: 0 }, { label: "Groom's family", i: 1 }]
+      : couples.flatMap((c, k) => [
+          { label: `${c.bride.trim() || "Bride"}'s family`, i: 2 * k, couple: k },
+          { label: `${c.groom.trim() || "Groom"}'s family`, i: 2 * k + 1, couple: k },
+        ]);
+  const familyAt = (i) => families[i] ?? { title: "", names: "" };
+  const setFamilyNames = (i, names) =>
+    setFamilies((l) => {
+      const n = [...l];
+      while (n.length <= i) n.push({ title: "", names: "" });
+      n[i] = { ...n[i], names };
+      return n;
     });
+  if (step === 4) {
+    if (couples.length > 1) {
+      // several weddings: both families of every couple
+      familySlots.forEach(({ label, i }) => {
+        if (!familyAt(i).names.trim()) errors[`family${i}`] = `Please add ${label}.`;
+      });
+    } else {
+      const who = couple ? ["the bride's family", "the groom's family"] : ["who is hosting"];
+      who.forEach((w, i) => {
+        if (!familyAt(i).names.trim()) errors[`family${i}`] = `Please add ${w}.`;
+      });
+    }
   }
-  if (step === 5) {
+  if (step === 5 && multi) {
+    functions.forEach((f, i) => {
+      if (!f.name.trim()) errors[`fn${i}name`] = "Please name this function, e.g. Walima.";
+      if (!f.date) errors[`fn${i}date`] = "Please choose the date.";
+      else if (f.date < todayInput()) errors[`fn${i}date`] = "This date has passed. Please pick today or a later date.";
+      if (!f.time) errors[`fn${i}time`] = "Please add the time.";
+      if (!f.venue.trim()) errors[`fn${i}venue`] = "Please enter the venue name.";
+      if (!f.mapUrl) errors[`fn${i}map`] = "Please paste the Google Maps link of the venue.";
+      else if (!toLink(f.mapUrl)) errors[`fn${i}map`] = "That doesn't look like a link. Paste it like maps.app.goo.gl/… or www.google.com/maps/…";
+    });
+  } else if (step === 5) {
     schedule.forEach((x, i) => {
       if (!x.time && !x.title.trim()) errors[`row${i}`] = "Add a time and what happens, or remove this item.";
       else if (!x.time) errors[`row${i}`] = "Please add a time.";
@@ -208,6 +322,9 @@ export default function NewInvitationPage() {
 
   const body = useRef(null);
   function go(n) {
+    // the first function starts on the date chosen for the cover
+    if (n === 5 && couples.length > 1 && !functionsTouched) setFunctions(usualFunctions());
+    else if (n === 5 && date) setFunctions((l) => (l.length && !l[0].date ? [{ ...l[0], date }, ...l.slice(1)] : l));
     setChecked(false);
     setStep(n);
     body.current?.scrollTo({ top: 0 });
@@ -222,11 +339,34 @@ export default function NewInvitationPage() {
       const song = defaultMusicFor(eventType); // a soft track that suits the occasion (changeable in Settings)
       const famTitles = couple ? ["Bride's family", "Groom's family"] : ["With love from", ""];
       const details = {
-        date: toIso(date),
-        families: families.map((f, i) => ({ title: f.title.trim() || famTitles[i] || "Family", names: f.names.trim() })).filter((f) => f.names),
+        // one function: the cover, countdown and its card all use that function's date
+        date: toIso(multi && functions.length === 1 ? functions[0].date : coverDate),
+        families: familySlots
+          .map(({ label, i, couple: k }) => ({
+            title: couples.length > 1 ? label : familyAt(i).title.trim() || famTitles[i] || "Family",
+            names: familyAt(i).names.trim(),
+            ...(k != null ? { couple: coupleName(couples[k]) } : {}),
+          }))
+          .filter((f) => f.names),
         schedule: schedule.filter((x) => x.time || x.title.trim()).map((x) => ({ time: to12h(x.time), title: x.title.trim() })),
         // the wizard asks for a map link instead of a written address (the address can be added in the editor)
         venue: { name: venue.name, mapUrl: toLink(venue.mapUrl) },
+        // the functions: one ticket each on the card, in date order
+        events: multi
+          ? [...functions]
+              .sort((a, b) => `${a.date}T${a.time}`.localeCompare(`${b.date}T${b.time}`))
+              .map((f) => ({
+                name: f.name.trim(),
+                date: new Date(`${f.date}T${f.time || "00:00"}`).toISOString(),
+                time: to12h(f.time),
+                venue: f.venue.trim(),
+                mapUrl: toLink(f.mapUrl),
+                // more than one couple: whose function it is, shown on its ticket
+                couple: couples.length > 1 ? (couples[+f.couple] && f.couple !== "" && f.couple != null ? coupleName(couples[+f.couple]) : "Both couples") : "",
+              }))
+          : undefined,
+        // several weddings on a Wedding card: the cover speaks of them all
+        subtitle: couples.length > 1 && eventType === "wedding" ? "request the honour of your presence at the celebration of their weddings" : undefined,
         contact,
         closing: closing.trim() || undefined,
       };
@@ -314,6 +454,8 @@ export default function NewInvitationPage() {
                 setEventType(id);
                 setTheme(t);
                 setSchedule(programmeFor(id));
+                setFunctions(functionsFor(id));
+                setFunctionsTouched(false);
                 setClassic(false);
                 setTemplate(designsFor(id)[0].id);
                 setEntry(null); // the new design's own entrance
@@ -498,28 +640,80 @@ export default function NewInvitationPage() {
         className="sm:at-glass sm:mt-5 sm:rounded-3xl sm:px-7 sm:pb-7 sm:pt-1"
       >
       <Step>
-        {["", "", "", "Names & date", "With the blessings of", "Programme & venue", "Contact & thank-you"][step]}
+        {["", "", "", "Names & date", "With the blessings of", multi ? (functions.length > 1 ? "Functions & venues" : "Function & venue") : "Programme & venue", "Contact & thank-you"][step]}
       </Step>
       {step === 3 && <p className="mt-1 text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">Both are needed: they go on the cover, the scratch card and the countdown.</p>}
 
       {step === 3 && (
         <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
+          {FIRST_FUNCTION[eventType] && (
+            // more than one wedding in the family (e.g. a brother and a sister), all on one card
+            <div>
+              <span className="label">How many weddings?</span>
+              <div className="grid max-w-xs grid-cols-3 gap-1 rounded-2xl bg-ink/[0.06] p-1" role="radiogroup" aria-label="How many weddings are on this card">
+                {Array.from({ length: MAX_COUPLES }, (_, j) => j + 1).map((n) => (
+                  <button key={n} type="button" role="radio" aria-checked={couples.length === n} onClick={() => setWeddings(n)} className={`rounded-xl py-2 text-sm font-semibold transition ${couples.length === n ? "bg-white text-ink shadow" : "text-ink-500"}`}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+              <span className="mt-1 block text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">Two weddings in the family, like a brother&apos;s and a sister&apos;s? Share them both on one card.</span>
+            </div>
+          )}
           {couple ? (
             <div>
+              {couples.length > 1 && <span className="mb-1 block text-xs font-bold uppercase tracking-[0.18em] text-ink-500">First wedding</span>}
               <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Wife's name" : "Bride's name"} *</span>
-                  <input autoFocus required className={`input max-sm:py-2${bad("bride")}`} maxLength={55} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" aria-invalid={!!err("bride")} aria-describedby="bride-err" />
+                  <input autoFocus required className={`input max-sm:py-2${bad("bride")}`} maxLength={nameMax} value={bride} onChange={(e) => setBride(e.target.value)} placeholder="e.g. Ayesha" autoComplete="off" aria-invalid={!!err("bride")} aria-describedby="bride-err" />
                   <Hint id="bride-err" error={err("bride")} />
                 </label>
                 <label className="block">
                   <span className="label">{eventType === "anniversary" ? "Husband's name" : "Groom's name"} *</span>
-                  <input required className={`input max-sm:py-2${bad("groom")}`} maxLength={55} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" aria-invalid={!!err("groom")} aria-describedby="groom-err" />
+                  <input required className={`input max-sm:py-2${bad("groom")}`} maxLength={nameMax} value={groom} onChange={(e) => setGroom(e.target.value)} placeholder="e.g. Ahmed" autoComplete="off" aria-invalid={!!err("groom")} aria-describedby="groom-err" />
                   <Hint id="groom-err" error={err("groom")} />
                 </label>
+                {couples.length > 1 && (
+                  <label className="block sm:col-span-2">
+                    <span className="label">Wedding date *</span>
+                    <input type="date" required min={todayInput()} className={`input max-sm:py-2${bad("date")}`} value={date} onChange={(e) => setDate(e.target.value)} aria-invalid={!!err("date")} aria-describedby="date-help" />
+                    <Hint id="date-help" error={err("date")} />
+                  </label>
+                )}
               </div>
+              {/* more than one wedding in the family (e.g. a brother and a sister): their names too */}
+              {FIRST_FUNCTION[eventType] &&
+                moreCouples.map((c, i) => (
+                  <div key={i} className="mt-3 border-t border-ink/10 pt-3 sm:mt-4 sm:pt-4">
+                    <div className="mb-1 flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink-500">{ORDINAL[i + 1]} wedding</span>
+                      <button type="button" onClick={() => removeCouple(i)} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-ink-500 hover:bg-ink/5" aria-label={`Remove the ${ORDINAL[i + 1].toLowerCase()} wedding`}>
+                        <X className="h-3.5 w-3.5" /> Remove
+                      </button>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+                      <label className="block">
+                        <span className="label">Bride&apos;s name *</span>
+                        <input className={`input max-sm:py-2${bad(`c${i}bride`)}`} maxLength={nameMax} value={c.bride} onChange={(e) => upCouple(i, { bride: e.target.value })} placeholder="e.g. Sara" autoComplete="off" aria-invalid={!!err(`c${i}bride`)} aria-describedby={`c${i}bride-err`} />
+                        <Hint id={`c${i}bride-err`} error={err(`c${i}bride`)} />
+                      </label>
+                      <label className="block">
+                        <span className="label">Groom&apos;s name *</span>
+                        <input className={`input max-sm:py-2${bad(`c${i}groom`)}`} maxLength={nameMax} value={c.groom} onChange={(e) => upCouple(i, { groom: e.target.value })} placeholder="e.g. Hamza" autoComplete="off" aria-invalid={!!err(`c${i}groom`)} aria-describedby={`c${i}groom-err`} />
+                        <Hint id={`c${i}groom-err`} error={err(`c${i}groom`)} />
+                      </label>
+                      <label className="block sm:col-span-2">
+                        <span className="label">Wedding date *</span>
+                        <input type="date" min={todayInput()} className={`input max-sm:py-2${bad(`c${i}date`)}`} value={c.date || ""} onChange={(e) => upCouple(i, { date: e.target.value })} aria-invalid={!!err(`c${i}date`)} aria-describedby={`c${i}date-err`} />
+                        <Hint id={`c${i}date-err`} error={err(`c${i}date`)} />
+                      </label>
+                    </div>
+                  </div>
+                ))}
               <span className="mt-1 block text-xs text-ink-500">
                 Shown on the cover as &ldquo;{fullTitle || "Ayesha & Ahmed"}&rdquo; and used for your link. You can change it later.
+                {couples.length > 1 && " The earliest wedding date goes on the cover, the scratch card and the countdown."}
               </span>
             </div>
           ) : (
@@ -529,26 +723,72 @@ export default function NewInvitationPage() {
               <Hint id="title-help" error={err("title")}>Shown on the cover and used for your link. You can change it later.</Hint>
             </label>
           )}
-          <label className="block">
-            <span className="label">Date *</span>
-            <input type="date" required min={todayInput()} className={`input max-sm:py-2${bad("date")}`} value={date} onChange={(e) => setDate(e.target.value)} aria-invalid={!!err("date")} aria-describedby="date-help" />
-            <Hint id="date-help" error={err("date")}>Used on the cover, the scratch card and the countdown.</Hint>
-          </label>
+          {couples.length === 1 && (
+            <label className="block">
+              <span className="label">Date *</span>
+              <input type="date" required min={todayInput()} className={`input max-sm:py-2${bad("date")}`} value={date} onChange={(e) => setDate(e.target.value)} aria-invalid={!!err("date")} aria-describedby="date-help" />
+              <Hint id="date-help" error={err("date")}>Used on the cover, the scratch card and the countdown.</Hint>
+            </label>
+          )}
         </div>
       )}
 
-      {step === 4 && (
+      {step === 4 && couples.length > 1 && (
+        // several weddings: each couple with their own two families
+        <div className="mt-3 space-y-3 sm:mt-4 sm:space-y-4">
+          {couples.map((c, k) => (
+            <div key={k} className="rounded-2xl border border-ink/10 bg-white/60 p-3 sm:p-4">
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-ink-500">{coupleName(c) || `${ORDINAL[k]} wedding`}</span>
+              <div className="mt-2 grid gap-3 sm:grid-cols-2 sm:gap-4">
+                {familySlots
+                  .filter((f) => f.couple === k)
+                  .map(({ label, i }) => {
+                    // families already written for another couple (e.g. a brother and a sister share parents)
+                    const same = familySlots.filter((f) => f.couple !== k && familyAt(f.i).names.trim());
+                    return (
+                      <label key={i} className="block">
+                        <span className="label">{label} *</span>
+                        <textarea
+                          rows={3}
+                          className={`input max-sm:py-2 resize-none${bad(`family${i}`)}`}
+                          maxLength={300}
+                          value={familyAt(i).names}
+                          onChange={(e) => setFamilyNames(i, e.target.value)}
+                          placeholder={"e.g. Mr. & Mrs. Khan\nGrandparents & family"}
+                          aria-invalid={!!err(`family${i}`)}
+                          aria-describedby={`family${i}-err`}
+                        />
+                        <Hint id={`family${i}-err`} error={err(`family${i}`)} />
+                        {!familyAt(i).names.trim() && same.length > 0 && (
+                          <span className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                            {same.map((f) => (
+                              <button key={f.i} type="button" onClick={() => setFamilyNames(i, familyAt(f.i).names)} className="inline-flex items-center gap-1 text-xs font-semibold text-ink underline underline-offset-2">
+                                <Plus className="h-3.5 w-3.5" /> Same as {f.label}
+                              </button>
+                            ))}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {step === 4 && couples.length === 1 && (
         <div className="mt-3 grid gap-3 sm:mt-4 sm:grid-cols-2 sm:gap-4">
-          {(COUPLE.includes(eventType) ? ["Bride's family", "Groom's family"] : ["Hosted by"]).map((label, i) => (
-            <label key={label} className="block">
+          {familySlots.map(({ label, i }) => (
+            <label key={i} className="block">
               <span className="label">{label} *</span>
               <textarea
                 required
                 rows={3}
                 className={`input max-sm:py-2 resize-none${bad(`family${i}`)}`}
                 maxLength={300}
-                value={families[i].names}
-                onChange={(e) => setFamilies((f) => f.map((x, j) => (j === i ? { ...x, names: e.target.value } : x)))}
+                value={familyAt(i).names}
+                onChange={(e) => setFamilyNames(i, e.target.value)}
                 placeholder={"e.g. Mr. & Mrs. Khan\nGrandparents & family"}
                 aria-invalid={!!err(`family${i}`)}
                 aria-describedby={`family${i}-err`}
@@ -559,7 +799,106 @@ export default function NewInvitationPage() {
         </div>
       )}
 
-      {step === 5 && (
+      {step === 5 && FIRST_FUNCTION[eventType] && (
+        // wedding occasions: which functions this one card covers (e.g. Nikah + Walima)
+        <div className="mt-2 sm:mt-4">
+          <span className="label">Functions on this card</span>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {FUNCTIONS.map((name) => {
+              const on = functions.some((f) => f.name === name);
+              // several couples: a chip always adds one more (e.g. a Barat for each couple); ✕ on a card removes it
+              const toggles = on && couples.length === 1;
+              return (
+                <button
+                  key={name}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={toggles ? functions.length < 2 : functions.length >= MAX_FUNCTIONS}
+                  onClick={() => (toggles ? editFunctions((l) => l.filter((f) => f.name !== name)) : addFunction(name))}
+                  className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-default ${on ? "border-ink bg-ink text-cream" : "border-ink/15 bg-white text-ink hover:border-ink/40 disabled:opacity-50"}`}
+                >
+                  {toggles ? <Check className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />} {name}
+                </button>
+              );
+            })}
+            {functions.length < MAX_FUNCTIONS && (
+              <button type="button" onClick={() => addFunction("")} className="inline-flex items-center gap-1 rounded-full border border-dashed border-ink/25 bg-white/60 px-3 py-1.5 text-xs font-semibold text-ink hover:border-ink/50">
+                <Plus className="h-3.5 w-3.5" /> Other
+              </button>
+            )}
+          </div>
+          <span className="mt-1 block text-[11px] leading-snug text-ink-500 sm:text-xs sm:leading-normal">
+            {couples.length > 1
+              ? "We've set up the usual functions for your weddings with their dates. Add the times and venues, and change or remove anything."
+              : functions.length > 1
+                ? "Each function gets its own date, time and venue on the card. Guests RSVP once for all of them."
+                : "More than one function, like Nikah and Walima? Add them here to share them all on one card."}
+          </span>
+        </div>
+      )}
+
+      {step === 5 && multi && (
+        <div className="mt-3 space-y-3 sm:mt-4">
+          {functions.map((f, i) => (
+            <div key={i} className="rounded-2xl border border-ink/10 bg-white/60 p-3 sm:p-4">
+              <div className="flex items-start gap-2">
+                <label className="block min-w-0 flex-1">
+                  <span className="label">Function name *</span>
+                  <input className={`input max-sm:py-2 font-semibold${bad(`fn${i}name`)}`} maxLength={60} value={f.name} onChange={(e) => upFunction(i, { name: e.target.value })} placeholder="e.g. Dholki" aria-invalid={!!err(`fn${i}name`)} aria-describedby={`fn${i}name-err`} />
+                  <Hint id={`fn${i}name-err`} error={err(`fn${i}name`)} />
+                </label>
+                {functions.length > 1 && (
+                  <button type="button" onClick={() => editFunctions((l) => l.filter((_, j) => j !== i))} className="mt-6 grid h-10 w-10 shrink-0 place-items-center rounded-xl text-ink-500 hover:bg-ink/5" aria-label={`Remove ${f.name || "this function"}`}>
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-2 sm:gap-3">
+                {couples.length > 1 && (
+                  <label className="col-span-2 block">
+                    <span className="label">For</span>
+                    <select
+                      className="input max-sm:py-2"
+                      value={couples[+f.couple] && f.couple !== "" && f.couple != null ? f.couple : ""}
+                      // picking a couple fills an empty date with their wedding date
+                      onChange={(e) => upFunction(i, { couple: e.target.value, ...(!f.date && e.target.value !== "" && couples[+e.target.value]?.date ? { date: couples[+e.target.value].date } : {}) })}
+                    >
+                      <option value="">Both couples</option>
+                      {couples.map((c, ci) => (
+                        <option key={ci} value={String(ci)}>
+                          {coupleName(c) || `Couple ${ci + 1}`}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                <label className="block">
+                  <span className="label">Date *</span>
+                  <input type="date" min={todayInput()} className={`input max-sm:py-2 max-sm:px-2${bad(`fn${i}date`)}`} value={f.date} onChange={(e) => upFunction(i, { date: e.target.value })} aria-invalid={!!err(`fn${i}date`)} aria-describedby={`fn${i}date-err`} />
+                  <Hint id={`fn${i}date-err`} error={err(`fn${i}date`)} />
+                </label>
+                <label className="block">
+                  <span className="label">Time *</span>
+                  <input type="time" className={`input max-sm:py-2 max-sm:px-2${bad(`fn${i}time`)}`} value={f.time} onChange={(e) => upFunction(i, { time: e.target.value })} aria-invalid={!!err(`fn${i}time`)} aria-describedby={`fn${i}time-err`} />
+                  <Hint id={`fn${i}time-err`} error={err(`fn${i}time`)} />
+                </label>
+                <label className="col-span-2 block sm:col-span-1">
+                  <span className="label">Venue name *</span>
+                  <input className={`input max-sm:py-2${bad(`fn${i}venue`)}`} maxLength={120} value={f.venue} onChange={(e) => upFunction(i, { venue: e.target.value })} placeholder="e.g. Pearl Continental" aria-invalid={!!err(`fn${i}venue`)} aria-describedby={`fn${i}venue-err`} />
+                  <Hint id={`fn${i}venue-err`} error={err(`fn${i}venue`)} />
+                </label>
+                <label className="col-span-2 block sm:col-span-1">
+                  <span className="label">Map link *</span>
+                  <input type="url" inputMode="url" className={`input max-sm:py-2${bad(`fn${i}map`)}`} maxLength={500} value={f.mapUrl} onChange={(e) => upFunction(i, { mapUrl: e.target.value.trim() })} placeholder="https://maps.app.goo.gl/…" aria-invalid={!!err(`fn${i}map`)} aria-describedby={`fn${i}map-err`} />
+                  <Hint id={`fn${i}map-err`} error={err(`fn${i}map`)} />
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {step === 5 && !multi && (
         <div className="mt-2 space-y-2.5 sm:mt-4 sm:space-y-4">
           <div>
             {/* "Add an item" sits beside the label, saving a line */}

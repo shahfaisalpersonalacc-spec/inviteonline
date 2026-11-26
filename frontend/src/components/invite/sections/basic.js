@@ -402,19 +402,43 @@ function PersonBlock({ p, i, pair }) {
 export function Families({ data }) {
   const groups = (data.groups || []).filter((g) => g.title || g.names);
   if (!groups.length) return null;
+  const card = (g, i) => (
+    <Reveal key={i} delay={i * 100}>
+      <FramedCard className="h-full text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] opacity-60">{g.title}</p>
+        <p className="mt-3 whitespace-pre-line text-lg leading-relaxed">{g.names}</p>
+      </FramedCard>
+    </Reveal>
+  );
+  // several weddings on one card: each couple's families together, under the couple's names
+  const couples = [];
+  groups.forEach((g, i) => {
+    const last = couples[couples.length - 1];
+    if (last && last.name === (g.couple || "")) last.items.push([g, i]);
+    else couples.push({ name: g.couple || "", items: [[g, i]] });
+  });
+  if (couples.some((c) => c.name))
+    return (
+      <Shell>
+        <SectionHeading>{data.heading}</SectionHeading>
+        <div className="mx-auto max-w-2xl space-y-8">
+          {couples.map((c, k) => (
+            <div key={k}>
+              {c.name && (
+                <p className="mb-3 text-center text-2xl" style={{ fontFamily: "var(--inv-font-heading)", color: "var(--inv-primary)" }}>
+                  {c.name}
+                </p>
+              )}
+              <div className={`grid gap-5 ${c.items.length > 1 ? "@md:grid-cols-2" : ""}`}>{c.items.map(([g, i]) => card(g, i))}</div>
+            </div>
+          ))}
+        </div>
+      </Shell>
+    );
   return (
     <Shell>
       <SectionHeading>{data.heading}</SectionHeading>
-      <div className={`mx-auto grid max-w-2xl gap-5 ${groups.length > 1 ? "@md:grid-cols-2" : ""}`}>
-        {groups.map((g, i) => (
-          <Reveal key={i} delay={i * 100}>
-            <FramedCard className="h-full text-center">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.3em] opacity-60">{g.title}</p>
-              <p className="mt-3 whitespace-pre-line text-lg leading-relaxed">{g.names}</p>
-            </FramedCard>
-          </Reveal>
-        ))}
-      </div>
+      <div className={`mx-auto grid max-w-2xl gap-5 ${groups.length > 1 ? "@md:grid-cols-2" : ""}`}>{groups.map(card)}</div>
     </Shell>
   );
 }

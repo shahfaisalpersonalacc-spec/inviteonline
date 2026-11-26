@@ -100,6 +100,7 @@ const FORMS = {
         renderItem={(e, up) => (
           <>
             <Text label="Event name" value={e.name} onChange={(v) => up({ name: v })} placeholder="Mehndi / Barat / Walima" />
+            <Text label="For (optional)" hint="Whose function it is, when the card has more than one couple." value={e.couple} onChange={(v) => up({ couple: v })} placeholder="Sara & Hamza / Both couples" maxLength={120} />
             {(d.items || []).length === 1 ? (
               <FromCover what="date and time" />
             ) : (
@@ -110,6 +111,7 @@ const FORMS = {
             )}
             <Text label="Venue" value={e.venue} onChange={(v) => up({ venue: v })} />
             <TextArea label="Address" rows={2} maxLength={200} value={e.address} onChange={(v) => up({ address: v })} />
+            <Text label="Map link (optional)" hint="Paste the exact Google Maps link so Directions opens the right spot." value={e.mapUrl} onChange={(v) => up({ mapUrl: v.trim() })} placeholder="https://maps.app.goo.gl/…" maxLength={500} />
             <TextArea label="Note" rows={2} maxLength={200} value={e.note} onChange={(v) => up({ note: v })} placeholder="Dinner will be served" />
           </>
         )}

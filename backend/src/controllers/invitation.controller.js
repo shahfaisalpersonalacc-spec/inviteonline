@@ -69,9 +69,26 @@ const schemas = {
     details: z
       .object({
         date: z.iso.datetime({ offset: true }).optional(),
-        families: z.array(z.object({ title: z.string().trim().max(60), names: z.string().trim().max(300) })).max(4).optional(),
+        families: z.array(z.object({ title: z.string().trim().max(100), names: z.string().trim().max(300), couple: z.string().trim().max(120).optional() })).max(6).optional(), // 2 per couple, up to 3 couples
         schedule: z.array(z.object({ time: z.string().trim().max(30), title: z.string().trim().max(80) })).max(12).optional(),
         venue: z.object({ name: z.string().trim().max(120), address: z.string().trim().max(200), mapUrl: z.union([z.literal(''), z.url().max(500)]) }).partial().optional(),
+        // several functions on one card (e.g. Mehndi, Nikah, Walima), each with its own date and venue
+        events: z
+          .array(
+            z
+              .object({
+                name: z.string().trim().max(60),
+                date: z.iso.datetime({ offset: true }),
+                time: z.string().trim().max(30),
+                venue: z.string().trim().max(120),
+                mapUrl: z.union([z.literal(''), z.url().max(500)]),
+                // whose function it is, when the card has more than one couple ("Sara & Hamza", "Both couples")
+                couple: z.string().trim().max(120),
+              })
+              .partial()
+          )
+          .max(8)
+          .optional(),
         contact: z
           .object({
             name: z.string().trim().max(80),
@@ -81,6 +98,8 @@ const schemas = {
           .partial()
           .optional(),
         closing: z.string().trim().max(400).optional(),
+        // the cover's line under the names, when the wizard has a better one (e.g. several weddings)
+        subtitle: z.string().trim().max(200).optional(),
       })
       .optional(),
     // background music to start with (the app picks a built-in track for the occasion)

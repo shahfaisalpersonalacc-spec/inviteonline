@@ -151,6 +151,74 @@ describe('invitations', () => {
     expect(data('closing').text).toBe('Thank you!');
   });
 
+  test('one card can cover several functions, each with its own date and venue', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, {
+      title: 'Fatima & Usman',
+      eventType: 'nikah',
+      details: {
+        date: '2026-12-20T00:00:00.000Z',
+        events: [
+          { name: 'Nikah', date: '2026-12-20T17:00:00.000Z', time: '5:00 PM', venue: 'Badshahi Mosque', mapUrl: 'https://maps.app.goo.gl/abc' },
+          { name: 'Walima', date: '2026-12-21T20:00:00.000Z', time: '8:00 PM', venue: 'Pearl Continental', mapUrl: '' },
+        ],
+      },
+    });
+    const on = inv.sections.filter((s) => s.enabled).map((s) => s.type);
+    expect(on).toEqual(['hero', 'quote', 'scratch', 'countdown', 'families', 'event', 'rsvp', 'wishes', 'contact', 'closing']);
+    const data = (type) => inv.sections.find((s) => s.type === type).data;
+    expect(data('event').items.map((e) => e.name)).toEqual(['Nikah', 'Walima']);
+    expect(data('event').items[0].mapUrl).toBe('https://maps.app.goo.gl/abc');
+    expect(data('hero').subtitle).toBe('Nikah & Walima');
+    // the single programme and venue stay available in the editor, switched off
+    const off = inv.sections.filter((s) => !s.enabled).map((s) => s.type);
+    expect(off.includes('schedule') && off.includes('venue')).toBe(true);
+  });
+
+  test('a single function shows as one event card in place of the programme and venue', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, {
+      title: 'Hina & Bilal',
+      eventType: 'walima',
+      details: { date: '2026-12-21T00:00:00.000Z', events: [{ name: 'Walima', date: '2026-12-21T20:00:00.000Z', time: '8:00 PM', venue: 'Pearl Continental', mapUrl: '' }] },
+    });
+    const on = inv.sections.filter((s) => s.enabled).map((s) => s.type);
+    expect(on).toEqual(['hero', 'quote', 'scratch', 'countdown', 'families', 'event', 'rsvp', 'wishes', 'contact', 'closing']);
+    const data = (type) => inv.sections.find((s) => s.type === type).data;
+    expect(data('event').items.map((e) => e.venue)).toEqual(['Pearl Continental']);
+    expect(data('hero').subtitle).toBe('Walima Reception'); // one function keeps the occasion's own line
+  });
+
+  test('a family with two weddings shares one card, each function saying whose it is', async () => {
+    const { token } = await register(request, app);
+    const inv = await createInvite(token, {
+      title: 'Ayesha & Ahmed · Sara & Hamza',
+      eventType: 'wedding',
+      details: {
+        date: '2026-12-20T00:00:00.000Z',
+        // each couple's own two families, kept with that couple
+        families: [
+          { title: "Ayesha's family", names: 'Mr. & Mrs. Khan', couple: 'Ayesha & Ahmed' },
+          { title: "Ahmed's family", names: 'Mr. & Mrs. Malik', couple: 'Ayesha & Ahmed' },
+          { title: "Sara's family", names: 'Mr. & Mrs. Malik', couple: 'Sara & Hamza' },
+          { title: "Hamza's family", names: 'Mr. & Mrs. Butt', couple: 'Sara & Hamza' },
+        ],
+        subtitle: 'request the honour of your presence at the celebration of their weddings',
+        events: [
+          { name: 'Barat', date: '2026-12-20T19:00:00.000Z', time: '7:00 PM', venue: 'Royal Palm', couple: 'Ayesha & Ahmed' },
+          { name: 'Barat', date: '2026-12-21T19:00:00.000Z', time: '7:00 PM', venue: 'Royal Palm', couple: 'Sara & Hamza' },
+          { name: 'Walima', date: '2026-12-22T20:00:00.000Z', time: '8:00 PM', venue: 'Pearl Continental', couple: 'Both couples' },
+        ],
+      },
+    });
+    expect(inv.title).toBe('Ayesha & Ahmed · Sara & Hamza');
+    const event = inv.sections.find((s) => s.type === 'event');
+    expect(event.enabled).toBe(true);
+    expect(event.data.items.map((e) => e.couple)).toEqual(['Ayesha & Ahmed', 'Sara & Hamza', 'Both couples']);
+    expect(inv.sections.find((s) => s.type === 'families').data.groups.map((g) => g.couple)).toEqual(['Ayesha & Ahmed', 'Ayesha & Ahmed', 'Sara & Hamza', 'Sara & Hamza']);
+    expect(inv.sections.find((s) => s.type === 'hero').data.subtitle).toBe('request the honour of your presence at the celebration of their weddings');
+  });
+
   test('non-couple occasions skip the verse and blessings', async () => {
     const { token } = await register(request, app);
     const inv = await createInvite(token, { title: "Zara's Birthday", eventType: 'birthday' });

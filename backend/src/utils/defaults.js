@@ -62,9 +62,39 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
   const schedule = filled(details.schedule);
   const venue = details.venue || {};
   const contact = details.contact || {};
+  // Functions given (wedding occasions, one or more): each gets its own ticket (date, time, venue) in
+  // place of the single programme and venue, and a Nikah/Walima/Mehndi cover names them all ("Nikah & Walima").
+  const events = filled(details.events).map((e) => ({ name: e.name || '', date: e.date || '', time: e.time || '', venue: e.venue || '', address: '', mapUrl: e.mapUrl || '', couple: e.couple || '' }));
+  const multi = events.length >= 1;
+  const names = [...new Set(events.map((e) => e.name).filter(Boolean))]; // two couples' Barats name it once
+  const subtitle = details.subtitle || (multi && ['nikah', 'walima', 'mehndi'].includes(eventType) && names.length >= 2
+    ? `${names.slice(0, -1).join(', ')} & ${names[names.length - 1]}`
+    : p.subtitle);
+
+  const scheduleSection = {
+    type: 'schedule',
+    data: {
+      heading: 'Programme',
+      items: schedule.length
+        ? schedule.map((x) => ({ time: x.time || '', title: x.title || '', description: '' }))
+        : [
+            { time: '7:00 PM', title: 'Guests arrive', description: 'Welcome drinks' },
+            { time: '8:00 PM', title: 'Main ceremony', description: '' },
+            { time: '9:30 PM', title: 'Dinner', description: '' },
+          ],
+    },
+  };
+  const venueSection = { type: 'venue', data: { heading: 'Venue', name: venue.name || 'Venue name', address: venue.address || (venue.mapUrl ? '' : 'Street, City'), mapUrl: venue.mapUrl || '', mapQuery: '', image: '' } };
+  const eventSection = {
+    type: 'event',
+    data: {
+      heading: events.length >= 2 ? 'The Celebrations' : 'Event Details',
+      items: multi ? events : p.events || [{ name: p.heroTitle, date, time: '7:00 PM', venue: venue.name || 'Venue name', address: venue.address || 'Full address' }],
+    },
+  };
 
   const shown = [
-    { type: 'hero', data: { title: p.heroTitle, subtitle: p.subtitle, tagline: p.tagline, date, image: '', layout: isCouple ? 'arch' : 'classic', foil: true } },
+    { type: 'hero', data: { title: p.heroTitle, subtitle, tagline: p.tagline, date, image: '', layout: isCouple ? 'arch' : 'classic', foil: true } },
     isCouple && {
       type: 'quote',
       data: isIslamic
@@ -87,20 +117,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
             : [{ title: 'With love from', names: 'The family' }],
       },
     },
-    {
-      type: 'schedule',
-      data: {
-        heading: 'Programme',
-        items: schedule.length
-          ? schedule.map((x) => ({ time: x.time || '', title: x.title || '', description: '' }))
-          : [
-              { time: '7:00 PM', title: 'Guests arrive', description: 'Welcome drinks' },
-              { time: '8:00 PM', title: 'Main ceremony', description: '' },
-              { time: '9:30 PM', title: 'Dinner', description: '' },
-            ],
-      },
-    },
-    { type: 'venue', data: { heading: 'Venue', name: venue.name || 'Venue name', address: venue.address || (venue.mapUrl ? '' : 'Street, City'), mapUrl: venue.mapUrl || '', mapQuery: '', image: '' } },
+    ...(multi ? [eventSection] : [scheduleSection, venueSection]),
     { type: 'rsvp', data: { heading: 'Will you join us?', text: 'Kindly let us know by the date below.', deadline: inDays(20), maxGuests: 10, askPhone: true } },
     { type: 'wishes', data: { heading: 'Send your wishes', text: 'Leave a message for us' } },
     { type: 'contact', data: { heading: 'Contact', people: [{ name: contact.name || 'Family contact', phone: contact.phone || '', whatsapp: true }] } },
@@ -117,13 +134,7 @@ function buildDefaultSections(eventType = 'wedding', title = '', details = {}) {
         { name: 'Groom', role: 'The Groom', photo: '', bio: '' },
       ] },
     },
-    {
-      type: 'event',
-      data: {
-        heading: 'Event Details',
-        items: p.events || [{ name: p.heroTitle, date, time: '7:00 PM', venue: venue.name || 'Venue name', address: venue.address || 'Full address' }],
-      },
-    },
+    ...(multi ? [scheduleSection, venueSection] : [eventSection]),
     isCouple && {
       type: 'timeline',
       data: {
