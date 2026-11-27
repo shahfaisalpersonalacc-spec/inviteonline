@@ -73,6 +73,7 @@ const JSON_LD = {
       applicationCategory: "LifestyleApplication",
       operatingSystem: "Any (works in the browser)",
       featureList: FEATURES.map((f) => `${f.title}: ${f.text}`),
+      offers: { "@type": "Offer", price: "0", priceCurrency: "INR", description: "Free to start" },
       publisher: { "@id": `${SITE_URL}/#org` },
     },
     { "@type": "FAQPage", mainEntity: FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },

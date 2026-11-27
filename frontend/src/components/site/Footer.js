@@ -3,6 +3,17 @@ import { LogoMark } from "@/components/ui/Logo";
 
 const COLUMNS = [
   {
+    title: "Invitations",
+    links: [
+      ["/invitations/wedding", "Wedding"],
+      ["/invitations/nikah", "Nikah"],
+      ["/invitations/walima", "Walima"],
+      ["/invitations/mehndi", "Mehndi & dholki"],
+      ["/invitations/birthday", "Birthday"],
+      ["/invitations", "All occasions"],
+    ],
+  },
+  {
     title: "Product",
     links: [
       ["/#entrances", "Entrances"],
@@ -27,7 +38,7 @@ export default function Footer() {
   return (
     <footer className="at-light grain grain-dark relative mx-3 mb-3 overflow-hidden rounded-[2.5rem] bg-night text-cream ring-1 ring-white/[0.06] sm:mx-4 sm:mb-4">
       <div className="mx-auto max-w-6xl px-4 pt-20 sm:px-6">
-        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <LogoMark size={44} onDark />
             <p className="mt-6 max-w-sm font-serif text-2xl leading-snug text-cream/85">
